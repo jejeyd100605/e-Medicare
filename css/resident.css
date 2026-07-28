@@ -374,6 +374,38 @@ body {
     background: #b71c1c;
 }
 
+/* ---------------- SOS HOLD-TO-CONFIRM ---------------- */
+.floating-emergency-btn {
+    overflow: hidden;
+    position: fixed; /* meron na ito, iniwan lang para linaw */
+}
+
+.floating-emergency-btn .sos-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.35);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.floating-emergency-btn.holding .sos-progress {
+    transition: width 3s linear;
+    width: 100%;
+}
+
+.floating-emergency-btn i,
+.floating-emergency-btn span:not(.sos-progress) {
+    position: relative;
+    z-index: 1;
+}
+
+.floating-emergency-btn.holding {
+    background: #b71c1c;
+}
+
 /* Overlay para sa dynamic-content-panel — centered popup */
 .panel-overlay {
     display: none;

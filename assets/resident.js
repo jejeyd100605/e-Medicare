@@ -9,7 +9,7 @@ var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUserId = null;
 let currentUserName = 'Resident';
 let currentUserBarangay = 'Bambang'; // ginagamit para i-tag ang mga request
-
+let currentUserVerified = false; // BAGO — kailangan bago makapag-submit ng kahit anong request
 // ==========================================================================
 // LOAD USER PROFILE — tinatawag pagbukas ng page
 // ==========================================================================
@@ -36,6 +36,7 @@ async function loadUserProfile() {
 
     currentUserName = profile.name;
     currentUserBarangay = profile.barangay || 'Bambang';
+    currentUserVerified = profile.id_verified === true; // BAGO
 
     document.getElementById('userName').textContent = profile.name;
     document.getElementById('welcomeName').textContent = profile.name;
@@ -60,6 +61,17 @@ async function loadUserProfile() {
     subscribeRequestsRealtimeResident();
 }
 
+// ==========================================================================
+// ID VERIFICATION GATE — kailangan ma-verify muna ang ID bago makapag-submit
+// ng kahit anong request (Emergency, Transpo, Medical Assistance, SOS)
+// ==========================================================================
+function requireVerifiedOrWarn() {
+    if (!currentUserVerified) {
+        alert('⚠️ Kailangan mo munang ma-verify ang iyong ID bago makapag-submit ng request.\n\nTiyakin na malinaw ang kuha ng iyong Valid ID at Selfie photo, at hintayin ang pag-verify ng Barangay Admin. Bumalik sa loob ng ilang oras o araw.');
+        return false;
+    }
+    return true;
+}
 // ==========================================================================
 // LIVE RESOURCE STATUS — konektado sa Supabase "fleet" table
 // ==========================================================================
@@ -587,6 +599,8 @@ function subscribeRequestsRealtimeResident() {
 // SUBMIT: EMERGENCY REQUEST
 // ==========================================================================
 async function submitRequest(type) {
+    if (!requireVerifiedOrWarn()) return;
+
     const category = document.getElementById('category').value;
     const desc = document.getElementById('desc').value.trim();
     const location = document.getElementById('emergencyLocation').value;
@@ -637,6 +651,8 @@ async function submitRequest(type) {
 // SUBMIT: TRANSPO REQUEST (may 1-hour cooldown)
 // ==========================================================================
 async function submitTranspo() {
+    if (!requireVerifiedOrWarn()) return;
+
     const cooldown = await checkTranspoCooldown();
     if (!cooldown.allowed) {
         alert(`Isang Transpo request lang ang puwede kada oras. Maghintay pa ng ${cooldown.remainingMinutes} minuto bago muling magsubmit.`);
@@ -691,6 +707,8 @@ async function submitTranspo() {
 // SUBMIT: MEDICAL ASSISTANCE REQUEST
 // ==========================================================================
 async function submitMedicalRequest() {
+    if (!requireVerifiedOrWarn()) return;
+
     const type = document.getElementById('assistType').value;
     const docs = document.getElementById('assistDocs').files;
     const details = document.getElementById('assistDetails').value.trim();
@@ -878,8 +896,59 @@ async function submitChangePassword() {
 let sosCooldownActive = false;
 
 async function handleSOSCall() {
-    if (sosCooldownActive) return;
+    // ==========================================================================
+// SOS HOLD-TO-CONFIRM — kailangan i-hold ng 3 segundo bago mag-trigger,
+// para maiwasan ang di-sinasadyang pagpindot sa panic button
+// ==========================================================================
+const SOS_HOLD_DURATION = 3000; // 3 segundo
+let sosHoldTimeout = null;
 
+function initSOSHoldButton() {
+    const btn = document.getElementById('sosFloatingBtn');
+    const label = document.getElementById('sosBtnLabel');
+    if (!btn) return;
+
+    const startHold = (e) => {
+        e.preventDefault();
+        if (sosCooldownActive || sosHoldTimeout) return;
+
+        btn.classList.add('holding');
+        if (label) label.textContent = 'Keep holding...';
+        if (navigator.vibrate) navigator.vibrate(50);
+
+        sosHoldTimeout = setTimeout(() => {
+            btn.classList.remove('holding');
+            if (label) label.textContent = 'Hold SOS';
+            sosHoldTimeout = null;
+            handleSOSCall();
+        }, SOS_HOLD_DURATION);
+    };
+
+    const cancelHold = () => {
+        if (sosHoldTimeout) {
+            clearTimeout(sosHoldTimeout);
+            sosHoldTimeout = null;
+        }
+        btn.classList.remove('holding');
+        if (label) label.textContent = 'Hold SOS';
+    };
+
+    btn.addEventListener('pointerdown', startHold);
+    btn.addEventListener('pointerup', cancelHold);
+    btn.addEventListener('pointerleave', cancelHold);
+    btn.addEventListener('pointercancel', cancelHold);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initSOSHoldButton();
+});
+
+// ==========================================================================
+// SOS EMERGENCY CALL — instant panic button, auto-submit sa database
+// ==========================================================================
+let sosCooldownActive = false;
+    if (sosCooldownActive) return;
+    if (!requireVerifiedOrWarn()) return;
     // BAGO — kunin ang pinaka-bagong user ID direkta kay Supabase,
     // huwag umasa sa currentUserId variable na baka luma na
     const { data: { user }, error: userError } = await supabase.auth.getUser();
