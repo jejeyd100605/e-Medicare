@@ -1,0 +1,1884 @@
+/* ============================================================
+    e-Medicare — Barangay Bambang Admin Control Center
+    Handles: incident feed, fleet/responder real-time status,
+    assistance request pipeline (pending -> completed),
+    budget-aware financial assistance queue with priority scoring,
+    system activity log, and resident notifications.
+    ============================================================ */
+
+    /* ---------------------------------------------------------
+    SUPABASE SETUP
+    --------------------------------------------------------- */
+    const SUPABASE_URL = "https://szxptfuwkmqwcipxpoym.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let fleetCache = [];
+let incidentsCache = [];
+let transpoCache = [];
+let medicalRequestsCache = [];
+let activeIncidentId = null;
+let responderProfilesCache = [];
+
+    async function checkAdminSession() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'adminlogin.html';
+            return null;
+        }
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role, name')
+            .eq('id', session.user.id)
+            .single();
+        return profile;
+    }
+
+    /* ---------------------------------------------------------
+    STORAGE KEYS + STATE
+    --------------------------------------------------------- */
+    const DB = {
+    incidents:     'bmb_incidents',
+    fleet:         'bmb_fleet',
+    requests:      'bmb_requests',
+    budget:        'bmb_budget',
+    activity:      'bmb_activity',
+    notifications: 'bmb_notifications',
+    users:         'bmb_users',
+    session:       'bmb_session'
+    };
+
+    function load(key, fallback){
+    try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+    }
+    function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+    function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
+    function nowISO(){ return new Date().toISOString(); }
+    function fmtTime(iso){
+    const d = new Date(iso);
+    return d.toLocaleString('en-PH', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    function timeAgo(iso){
+    const s = Math.floor((Date.now() - new Date(iso).getTime())/1000);
+    if(s < 60) return 'just now';
+    if(s < 3600) return Math.floor(s/60) + 'm ago';
+    if(s < 86400) return Math.floor(s/3600) + 'h ago';
+    return Math.floor(s/86400) + 'd ago';
+    }
+
+    /* ---------------------------------------------------------
+    SOS ALERT — beep + visual/browser notification for new emergencies
+    --------------------------------------------------------- */
+    let sosAudioCtx = null;
+    let sosBeepInterval = null;
+    let originalTitle = document.title;
+    let titleFlashInterval = null;
+
+    function playSOSBeep(){
+        if(!sosAudioCtx){
+            try{ sosAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            catch(e){ console.warn('AudioContext not supported', e); return; }
+        }
+        if(sosAudioCtx.state === 'suspended') sosAudioCtx.resume();
+
+        const now = sosAudioCtx.currentTime;
+        [0, 0.3, 0.6].forEach(offset => {
+            const osc = sosAudioCtx.createOscillator();
+            const gain = sosAudioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(880, now + offset);
+            gain.gain.setValueAtTime(0.15, now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.25);
+            osc.connect(gain).connect(sosAudioCtx.destination);
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.25);
+        });
+    }
+
+    function startSOSAlertLoop(){
+        stopSOSAlertLoop();
+        playSOSBeep();
+        sosBeepInterval = setInterval(playSOSBeep, 4000);
+        startTitleFlash();
+    }
+
+    function stopSOSAlertLoop(){
+        if(sosBeepInterval){ clearInterval(sosBeepInterval); sosBeepInterval = null; }
+        stopTitleFlash();
+    }
+
+    function startTitleFlash(){
+        if(titleFlashInterval) return;
+        let toggle = false;
+        titleFlashInterval = setInterval(() => {
+            document.title = toggle ? originalTitle : '🚨 NEW SOS ALERT!';
+            toggle = !toggle;
+        }, 1000);
+    }
+    function stopTitleFlash(){
+        if(titleFlashInterval){ clearInterval(titleFlashInterval); titleFlashInterval = null; }
+        document.title = originalTitle;
+    }
+
+    function showSOSToast(incident){
+        const callerName = incident?.sender?.name || 'A resident';
+        const container = document.getElementById('sosToastContainer') || (() => {
+            const c = document.createElement('div');
+            c.id = 'sosToastContainer';
+            c.style.cssText = 'position:fixed; top:16px; right:16px; z-index:9999; display:flex; flex-direction:column; gap:10px;';
+            document.body.appendChild(c);
+            return c;
+        })();
+
+        const toast = document.createElement('div');
+        toast.style.cssText = 'background:#3a1c1c; border:1px solid #ff4d4d; color:#fff; padding:14px 16px; border-radius:10px; width:300px; box-shadow:0 6px 20px rgba(0,0,0,.5); animation:sosPulse 1s infinite;';
+        toast.innerHTML = `
+            <div style="font-weight:700; color:#ff8a8a; margin-bottom:4px;">🚨 NEW SOS / EMERGENCY</div>
+            <div style="font-size:.85em; margin-bottom:8px;">${callerName} needs help — ${incident.category || incident.type || 'Emergency'}</div>
+            <div style="display:flex; gap:8px;">
+                <button class="primary-btn" style="background:#ff4d4d;color:#fff;flex:1;font-size:.78em;" onclick="acknowledgeSOS('${incident.id}', this)">Acknowledge</button>
+            </div>
+        `;
+        container.appendChild(toast);
+    }
+
+    function acknowledgeSOS(incidentId, btnEl){
+        stopSOSAlertLoop();
+        const toast = btnEl.closest('div[style*="animation"]');
+        if(toast) toast.remove();
+        switchTab('dashboard');
+        openAssignModal(incidentId);
+    }
+
+    function requestNotifPermission(){
+        if('Notification' in window && Notification.permission === 'default'){
+            Notification.requestPermission();
+        }
+    }
+
+    function showBrowserSOSNotification(incident){
+        if('Notification' in window && Notification.permission === 'granted'){
+            const n = new Notification('🚨 New SOS Alert', {
+                body: `${incident?.sender?.name || 'A resident'} needs help — ${incident.category || incident.type}`,
+                requireInteraction: true
+            });
+            n.onclick = () => { window.focus(); n.close(); };
+        }
+    }
+
+    /* ---------------------------------------------------------
+    SEED DATA (first run only)
+    Fleet ay galing na sa Supabase — hindi na dito ini-seed.
+    --------------------------------------------------------- */
+    function seedIfEmpty(){
+    if(!localStorage.getItem(DB.incidents)){
+        save(DB.incidents, [
+        { id: uid('inc'), type:'Motorcycle Accident', caller:'Aling Nena', location:'Purok 3, near chapel', status:'Open', reportedAt: nowISO() },
+        { id: uid('inc'), type:'Stroke', caller:'Mang Doming', location:'Blk 5 Lot 12', status:'Assigned', reportedAt: nowISO() },
+        ]);
+    }
+    if(!localStorage.getItem(DB.requests)){
+        save(DB.requests, [
+        {
+            id: uid('req'), residentName:'Marites Villanueva', contact:'0917 555 0142',
+            purpose:'Hospital bill assistance for dialysis treatment', category:'Financial Assistance',
+            priority:'Critical', estimatedCost: 8500, documents:['Medical Certificate.pdf','Indigency Form.pdf','Hospital Bill.pdf'],
+            eligibility:{ residentOfBambang:true, noPriorClaimThisQuarter:true, indigencyVerified:true },
+            status:'Pending', notes:'', submittedAt: nowISO(),
+            history:[{status:'Pending', at: nowISO(), note:'Request submitted by resident'}]
+        },
+        {
+            id: uid('req'), residentName:'Rico Bautista', contact:'0918 222 7781',
+            purpose:'Maintenance medicine for hypertension', category:'Non-Emergency',
+            priority:'Routine', estimatedCost: 1200, documents:['Prescription.pdf'],
+            eligibility:{ residentOfBambang:true, noPriorClaimThisQuarter:true, indigencyVerified:false },
+            status:'Pending', notes:'', submittedAt: nowISO(),
+            history:[{status:'Pending', at: nowISO(), note:'Request submitted by resident'}]
+        },
+        {
+            id: uid('req'), residentName:'Corazon Dizon', contact:'0920 341 9087',
+            purpose:'Emergency C-section hospital bill', category:'Financial Assistance',
+            priority:'Urgent', estimatedCost: 15000, documents:['Medical Certificate.pdf','Indigency Form.pdf'],
+            eligibility:{ residentOfBambang:true, noPriorClaimThisQuarter:false, indigencyVerified:true },
+            status:'Pending', notes:'', submittedAt: nowISO(),
+            history:[{status:'Pending', at: nowISO(), note:'Request submitted by resident'}]
+        }
+        ]);
+    }
+    if(!localStorage.getItem(DB.budget)){
+        save(DB.budget, { total: 30000, allocated: 0, quarter:'Q3 2026' });
+    }
+    if(!localStorage.getItem(DB.activity)) save(DB.activity, []);
+    if(!localStorage.getItem(DB.notifications)) save(DB.notifications, []);
+    if(!localStorage.getItem(DB.users)){
+        save(DB.users, [
+    { id: uid('usr'), name:'Barangay Captain Reyes', role:'Admin / Barangay Captain', contact:'0917 000 1111', tempPassword:false, active:true }
+    ]);
+    }
+    }
+    seedIfEmpty();
+
+    /* ---------------------------------------------------------
+    ACTIVITY LOG + NOTIFICATIONS (core cross-cutting features)
+    --------------------------------------------------------- */
+    function logActivity(type, message){
+    const list = load(DB.activity, []);
+    list.unshift({ id: uid('act'), type, message, at: nowISO() });
+    save(DB.activity, list.slice(0, 300));
+    renderActivity();
+    renderDashboardCounts();
+    }
+
+    const ACTIVITY_ICONS = {
+    dispatch: '🚑', fleet: '🚒', request: '📄', budget: '💰',
+    user: '👤', advisory: '📢', notify: '🔔', comms: '📡'
+    };
+
+    function renderActivity(){
+    const wrap = document.getElementById('activityList');
+    if(!wrap) return;
+    const filter = wrap.dataset.filter || 'all';
+    const list = load(DB.activity, []).filter(a => filter === 'all' || a.type === filter);
+    document.getElementById('activityCountBadge') && (document.getElementById('activityCountBadge').textContent = list.length + ' Events');
+
+    if(list.length === 0){
+        wrap.innerHTML = '<div class="empty-state">No system activity recorded yet.</div>';
+        return;
+    }
+    wrap.innerHTML = list.slice(0, 60).map(a => `
+        <div class="activity-item">
+        <div class="activity-icon">${ACTIVITY_ICONS[a.type] || '•'}</div>
+        <div>
+            <div class="activity-text">${a.message}</div>
+            <div class="activity-meta">${fmtTime(a.at)} · ${timeAgo(a.at)}</div>
+        </div>
+        </div>
+    `).join('');
+    }
+
+    function filterActivity(type, btn){
+    const wrap = document.getElementById('activityList');
+    wrap.dataset.filter = type;
+    document.querySelectorAll('.activity-filters button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderActivity();
+    }
+
+   async function notifyResident(request, message){
+    if (!request.sender_id) return;
+    const { error } = await supabase.from('notifications').insert({
+        receiver_id: request.sender_id,
+        title: 'Request Update',
+        message: message
+    });
+    if (error) console.error('Hindi na-send ang notification:', error.message);
+    }
+
+    function renderNotifications(requestId){
+    const wrap = document.getElementById('evalNotifications');
+    if(!wrap) return;
+    const list = load(DB.notifications, []).filter(n => n.requestId === requestId);
+    if(list.length === 0){
+        wrap.innerHTML = '<div class="empty-state" style="padding:14px;">No notifications sent for this request yet.</div>';
+        return;
+    }
+    wrap.innerHTML = list.map(n => `
+        <div class="notif-item">
+        <div class="n-head"><span>To ${n.residentName}</span><span class="notif-channel-tag">${n.channel}</span></div>
+        <div class="n-body">${n.message}</div>
+        <div class="n-time">${fmtTime(n.at)}</div>
+        </div>
+    `).join('');
+    }
+
+    /* ---------------------------------------------------------
+    TAB NAVIGATION
+    --------------------------------------------------------- */
+    const TABS = ['dashboard','fleet','docs','queue','activity','users','comms','reports'];
+    function switchTab(tab){
+    TABS.forEach(t => {
+        const panel = document.getElementById(t + '-tab');
+        const btn = document.getElementById('btn-' + t);
+        if(panel) panel.style.display = (t === tab) ? 'block' : 'none';
+        if(btn) btn.classList.toggle('active', t === tab);
+    });
+    if(tab === 'dashboard') renderDashboardCounts();
+    if(tab === 'fleet') loadFleetFromSupabase();
+    if(tab === 'docs') loadTranspoFromSupabase();
+if(tab === 'queue') loadMedicalRequestsFromSupabase();
+    if(tab === 'activity') renderActivity();
+   if(tab === 'users') loadUsersFromSupabase();
+    if(tab === 'comms' && typeof renderComms === 'function') renderComms();
+    if(tab === 'reports' && typeof renderReports === 'function') renderReports();
+    }
+
+    /* ---------------------------------------------------------
+    ROLE / SESSION BADGE
+    --------------------------------------------------------- */
+   function initRoleBadge(profile){
+    const badge = document.getElementById('activeRoleBadge');
+    if(badge) badge.textContent = profile.role === 'admin' ? 'Admin / Barangay Captain' : profile.role;
+    if(profile.role === 'admin'){
+        const usersBtn = document.getElementById('btn-users');
+        if(usersBtn) usersBtn.style.display = 'inline-block';
+        const mutualAidBtn = document.getElementById('btn-mutual-aid');
+        if(mutualAidBtn) mutualAidBtn.style.display = 'inline-block';
+    }
+}
+
+    function logout(){
+    if(confirm('Log out of the Barangay Bambang control center?')){
+        supabase.auth.signOut().then(() => {
+            window.location.href = 'adminlogin.html';
+        });
+    }
+    }
+
+    /* ---------------------------------------------------------
+    DASHBOARD: SUMMARY COUNTS + INCIDENT FEED
+    --------------------------------------------------------- */
+    function renderDashboardCounts(){
+    const incidents = incidentsCache;
+    const requests = load(DB.requests, []);
+
+    const open = incidents.filter(i => i.status === 'Pending').length;
+    const assigned = incidents.filter(i => i.status === 'Assigned').length;
+    const resolved = incidents.filter(i => i.status === 'Resolved').length;
+
+    const openCountEl = document.getElementById('openCount');
+    const assignedCountEl = document.getElementById('assignedCount');
+    const resolvedCountEl = document.getElementById('resolvedCount');
+    if(openCountEl) openCountEl.textContent = open;
+    if(assignedCountEl) assignedCountEl.textContent = assigned;
+    if(resolvedCountEl) resolvedCountEl.textContent = resolved;
+
+    renderIncidentFeed();
+    renderQuickFleetStatus();
+    renderWaitingList();
+}
+
+   function renderIncidentFeed(){
+    const list = incidentsCache;
+    const wrap = document.getElementById('reportsList');
+    const empty = document.getElementById('reportsEmpty');
+    const badge = document.getElementById('reportCountBadge');
+    if(!wrap) return;
+    const open = list.filter(i => i.status !== 'Resolved');
+    badge && (badge.textContent = open.length + ' Reports');
+    empty && (empty.style.display = open.length ? 'none' : 'block');
+
+    wrap.innerHTML = open.map(i => {
+        const callerName = i.sender ? i.sender.name : 'Unknown Resident';
+        const mapLink = (i.lat && i.lng)
+            ? `<a href="https://www.google.com/maps?q=${i.lat},${i.lng}" target="_blank" onclick="event.stopPropagation();" style="color:#00b0ff;">View on Map</a>`
+            : 'No GPS data';
+        return `
+        <div class="report-card" onclick="openAssignModal(${i.id})">
+        <div class="report-card-top">
+            <span class="report-card-name">🚨 ${i.category || i.type}</span>
+            <span class="status-pill ${statusClass(i.status)}"><span class="status-dot"></span>${i.status}</span>
+        </div>
+        <div class="report-card-detail">${callerName} · ${mapLink}</div>
+        <div class="report-card-detail" style="color:#aaa;">${i.description || ''}</div>
+        <div class="timestamp">${timeAgo(i.created_at)}</div>
+        </div>
+    `;}).join('');
+}
+
+    async function loadIncidentsFromSupabase() {
+    const { data, error } = await supabase
+        .from('emergency_requests')
+       .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact)')
+        .in('type', ['Emergency', 'SOS'])
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Hindi makuha ang emergency requests:', error.message);
+        return;
+    }
+
+    incidentsCache = data;
+    renderDashboardCounts();
+}
+
+function subscribeIncidentsRealtime() {
+    supabase
+        .channel('emergency-requests-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'emergency_requests' }, (payload) => {
+            const isSOSorEmergency = ['Emergency', 'SOS'].includes(payload.new?.type || payload.old?.type);
+            if (!isSOSorEmergency) return;
+
+            if(payload.eventType === 'INSERT'){
+                // Bagong SOS mula sa resident — i-refresh ang cache muna
+                // para makuha yung sender info, tapos i-trigger ang alerts.
+                loadIncidentsFromSupabase().then(() => {
+                    const inc = incidentsCache.find(i => String(i.id) === String(payload.new.id)) || payload.new;
+                    startSOSAlertLoop();
+                    showSOSToast(inc);
+                    showBrowserSOSNotification(inc);
+                    const label = inc.type === 'SOS' ? '🚨 SOS Panic Button' : '🚨 New emergency';
+                    logActivity('notify', `${label} received from <b>${inc?.sender?.name || 'resident'}</b>.`);
+                });
+            } else {
+                loadIncidentsFromSupabase();
+            }
+        })
+        .subscribe();
+}
+
+    /* ---------------------------------------------------------
+    FLEET & PERSONNEL — REAL-TIME AVAILABILITY MONITORING
+    (Ngayon ay galing na sa Supabase, hindi na sa localStorage)
+    --------------------------------------------------------- */
+    async function loadFleetFromSupabase() {
+        const { data, error } = await supabase
+            .from('fleet')
+            .select('*')
+            .order('name', { ascending: true });
+
+        if (error) {
+            console.error('Hindi makuha ang fleet:', error.message);
+            return;
+        }
+
+        fleetCache = data.map(f => ({
+            id: f.id,
+            name: f.name,
+            type: f.type,
+            plate: f.plate_number,
+            status: f.status,
+            assignedTo: f.assigned_to,
+            profileId: f.profile_id,
+            lastUpdated: f.updated_at || f.created_at
+        }));
+
+        await loadResponderProfilesForFleet();
+        renderFleet();
+        renderQuickFleetStatus();
+    }
+
+    async function loadResponderProfilesForFleet(){
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('id, name')
+            .eq('role', 'responder')
+            .order('name', { ascending: true });
+        if(error){ console.error('Hindi makuha ang responder accounts:', error.message); return; }
+        responderProfilesCache = data || [];
+
+        const sel = document.getElementById('fleetLinkedProfile');
+        if(sel){
+            const current = sel.value;
+            sel.innerHTML = '<option value="">— No linked account —</option>' +
+                responderProfilesCache.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            if(current) sel.value = current;
+        }
+    }
+
+    function subscribeFleetRealtime() {
+        supabase
+            .channel('fleet-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'fleet' }, () => {
+                loadFleetFromSupabase();
+            })
+            .subscribe();
+    }
+
+    function fleetSummary(list){
+    return {
+        available: list.filter(f => f.status === 'Available').length,
+        onDuty: list.filter(f => f.status === 'On Duty').length,
+        unavailable: list.filter(f => f.status === 'Unavailable').length
+    };
+    }
+
+    function statusClass(status){ return 'status-' + status.replace(/\s+/g,''); }
+
+    function renderQuickFleetStatus(){
+    const list = fleetCache;
+    const wrap = document.getElementById('quickFleetStatus');
+    if(!wrap) return;
+    const s = fleetSummary(list);
+    const stripHtml = `
+        <div class="fleet-summary-strip">
+        <div class="fleet-summary-chip"><div class="n" style="color:var(--green);">${s.available}</div><div class="l">Available</div></div>
+        <div class="fleet-summary-chip"><div class="n" style="color:var(--blue);">${s.onDuty}</div><div class="l">On Duty</div></div>
+        <div class="fleet-summary-chip"><div class="n" style="color:var(--red);">${s.unavailable}</div><div class="l">Unavailable</div></div>
+        </div>
+        <div style="text-align:right; margin-bottom:6px;">
+        <span class="live-indicator"><span class="status-dot pulse"></span>Live · updated ${timeAgo(new Date().toISOString())}</span>
+        </div>
+    `;
+    const rows = list.map(f => {
+        // BAGO: i-shorten yung assignedTo para di masyadong mahaba sa compact row
+        const shortAssign = f.assignedTo ? f.assignedTo.split(' (')[0] : ''; // tanggalin yung "(Vehicle: X, Driver: Y)" part dito
+        return `
+        <div class="fleet-quick-row">
+        <div>
+            <div class="fleet-quick-name">${f.name}</div>
+            <div class="fleet-quick-type">${f.type}${shortAssign ? ' · ' + shortAssign : ''}</div>
+        </div>
+        <span class="status-pill ${statusClass(f.status)}"><span class="status-dot"></span>${f.status}</span>
+        </div>
+    `;}).join('');
+    wrap.innerHTML = stripHtml + rows;
+}
+
+  function renderFleet(){
+    const list = fleetCache;
+    const tbody = document.getElementById('fleetList');
+    if(!tbody) return;
+    tbody.innerHTML = list.map(f => {
+        const linked = f.profileId ? responderProfilesCache.find(p => p.id === f.profileId) : null;
+        return `
+        <tr>
+        <td>
+            <div style="font-weight:600;">${f.name}</div>
+            <div class="timestamp">${f.plate || 'N/A'} · updated ${timeAgo(f.lastUpdated)}${linked ? ' · 🔗 ' + linked.name : ''}</div>
+        </td>
+        <td>${f.type}</td>
+        <td>
+            ${f.assignedTo
+                ? `<span class="status-pill status-OnDuty" style="white-space:normal; display:inline-block; line-height:1.4;">👥 ${f.assignedTo}</span>`
+                : '<span style="color:#666;font-size:.8em;">— Unassigned —</span>'}
+        </td>
+        <td>
+            <select class="mini-select" onchange="updateFleetStatus('${f.id}', this.value)">
+            ${['Available','On Duty','Unavailable'].map(st => `<option value="${st}" ${f.status===st?'selected':''}>${st}</option>`).join('')}
+            </select>
+        </td>
+        <td>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.72em;padding:6px 10px;" onclick="editFleet('${f.id}')">Edit</button>
+            <button class="primary-btn" style="background:#3a1c1c;color:#ff8a8a;font-size:.72em;padding:6px 10px;" onclick="removeFleet('${f.id}')">Remove</button>
+        </td>
+        </tr>
+    `;}).join('');
+    renderQuickFleetStatus();
+    populateDispatchSelects();
+}
+
+    async function updateFleetStatus(id, newStatus){
+     const f = fleetCache.find(x => String(x.id) === String(id));
+    if(!f) return;
+    const oldStatus = f.status;
+
+    const updateData = { status: newStatus };
+    if (newStatus !== 'On Duty') updateData.assigned_to = null;
+
+    const { data, error } = await supabase
+        .from('fleet')
+        .update(updateData)
+        .eq('id', id)
+        .select();
+
+    if (error) {
+        alert('Hindi na-update ang status: ' + error.message);
+        loadFleetFromSupabase();
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        alert('Hindi talaga na-apply ang update sa fleet table. Malamang RLS/permissions issue — i-check ang UPDATE policy sa Supabase para sa "fleet" table.');
+        loadFleetFromSupabase();
+        return;
+    }
+
+    logActivity('fleet', `<b>${f.name}</b> status changed: ${oldStatus} → ${newStatus}`);
+    loadFleetFromSupabase();
+}
+
+    async function handleFleetSubmit(e){
+    e.preventDefault();
+    const id = document.getElementById('fleetId').value;
+    const data = {
+        name: document.getElementById('fleetName').value.trim(),
+        type: document.getElementById('fleetType').value,
+        plate_number: document.getElementById('fleetPlate').value.trim(),
+        status: document.getElementById('fleetStatus').value,
+        profile_id: document.getElementById('fleetLinkedProfile').value || null
+    };
+
+    if(id){
+        const { error } = await supabase.from('fleet').update(data).eq('id', id);
+        if (error) { alert('Hindi na-update: ' + error.message); return; }
+        logActivity('fleet', `Resource updated: <b>${data.name}</b> (${data.type})`);
+    }else{
+        const { error } = await supabase.from('fleet').insert(data);
+        if (error) { alert('Hindi naidagdag: ' + error.message); return; }
+        logActivity('fleet', `New resource registered: <b>${data.name}</b> (${data.type})`);
+    }
+
+    clearFleetForm();
+    loadFleetFromSupabase();
+    }
+
+    function editFleet(id){
+   const f = fleetCache.find(x => String(x.id) === String(id));
+    if(!f) return;
+    document.getElementById('fleetId').value = f.id;
+    document.getElementById('fleetName').value = f.name;
+    document.getElementById('fleetType').value = f.type;
+    document.getElementById('fleetPlate').value = f.plate;
+    document.getElementById('fleetStatus').value = f.status;
+    document.getElementById('fleetLinkedProfile').value = f.profileId || '';
+    document.getElementById('formFleetTitle').textContent = '🚒 Edit Resource Unit';
+    }
+
+    async function removeFleet(id){
+    if(!confirm('Remove this resource from the fleet roster?')) return;
+
+      const { error } = await supabase.from('fleet').delete().eq('id', id);
+    if (error) { alert('Hindi matanggal: ' + error.message); return; }
+
+    logActivity('fleet', 'A resource unit was removed from the roster.');
+    loadFleetFromSupabase();
+    }
+
+    function clearFleetForm(){
+    document.getElementById('fleetForm').reset();
+    document.getElementById('fleetId').value = '';
+    document.getElementById('formFleetTitle').textContent = '🚒 Register Ambulance / Resource Unit';
+    }
+
+    function populateDispatchSelects(){
+    const vehicleSel = document.getElementById('dispatchVehicle');
+    const responderSel = document.getElementById('dispatchResponder');
+    const incidentSel = document.getElementById('dispatchIncident');
+    if(!vehicleSel || !responderSel || !incidentSel) return;
+
+    const vehicles = fleetCache.filter(f => ['Medical (Full)','Transport','Rescue/Patrol','Auxiliary'].includes(f.type));
+    const responders = fleetCache.filter(f => f.type === 'Medical Personnel' || f.type === 'Driver');
+    const openIncidents = incidentsCache.filter(i => i.status !== 'Resolved' && i.status !== 'Assigned');
+
+    const statusTag = (f) => f.status === 'Available' ? '🟢 Available'
+        : f.status === 'On Duty' ? '🟡 On Duty'
+        : '🔴 Unavailable';
+
+    const buildOptions = (list) => list.map(f =>
+        `<option value="${f.id}" ${f.status !== 'Available' ? 'disabled' : ''}>${f.name} — ${statusTag(f)}</option>`
+    ).join('');
+
+    vehicleSel.innerHTML = '<option value="">— None —</option>' + buildOptions(vehicles);
+    responderSel.innerHTML = '<option value="">— None —</option>' + buildOptions(responders);
+
+    incidentSel.innerHTML = '<option value="">— No linked incident —</option>' +
+        openIncidents.map(i => {
+            const callerName = i.sender ? i.sender.name : 'Unknown Resident';
+            return `<option value="${i.id}">${i.category || i.type} — ${callerName}</option>`;
+        }).join('');
+}
+
+function buildCrewTag(member, vehicle, responder, assignmentTag){
+    const partners = [];
+    if(vehicle && String(member.id) !== String(vehicle.id)) partners.push(`Vehicle: ${vehicle.name}`);
+    if(responder && String(member.id) !== String(responder.id)) partners.push(`Responder: ${responder.name}`);
+    const partnerStr = partners.length ? ` (${partners.join(', ')})` : '';
+    return assignmentTag + partnerStr;
+}
+
+async function handleQuickDispatch(e){
+    e.preventDefault();
+
+    const vehicleId = document.getElementById('dispatchVehicle').value;
+    const responderId = document.getElementById('dispatchResponder').value;
+    const incidentId = document.getElementById('dispatchIncident').value;
+    const notes = document.getElementById('dispatchNotes').value;
+
+    if(!vehicleId && !responderId){
+        alert('Pumili ng kahit isang vehicle o responder bago mag-dispatch.');
+        return;
+    }
+
+    const vehicle = vehicleId ? fleetCache.find(f => String(f.id) === String(vehicleId)) : null;
+    const responder = responderId ? fleetCache.find(f => String(f.id) === String(responderId)) : null;
+    const incident = incidentId ? incidentsCache.find(i => String(i.id) === String(incidentId)) : null;
+
+    const teamLabel = [vehicle?.name, responder?.name].filter(Boolean).join(' + ');
+    const assignmentTag = incident
+        ? `${incident.category || incident.type}, ${incident.sender ? incident.sender.name : 'Resident'}`
+        : (notes || 'Standby / Patrol');
+
+    const membersToUpdate = [vehicle, responder].filter(Boolean);
+    for(const member of membersToUpdate){
+        const memberTag = buildCrewTag(member, vehicle, responder, assignmentTag); // BAGO
+        const { error } = await supabase.from('fleet')
+            .update({ status: 'On Duty', assigned_to: memberTag })
+            .eq('id', member.id)
+            .select();
+        if(error){ alert(`Hindi na-update ang ${member.name}: ` + error.message); return; }
+    }
+
+    // ...ibaba, walang binago pa (incident linking, notification, logActivity)
+
+    // Link sa incident, kung meron
+    if(incident){
+        const { error: incError } = await supabase.from('emergency_requests')
+            .update({ status: 'Assigned', assigned_to: teamLabel, eta: notes })
+            .eq('id', incident.id);
+        if(incError){ alert('Hindi na-update ang incident: ' + incError.message); return; }
+
+        if(incident.sender_id){
+            await supabase.from('notifications').insert({
+                receiver_id: incident.sender_id,
+                title: 'Responder Dispatched',
+                message: `Paparating na ang ${teamLabel} para sa iyong emergency request.${notes ? ' ETA: ' + notes : ''}`
+            });
+        }
+    }
+
+    logActivity('dispatch', `<b>${teamLabel}</b> dispatched${incident ? ' to ' + (incident.category || incident.type) : ' (standby/patrol)'}${notes ? ' — ' + notes : ''}`);
+
+    document.getElementById('quickDispatchForm').reset();
+    loadFleetFromSupabase();
+    if(incident) loadIncidentsFromSupabase();
+}
+
+    /* ---------------------------------------------------------
+    DISPATCH CONTROL CENTER MODAL (from Incident Feed cards)
+    --------------------------------------------------------- */
+    function openAssignModal(id){
+        const inc = incidentsCache.find(i => String(i.id) === String(id));
+        if(!inc){ alert('Hindi makita ang incident na ito.'); return; }
+        activeIncidentId = inc.id;
+
+        const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
+        const contact = inc.sender && inc.sender.contact ? inc.sender.contact : '';
+        const infoBox = document.getElementById('assignIncidentInfo');
+        if(infoBox){
+            infoBox.innerHTML = `
+                <div style="margin-bottom:10px; font-size:0.85em; color:#ccc; background:#222; padding:10px; border-radius:6px;">
+                    <div style="font-weight:600; color:#ffd700;">🚨 ${inc.category || inc.type}</div>
+                    <div>${callerName}${contact ? ' · ' + contact : ''}</div>
+                    <div style="color:#888; margin-top:4px;">${inc.description || 'No description provided.'}</div>
+                    <div style="color:#666; margin-top:4px; font-size:0.85em;">Status: ${inc.status} · ${timeAgo(inc.created_at)}</div>
+                </div>
+            `;
+        }
+
+        const driverSel = document.getElementById('driverSelect');
+        const responderSel = document.getElementById('responderSelect');
+        const standby = fleetCache.filter(f => f.status === 'Available');
+
+        if(driverSel){
+            const drivers = standby.filter(f => f.type === 'Driver');
+            driverSel.innerHTML = '<option value="" disabled selected>Select driver on standby</option>' +
+                drivers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+        }
+
+       if(responderSel){
+            const responders = standby.filter(f => f.type === 'Medical Personnel');
+            responderSel.innerHTML = '<option value="" disabled selected>Select responder on standby</option>' +
+                responders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+        }
+
+        const notesEl = document.getElementById('assignNotes');
+        if(notesEl) notesEl.value = '';
+
+        const printBtn = document.getElementById('btn-print-report');
+        if(printBtn) printBtn.style.display = (inc.status === 'Assigned' || inc.status === 'Waiting List') ? 'inline-block' : 'none';
+
+        document.getElementById('assignModal').style.display = 'flex';
+    }
+
+
+function printIncidentReport(){
+    const inc = incidentsCache.find(i => i.id === activeIncidentId);
+    if(!inc){ alert('Walang napiling incident na i-print.'); return; }
+
+    const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
+    const contact = inc.sender ? inc.sender.contact : 'N/A';
+
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Incident Report - ${inc.category || inc.type}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
+                h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ddd; font-size: 13px; }
+                th { width: 180px; color: #555; }
+                .footer { margin-top: 40px; font-size: 11px; color: #777; }
+            </style>
+        </head>
+        <body>
+            <h1>e-Medicare — Barangay Bambang Incident Report</h1>
+            <table>
+                <tr><th>Incident Type</th><td>${inc.category || inc.type}</td></tr>
+                <tr><th>Reported By</th><td>${callerName} (${contact})</td></tr>
+                <tr><th>Description</th><td>${inc.description || 'N/A'}</td></tr>
+                <tr><th>Status</th><td>${inc.status}</td></tr>
+                <tr><th>Assigned To</th><td>${inc.assigned_to || 'Not yet assigned'}</td></tr>
+                <tr><th>ETA / Notes</th><td>${inc.eta || 'N/A'}</td></tr>
+                <tr><th>Date Reported</th><td>${fmtTime(inc.created_at)}</td></tr>
+                <tr><th>Location (GPS)</th><td>${inc.lat && inc.lng ? `${inc.lat}, ${inc.lng}` : 'No GPS data'}</td></tr>
+            </table>
+            <div class="footer">Generated ${fmtTime(nowISO())} · e-Medicare Barangay Bambang Control Center</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 300);
+}
+
+   async function handleAssignResponder(e){
+    e.preventDefault();
+    const driverId = document.getElementById('driverSelect').value;
+    const responderId = document.getElementById('responderSelect').value;
+    const notes = document.getElementById('assignNotes').value;
+    const inc = incidentsCache.find(i => i.id === activeIncidentId);
+    const driver = fleetCache.find(f => String(f.id) === String(driverId));
+    const responder = fleetCache.find(f => String(f.id) === String(responderId));
+
+    if(!inc) return;
+    if(!driver || !responder){
+        alert('Kailangan piliin ang parehong Driver at Responder bago mag-dispatch.');
+        return;
+    }
+
+    const teamLabel = `${driver.name} + ${responder.name}`;
+
+    const { error: incError } = await supabase
+        .from('emergency_requests')
+        .update({
+            status: 'Assigned',
+            assigned_to: teamLabel,
+            eta: notes,
+            assigned_responder_id: responder.profileId || null,
+            assigned_responder_name: responder.name
+        })
+        .eq('id', inc.id);
+    if (incError) { alert('Hindi na-update ang request: ' + incError.message); return; }
+
+    const assignTag = `${inc.category || inc.type}, ${inc.sender ? inc.sender.name : 'Resident'}`;
+
+    const { data: driverUpdate, error: driverError } = await supabase
+        .from('fleet')
+        .update({ status: 'On Duty', assigned_to: `${assignTag} (Responder: ${responder.name})` })
+        .eq('id', driver.id)
+        .select();
+    if (driverError) { alert('Hindi na-dispatch ang driver: ' + driverError.message); return; }
+
+    const { data: responderUpdate, error: responderError } = await supabase
+        .from('fleet')
+        .update({ status: 'On Duty', assigned_to: `${assignTag} (Driver: ${driver.name})` })
+        .eq('id', responder.id)
+        .select();
+    if (responderError) { alert('Hindi na-dispatch ang responder: ' + responderError.message); return; }
+
+    if (!driverUpdate?.length || !responderUpdate?.length) {
+        alert('May hindi na-update sa fleet status. Possible RLS/permissions issue — check ang UPDATE policy sa Supabase para sa "fleet" table.');
+        loadIncidentsFromSupabase();
+        return;
+    }
+
+    // BAGO — i-notify ang resident
+    if (inc.sender_id) {
+        await supabase.from('notifications').insert({
+            receiver_id: inc.sender_id,
+            title: 'Responder Dispatched',
+            message: `Paparating na sina ${teamLabel} para sa iyong emergency request.${notes ? ' ETA: ' + notes : ''}`
+        });
+    }
+
+    // BAGO — i-notify ang driver AT responder mismo (kung may naka-link na account)
+    const dispatchNotifications = [];
+    if (driver.profileId) {
+        dispatchNotifications.push({
+            receiver_id: driver.profileId,
+            title: 'New Dispatch Assignment',
+            message: `Na-assign ka bilang driver kasama si ${responder.name} sa ${inc.category || inc.type} (${inc.sender ? inc.sender.name : 'Resident'}).${notes ? ' Notes: ' + notes : ''}`
+        });
+    }
+    if (responder.profileId) {
+        dispatchNotifications.push({
+            receiver_id: responder.profileId,
+            title: 'New Dispatch Assignment',
+            message: `Na-assign ka bilang responder kasama si ${driver.name} sa ${inc.category || inc.type} (${inc.sender ? inc.sender.name : 'Resident'}).${notes ? ' Notes: ' + notes : ''}`
+        });
+    }
+    if (dispatchNotifications.length) {
+        const { error: notifError } = await supabase.from('notifications').insert(dispatchNotifications);
+        if (notifError) console.error('Hindi na-send ang dispatch notification:', notifError.message);
+    }
+
+    logActivity('dispatch', `<b>${teamLabel}</b> dispatched to ${inc.category || inc.type} (${inc.sender ? inc.sender.name : 'Resident'})${notes ? ' — ETA: ' + notes : ''}`);
+    document.getElementById('assignModal').style.display = 'none';
+    loadIncidentsFromSupabase();
+    loadFleetFromSupabase();
+}
+
+    async function moveToWaitingList(){
+    const inc = incidentsCache.find(i => i.id === activeIncidentId);
+    if(!inc) return;
+
+    const { error } = await supabase
+        .from('emergency_requests')
+        .update({ status: 'Waiting List' })
+        .eq('id', inc.id);
+
+    if (error) { alert('Hindi na-update: ' + error.message); return; }
+
+    logActivity('request', `Case for <b>${inc.sender ? inc.sender.name : 'Resident'}</b> moved to documentation tracker.`);
+    document.getElementById('assignModal').style.display = 'none';
+    loadIncidentsFromSupabase();
+}
+
+
+    function renderWaitingList(){
+    const wrap = document.getElementById('waitingList');
+    if(!wrap) return;
+    const pending = load(DB.requests, []).filter(r => r.status === 'Pending' || r.status === 'Under Review');
+    if(pending.length === 0){
+        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No documents awaiting review.</div>';
+        return;
+    }
+    wrap.innerHTML = pending.slice(0,5).map(r => `
+        <div class="fleet-quick-row">
+        <div>
+            <div class="fleet-quick-name">${r.residentName}</div>
+            <div class="fleet-quick-type">${r.category}</div>
+        </div>
+        <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
+        </div>
+    `).join('');
+    }
+
+   function printFullReport(){
+    const avgResponse = document.getElementById('repAvgResponse')?.textContent || '—';
+    const totalRequests = document.getElementById('repTotalRequests')?.textContent || '0';
+    const fleetUtil = document.getElementById('repFleetUtil')?.textContent || '0%';
+
+    const printWindow = window.open('', '_blank', 'width=850,height=1000');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>e-Medicare — Full System Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
+                h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+                h2 { font-size: 15px; margin-top: 26px; color: #333; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ddd; font-size: 12.5px; }
+                th { background: #f2f2f2; }
+                .summary-row { display: flex; gap: 20px; margin-top: 10px; }
+                .summary-box { border: 1px solid #ccc; border-radius: 6px; padding: 10px 16px; flex: 1; }
+                .summary-box .n { font-size: 18px; font-weight: bold; }
+                .summary-box .l { font-size: 11px; color: #666; }
+                .footer { margin-top: 40px; font-size: 11px; color: #777; }
+            </style>
+        </head>
+        <body>
+            <h1>e-Medicare — Barangay Bambang Full System Report</h1>
+            <p style="font-size:12px;color:#666;">Generated ${fmtTime(nowISO())}</p>
+
+            <div class="summary-row">
+                <div class="summary-box"><div class="n">${avgResponse}</div><div class="l">Avg. Response Time</div></div>
+                <div class="summary-box"><div class="n">${totalRequests}</div><div class="l">Total Requests (All-time)</div></div>
+                <div class="summary-box"><div class="n">${fleetUtil}</div><div class="l">Fleet Utilization</div></div>
+            </div>
+
+            <h2>🚨 Incidents</h2>
+            <table>
+                <tr><th>Type</th><th>Reported By</th><th>Status</th><th>Assigned To</th><th>Date</th></tr>
+                ${incidentsCache.map(i => `
+                    <tr>
+                        <td>${i.category || i.type}</td>
+                        <td>${i.sender ? i.sender.name : 'Unknown'}</td>
+                        <td>${i.status}</td>
+                        <td>${i.assigned_to || '—'}</td>
+                        <td>${fmtTime(i.created_at)}</td>
+                    </tr>
+                `).join('')}
+            </table>
+
+            <h2>🚑 Fleet Roster</h2>
+            <table>
+                <tr><th>Unit / Personnel</th><th>Type</th><th>Plate</th><th>Status</th><th>Assigned To</th></tr>
+                ${fleetCache.map(f => `
+                    <tr>
+                        <td>${f.name}</td>
+                        <td>${f.type}</td>
+                        <td>${f.plate || 'N/A'}</td>
+                        <td>${f.status}</td>
+                        <td>${f.assignedTo || '—'}</td>
+                    </tr>
+                `).join('')}
+            </table>
+
+            <h2>📄 Assistance Requests</h2>
+            <table>
+                <tr><th>Resident</th><th>Category</th><th>Priority</th><th>Status</th><th>Cost</th></tr>
+                ${medicalRequestsCache.map(r => `
+                    <tr>
+                        <td>${r.resident_name}</td>
+                        <td>${r.category}</td>
+                        <td>${r.priority}</td>
+                        <td>${r.status}</td>
+                        <td>₱${Number(r.estimated_cost || 0).toLocaleString()}</td>
+                    </tr>
+                `).join('')}
+            </table>
+
+            <h2>📈 Recent Activity</h2>
+            <table>
+                <tr><th>Event</th><th>Date/Time</th></tr>
+                ${load(DB.activity, []).slice(0, 30).map(a => `
+                    <tr><td>${a.message.replace(/<[^>]+>/g, '')}</td><td>${fmtTime(a.at)}</td></tr>
+                `).join('')}
+            </table>
+                    
+            <div class="footer">e-Medicare · Barangay Bambang Control Center — Official System Printout</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 300);
+}
+
+    function requestMutualAid(){
+    logActivity('fleet', 'Mutual aid vehicle borrow request sent to neighboring barangay dispatch.');
+    alert('Mutual aid request broadcast to neighboring barangays.');
+    }
+
+    async function postAdvisory(){
+    const title = document.getElementById('advTitle').value.trim();
+    const msg = document.getElementById('advMsg').value.trim();
+    if(!title || !msg){ alert('Please fill in both the subject and message.'); return; }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from('advisories').insert({
+        title: title,
+        message: msg,
+        posted_by: user?.id
+    });
+
+    if (error) {
+        alert('Hindi na-post ang advisory: ' + error.message);
+        return;
+    }
+
+    logActivity('advisory', `Community advisory posted: <b>${title}</b>`);
+    document.getElementById('advTitle').value = '';
+    document.getElementById('advMsg').value = '';
+    alert('Advisory broadcast to residents.');
+    }
+
+    /* ---------------------------------------------------------
+    BUDGET (funds available for financial medical assistance)
+    --------------------------------------------------------- */
+    function getBudget(){ return load(DB.budget, { total: 0, allocated: 0, quarter:'' }); }
+    function remainingBudget(){ const b = getBudget(); return b.total - b.allocated; }
+
+    function renderBudgetBox(targetId){
+    const el = document.getElementById(targetId);
+    if(!el) return;
+    const b = getBudget();
+    const remaining = b.total - b.allocated;
+    const pct = b.total ? Math.min(100, Math.round((b.allocated / b.total) * 100)) : 0;
+    const tight = remaining < b.total * 0.2;
+    el.innerHTML = `
+        <div class="budget-row"><span>${b.quarter} Fund Pool</span><b>₱${b.total.toLocaleString()}</b></div>
+        <div class="budget-row"><span>Disbursed / Allocated</span><b>₱${b.allocated.toLocaleString()}</b></div>
+        <div class="budget-bar-track"><div class="budget-bar-fill ${tight?'tight':''}" style="width:${pct}%;"></div></div>
+        <div class="budget-row"><span>Remaining Balance</span><b style="color:${tight?'var(--red)':'var(--green)'};">₱${remaining.toLocaleString()}</b></div>
+        <div class="budget-actions">
+        <input type="number" id="topUpAmount" class="form-control" placeholder="Add funds (₱)" min="0">
+        <button class="primary-btn" style="background:var(--blue); color:#fff;" onclick="topUpBudget()">Add</button>
+        </div>
+    `;
+    }
+
+    function topUpBudget(){
+    const input = document.getElementById('topUpAmount');
+    const amount = Number(input.value);
+    if(!amount || amount <= 0){ alert('Enter a valid fund amount.'); return; }
+    const b = getBudget();
+    b.total += amount;
+    save(DB.budget, b);
+    logActivity('budget', `₱${amount.toLocaleString()} added to the ${b.quarter} medical assistance fund pool.`);
+    input.value = '';
+    renderBudgetBox('queueBudgetBox');
+    renderQueue();
+    }
+
+    /* ---------------------------------------------------------
+    ASSISTANCE REQUESTS — PIPELINE (Pending -> Completed)
+    --------------------------------------------------------- */
+
+    async function loadMedicalRequestsFromSupabase(){
+        const { data, error } = await supabase
+            .from('medical_assistance_requests')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if(error){ console.error('Hindi makuha ang medical assistance requests:', error.message); return; }
+        medicalRequestsCache = data || [];
+        renderRequests();
+        renderQueue();
+    }
+
+    function subscribeMedicalRequestsRealtime(){
+        supabase
+            .channel('medical-assistance-requests-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'medical_assistance_requests' }, () => {
+                loadMedicalRequestsFromSupabase();
+            })
+            .subscribe();
+    }
+
+
+    const STATUS_STEPS = ['Pending','Under Review','Queued','Approved','Disbursed'];
+
+   function renderRequests(){
+    const list = medicalRequestsCache;
+    const wrap = document.getElementById('assistanceRequestsList');
+    const empty = document.getElementById('assistanceEmpty');
+    const badge = document.getElementById('assistanceCountBadge');
+    if(!wrap) return;
+
+    const openOnes = list.filter(r => r.status !== 'Disbursed' && r.status !== 'Rejected');
+    badge && (badge.textContent = openOnes.length + ' Pending');
+    empty && (empty.style.display = list.length ? 'none' : 'block');
+
+    wrap.innerHTML = list.map(r => `
+        <div class="request-card ${String(r.id) === String(selectedRequestId) ? 'selected':''}" onclick="selectRequest('${r.id}')">
+        <div class="request-card-top">
+            <span class="request-card-name">${r.resident_name}</span>
+            <span class="status-pill ${statusClass(r.status)}"><span class="status-dot"></span>${r.status}</span>
+        </div>
+        <div class="request-card-detail">${r.category} · ₱${Number(r.estimated_cost || 0).toLocaleString()}</div>
+        <div class="request-card-meta">
+            <span class="badge">${r.priority}</span>
+            <span class="timestamp">${timeAgo(r.created_at)}</span>
+        </div>
+        </div>
+    `).join('');
+    }
+
+    let selectedRequestId = null;
+
+   function selectRequest(id){
+    selectedRequestId = id;
+    const r = medicalRequestsCache.find(x => String(x.id) === String(id));
+    if(!r) return;
+
+    document.getElementById('selectedRequestId').value = r.id;
+    document.getElementById('evalResidentName').value = r.resident_name + (r.contact_number ? ' · ' + r.contact_number : '');
+    document.getElementById('evalPurpose').value = r.purpose || '';
+    document.getElementById('evalCategory').value = r.category;
+    document.getElementById('evalPriority').value = r.priority;
+    if(document.getElementById('evalCost')) document.getElementById('evalCost').value = r.estimated_cost || 0;
+    document.getElementById('evalNotes').value = r.admin_notes || '';
+
+    const docs = Array.isArray(r.documents) ? r.documents : [];
+    document.getElementById('evalDocAttachments').innerHTML = docs.length
+        ? docs.map(d => `📎 ${d}`).join('<br>')
+        : 'No documents attached.';
+
+    renderStepper(r);
+    renderRequests();
+
+    document.getElementById('evalDocAttachments').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+
+    function renderStepper(r){
+    const wrap = document.getElementById('statusStepper');
+    if(!wrap) return;
+    if(r.status === 'Rejected'){
+        wrap.innerHTML = `<div class="status-stepper">
+        <div class="step done"><div class="dot">✓</div><div class="lbl">Pending</div></div>
+        <div class="step done"><div class="dot">✓</div><div class="lbl">Reviewed</div></div>
+        <div class="step rejected"><div class="dot">✕</div><div class="lbl">Rejected</div></div>
+        </div>`;
+        return;
+    }
+    const idx = STATUS_STEPS.indexOf(r.status);
+    wrap.innerHTML = `<div class="status-stepper">
+        ${STATUS_STEPS.map((s,i) => `
+        <div class="step ${i < idx ? 'done' : i === idx ? 'current' : ''}">
+            <div class="dot">${i < idx ? '✓' : i+1}</div>
+            <div class="lbl">${s}</div>
+        </div>
+        `).join('')}
+    </div>`;
+    }
+
+    /* Priority score: urgency + eligibility + budget fit — used both for
+    manual triage and for auto-sorting the financial assistance queue */
+   function computePriorityScore(r){
+    const urgencyWeight = { Critical: 50, Urgent: 30, Routine: 10 }[r.priority] || 10;
+    const budgetFit = Number(r.estimated_cost || 0) <= remainingBudget() ? 20 : 0;
+    const waitingBonus = Math.min(10, Math.floor((Date.now() - new Date(r.created_at).getTime()) / (1000*60*60*24)));
+    return urgencyWeight + budgetFit + waitingBonus;
+    }
+
+    function pushHistory(r, status, note){
+    const history = Array.isArray(r.history) ? r.history : [];
+    history.push({ status, at: nowISO(), note: note || '' });
+    return history;
+    }
+
+    async function handleAssistanceEvaluation(e){
+    e.preventDefault();
+    const action = e.submitter ? e.submitter.value : 'Approve';
+    console.log('handleAssistanceEvaluation called, action:', action);
+    const id = document.getElementById('selectedRequestId').value;
+    const r = medicalRequestsCache.find(x => String(x.id) === String(id));
+    if(!r){ alert('Select a request from the list first.'); return; }
+
+    const category = document.getElementById('evalCategory').value;
+    const priority = document.getElementById('evalPriority').value;
+    const notes = document.getElementById('evalNotes').value;
+    const costInput = document.getElementById('evalCost');
+    const cost = Number(costInput?.value || r.estimated_cost || 0);
+
+    if(action === 'Reject'){
+        const history = pushHistory(r, 'Rejected', notes || 'Request did not meet approval criteria.');
+        const { error } = await supabase.from('medical_assistance_requests')
+            .update({ status: 'Rejected', category, priority, admin_notes: notes, history })
+            .eq('id', r.id);
+        if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+        logActivity('request', `Request from <b>${r.resident_name}</b> was rejected.`);
+        await notifyResident(r, `Hi ${r.resident_name}, your request (${r.purpose}) was not approved. Reason: ${notes || 'Did not meet program criteria.'} Visit the barangay office for details.`);
+        loadMedicalRequestsFromSupabase();
+        return;
+    }
+
+    if(category === 'Financial Assistance'){
+        if(cost > remainingBudget()){
+        const history = pushHistory(r, 'Queued', 'Insufficient available funds — placed in priority queue.');
+        const { error } = await supabase.from('medical_assistance_requests')
+            .update({ status: 'Queued', category, priority, estimated_cost: cost, admin_notes: notes, history })
+            .eq('id', r.id);
+        if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+        logActivity('budget', `<b>${r.resident_name}</b>'s request (₱${cost.toLocaleString()}) queued — remaining fund pool ₱${remainingBudget().toLocaleString()} is insufficient.`);
+        await notifyResident(r, `Hi ${r.resident_name}, your financial assistance request is approved for processing but has been placed in queue while barangay funds are replenished. We'll notify you once funds are available.${notes ? ' Note: ' + notes : ''}`);
+        }else{
+        const b = getBudget();
+        b.allocated += cost;
+        save(DB.budget, b);
+        const history = pushHistory(r, 'Disbursed', 'Approved and funds disbursed.');
+        const { error } = await supabase.from('medical_assistance_requests')
+            .update({ status: 'Disbursed', category, priority, estimated_cost: cost, admin_notes: notes, history })
+            .eq('id', r.id);
+        if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+        logActivity('budget', `₱${cost.toLocaleString()} disbursed to <b>${r.resident_name}</b>. Remaining fund pool: ₱${remainingBudget().toLocaleString()}.`);
+        await notifyResident(r, `Hi ${r.resident_name}, your financial assistance request has been approved and funds (₱${cost.toLocaleString()}) are ready for release at the barangay office.${notes ? ' Note: ' + notes : ''}`);
+        }
+    }else{
+        const history = pushHistory(r, 'Approved', notes || 'Approved for processing.');
+        const { error } = await supabase.from('medical_assistance_requests')
+            .update({ status: 'Approved', category, priority, estimated_cost: cost, admin_notes: notes, history })
+            .eq('id', r.id);
+        if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+        logActivity('request', `Request from <b>${r.resident_name}</b> approved (${category}).`);
+        await notifyResident(r, `Hi ${r.resident_name}, your request (${r.purpose}) has been approved. Please proceed to the barangay health desk.${notes ? ' Note: ' + notes : ''}`);
+    }
+
+    loadMedicalRequestsFromSupabase();
+    }
+
+    /* ---------------------------------------------------------
+    FINANCIAL ASSISTANCE QUEUE (priority + eligibility + budget)
+    --------------------------------------------------------- */
+    function renderQueue(){
+    renderBudgetBox('queueBudgetBox');
+    const wrap = document.getElementById('queueList');
+    if(!wrap) return;
+    const queued = medicalRequestsCache
+        .filter(r => r.status === 'Queued')
+        .map(r => ({ ...r, priorityScore: computePriorityScore(r) }))
+        .sort((a,b) => b.priorityScore - a.priorityScore);
+
+    const badge = document.getElementById('queueCountBadge');
+    badge && (badge.textContent = queued.length + ' Queued');
+
+    if(queued.length === 0){
+        wrap.innerHTML = '<div class="empty-state">No requests currently queued — all eligible claims are within budget.</div>';
+        return;
+    }
+
+    wrap.innerHTML = queued.map((r, idx) => `
+        <div class="queue-card">
+        <div class="qc-top">
+            <div><span class="queue-rank">${idx+1}</span><b>${r.resident_name}</b></div>
+            <span class="badge">${r.priority}</span>
+        </div>
+        <div class="request-card-detail" style="margin-top:6px;">${r.purpose || ''}</div>
+        <div class="queue-score">Priority score: <b>${r.priorityScore}</b> · Cost: ₱${Number(r.estimated_cost||0).toLocaleString()} · Waiting ${timeAgo(r.created_at)}</div>
+        <div class="queue-actions">
+            <button class="primary-btn" style="background:var(--green); color:#111;"
+            ${r.estimated_cost > remainingBudget() ? 'disabled' : ''}
+            onclick="disburseQueued('${r.id}')">
+            ${r.estimated_cost > remainingBudget() ? 'Insufficient Funds' : '✓ Disburse Now'}
+            </button>
+            <button class="primary-btn" style="background:#333; color:#eee;" onclick="selectRequestFromQueue('${r.id}')">Review</button>
+        </div>
+        </div>
+    `).join('');
+    }
+
+    async function disburseQueued(id){
+    const r = medicalRequestsCache.find(x => String(x.id) === String(id));
+    if(!r) return;
+    if(r.estimated_cost > remainingBudget()){ alert('Fund pool balance is insufficient for this request.'); return; }
+
+    const b = getBudget();
+    b.allocated += r.estimated_cost;
+    save(DB.budget, b);
+
+    const history = pushHistory(r, 'Disbursed', 'Released from priority queue once funds became available.');
+    const { error } = await supabase.from('medical_assistance_requests')
+        .update({ status: 'Disbursed', history })
+        .eq('id', r.id);
+    if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+    logActivity('budget', `Queued request for <b>${r.resident_name}</b> disbursed (₱${Number(r.estimated_cost).toLocaleString()}). Remaining: ₱${remainingBudget().toLocaleString()}.`);
+    await notifyResident(r, `Hi ${r.resident_name}, good news — funds are now available. Your ₱${Number(r.estimated_cost).toLocaleString()} assistance is ready for release at the barangay office.`);
+    loadMedicalRequestsFromSupabase();
+    }
+
+    function selectRequestFromQueue(id){
+    switchTab('docs');
+    selectRequest(id);
+    }
+
+    async function loadTranspoFromSupabase(){
+    const { data, error } = await supabase
+        .from('transport_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if(error){ console.error('Hindi makuha ang transpo requests:', error.message); return; }
+    transpoCache = data || [];
+    renderTranspoList();
+}
+
+function subscribeTranspoRealtime(){
+    supabase
+        .channel('transport-requests-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transport_requests' }, () => {
+            loadTranspoFromSupabase();
+        })
+        .subscribe();
+}
+
+let selectedTranspoId = null;
+
+function renderTranspoList(){
+    const wrap = document.getElementById('transpoRequestsList');
+    const empty = document.getElementById('transpoEmpty');
+    const badge = document.getElementById('transpoCountBadge');
+    if(!wrap) return;
+
+    const pending = transpoCache.filter(r => r.status === 'Pending');
+    badge && (badge.textContent = pending.length + ' Pending');
+    empty && (empty.style.display = transpoCache.length ? 'none' : 'block');
+
+    wrap.innerHTML = transpoCache.map(r => {
+        const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;   // BAGO
+        return `
+        <div class="request-card ${String(r.id) === String(selectedTranspoId) ? 'selected':''}" onclick="selectTranspoRequest('${r.id}')">
+        <div class="request-card-top">
+            <span class="request-card-name">${r.patient_name}</span>
+            <span class="status-pill ${statusClass(r.status)}"><span class="status-dot"></span>${r.status}</span>
+        </div>
+        <div class="request-card-detail">${r.pickup_location} → ${r.destination}</div>
+        ${driver ? `<div class="request-card-detail" style="color:#00b0ff;">🧑‍✈️ Driver: ${driver.name}</div>` : ''}
+        <div class="request-card-meta">
+            <span class="badge">${r.transport_type || ''}</span>
+            <span class="timestamp">${timeAgo(r.created_at)}</span>
+        </div>
+        </div>
+    `;}).join('');
+}
+
+function populateTranspoVehicleSelect(){
+    const sel = document.getElementById('transpoVehicleSelect');
+    if(!sel) return;
+    const available = fleetCache.filter(f => f.status === 'Available');
+    sel.innerHTML = '<option value="" disabled selected>Select available vehicle</option>' +
+        available.map(f => `<option value="${f.id}">${f.name} (${f.type})</option>`).join('');
+}
+
+function populateTranspoDriverSelect(){
+    const sel = document.getElementById('transpoDriverSelect');
+    if(!sel) return;
+    const availableDrivers = fleetCache.filter(f => f.type === 'Driver' && f.status === 'Available');
+    sel.innerHTML = '<option value="">— None —</option>' +
+        availableDrivers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+}
+
+function transpoStepperHTML(r){
+    if(r.status === 'Rejected'){
+        return `<div class="status-stepper">
+            <div class="step done"><div class="dot">✓</div><div class="lbl">Pending</div></div>
+            <div class="step rejected"><div class="dot">✕</div><div class="lbl">Rejected</div></div>
+        </div>`;
+    }
+    const steps = ['Pending','Approved','Completed'];
+    const idx = steps.indexOf(r.status === 'Approved' ? 'Approved' : (r.status === 'Completed' ? 'Completed' : 'Pending'));
+    return `<div class="status-stepper">
+        ${steps.map((s,i) => `
+        <div class="step ${i < idx ? 'done' : i === idx ? 'current' : ''}">
+            <div class="dot">${i < idx ? '✓' : i+1}</div>
+            <div class="lbl">${s}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function selectTranspoRequest(id){
+    selectedTranspoId = id;
+    const r = transpoCache.find(x => String(x.id) === String(id));
+    if(!r) return;
+
+    document.getElementById('selectedTranspoId').value = r.id;
+    document.getElementById('transpoResidentName').value = r.patient_name;
+    document.getElementById('transpoPickup').value = r.pickup_location;
+    document.getElementById('transpoDestination').value = r.destination;
+    document.getElementById('transpoSchedule').value = r.schedule_time ? new Date(r.schedule_time).toLocaleString('en-PH') : '';
+    document.getElementById('transpoType').value = r.transport_type || '';
+    document.getElementById('transpoNotes').value = r.admin_notes || '';
+    document.getElementById('transpoStepper').innerHTML = transpoStepperHTML(r);
+
+    populateTranspoVehicleSelect();
+    populateTranspoDriverSelect();               // BAGO
+    if(r.assigned_vehicle) document.getElementById('transpoVehicleSelect').value = r.assigned_vehicle;
+    if(r.assigned_driver) document.getElementById('transpoDriverSelect').value = r.assigned_driver;   // BAGO
+
+    renderTranspoList();
+}
+
+async function handleTranspoEvaluation(e){
+    e.preventDefault();
+    const action = e.submitter ? e.submitter.value : 'Approve';
+    const id = document.getElementById('selectedTranspoId').value;
+    const r = transpoCache.find(x => String(x.id) === String(id));
+    if(!r){ alert('Select a transpo request from the list first.'); return; }
+
+    const notes = document.getElementById('transpoNotes').value;
+
+    if(action === 'Reject'){
+        // ...walang binago dito
+    }
+
+    const vehicleId = document.getElementById('transpoVehicleSelect').value;
+    const driverId = document.getElementById('transpoDriverSelect').value;   // BAGO
+    const vehicle = fleetCache.find(f => String(f.id) === String(vehicleId));
+    const driver = driverId ? fleetCache.find(f => String(f.id) === String(driverId)) : null;   // BAGO
+    if(!vehicle){ alert('Pumili ng vehicle para sa dispatch.'); return; }
+
+    const crewTag = `Transpo, ${r.patient_name}` + (driver ? ` (Driver: ${driver.name})` : '');   // BAGO
+    const vehicleTag = `Transpo, ${r.patient_name}` + (driver ? ` (Driver: ${driver.name})` : '');
+
+    const { error: reqError } = await supabase
+        .from('transport_requests')
+        .update({ status: 'Approved', assigned_vehicle: vehicle.id, assigned_driver: driver ? driver.id : null, admin_notes: notes })   // BAGO
+        .eq('id', r.id);
+    if(reqError){ alert('Hindi na-update ang request: ' + reqError.message); return; }
+
+    const { error: fleetError } = await supabase
+        .from('fleet')
+        .update({ status: 'On Duty', assigned_to: vehicleTag })
+        .eq('id', vehicle.id)
+        .select();
+    if(fleetError){ alert('Hindi na-dispatch ang vehicle: ' + fleetError.message); return; }
+
+    // BAGO — i-update din ang status ng driver kung meron
+    if(driver){
+        const driverTag = `Transpo, ${r.patient_name} (Vehicle: ${vehicle.name})`;
+        const { error: driverError } = await supabase
+            .from('fleet')
+            .update({ status: 'On Duty', assigned_to: driverTag })
+            .eq('id', driver.id)
+            .select();
+        if(driverError){ alert('Hindi na-dispatch ang driver: ' + driverError.message); return; }
+    }
+
+    logActivity('dispatch', `<b>${vehicle.name}</b>${driver ? ' (Driver: ' + driver.name + ')' : ''} assigned to transpo request of ${r.patient_name} (${r.pickup_location} → ${r.destination}).`);
+
+    if(r.sender_id){
+        await supabase.from('notifications').insert({
+            receiver_id: r.sender_id,
+            title: 'Transpo Request Approved',
+            message: `Hi ${r.patient_name}, na-approve na ang iyong transport request. Isasadispatch si ${vehicle.name}${driver ? ' at driver ' + driver.name : ''}.${notes ? ' Note: ' + notes : ''}`
+        });
+    }
+
+    loadTranspoFromSupabase();
+    loadFleetFromSupabase();
+}
+    /* ---------------------------------------------------------
+    USER ACCOUNTS (kept from original, wired to storage)
+    --------------------------------------------------------- */
+   let usersCache = [];
+
+async function loadUsersFromSupabase(){
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, role, position, contact, active, created_at, id_verified, id_image_url, face_image_url, license_image_url')
+    .order('created_at', { ascending: false });
+  if(error){ console.error('Hindi makuha ang users:', error.message); return; }
+  usersCache = data;
+  renderUsers();
+}
+
+function renderUsers(){
+  const tbody = document.getElementById('usersList');
+  if(!tbody) return;
+  tbody.innerHTML = usersCache.map(u => `
+    <tr>
+      <td>
+        <div style="font-weight:600;">${u.name}</div>
+        <div class="timestamp">${u.contact || 'No contact on file'} · joined ${timeAgo(u.created_at)}</div>
+      </td>
+      <td>${u.role === 'responder' && u.position ? u.position : u.role}${u.id_verified ? ' <span class="status-pill status-Available" style="margin-left:4px;">ID Verified</span>' : ''}</td>
+      <td>${u.active !== false ? '<span class="status-pill status-Available">Active</span>' : '<span class="status-pill status-Unavailable">Inactive</span>'}</td>
+      <td>
+        <button class="primary-btn" style="background:${u.active !== false ? '#3a2a10' : '#123a1c'};color:${u.active !== false ? '#ffcc66' : '#8aff9c'};font-size:.72em;padding:6px 10px;" onclick="toggleUserActive('${u.id}')">${u.active !== false ? 'Deactivate' : 'Activate'}</button>
+        <button class="primary-btn" style="background:#333;color:#eee;font-size:.72em;padding:6px 10px;" onclick="openSecurityModal('${u.id}')">Force Password Reset</button>
+        ${u.id_image_url ? `<button class="primary-btn" style="background:#123a4a;color:#66d9ff;font-size:.72em;padding:6px 10px;" onclick="openIdVerificationModal('${u.id}')">🪪 Review ID</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+   function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---------------------------------------------------------
+   BAGO — toggle Driver's License upload field depending on
+   the selected Position (Responder vs Driver)
+   --------------------------------------------------------- */
+function toggleLicenseField(){
+  const position = document.getElementById('userPosition').value;
+  const wrap = document.getElementById('licenseFieldWrap');
+  const licenseInput = document.getElementById('userLicenseImage');
+  if(position === 'Driver'){
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    if(licenseInput) licenseInput.value = ''; // i-clear kung nag-switch pabalik sa Responder
+  }
+}
+
+async function handleUserFormSubmit(e){
+  e.preventDefault();
+
+  const submitBtn = document.getElementById('userFormSubmitBtn');
+  const name = document.getElementById('userFullName').value.trim();
+  const position = document.getElementById('userPosition').value; // BAGO — 'Responder' o 'Driver'
+  const email = document.getElementById('userEmail').value.trim().toLowerCase();
+  const password = document.getElementById('userPassword').value;
+  const contact = document.getElementById('userContact').value.trim();
+  const idFile = document.getElementById('userIdImage').files[0];
+  const licenseFile = document.getElementById('userLicenseImage')?.files[0]; // BAGO
+
+  if(!name || !email || !password || !contact){
+    alert('Punan lahat ng required fields.');
+    return;
+  }
+
+  if(!idFile){
+    if(!confirm('Wala kang inupload na Barangay ID. Sigurado ka bang ituloy nang walang ID verification?')){
+      return;
+    }
+  }
+
+  // BAGO — mandatory ang Driver's License kapag Driver ang position
+  if(position === 'Driver' && !licenseFile){
+    alert("Kailangan mag-upload ng Driver's License para sa Driver position.");
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating account…';
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if(!session){ alert('Session expired. Mag-login ulit.'); return; }
+
+    let idImageBase64 = null;
+    if(idFile) idImageBase64 = await fileToBase64(idFile);
+
+    let licenseImageBase64 = null; // BAGO
+    if(licenseFile) licenseImageBase64 = await fileToBase64(licenseFile);
+
+    const response = await fetch(
+      'https://szxptfuwkmqwcipxpoym.supabase.co/functions/v1/create-responder',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          role: position,            // BAGO — ipinapasa ang 'Driver' o 'Responder'
+          barangay: 'Bambang',
+          contact,
+          idImageBase64,
+          licenseImageBase64,        // BAGO — driver's license photo, kung meron
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if(!response.ok){
+      alert('Hindi nagawa ang account: ' + (result.error || 'Unknown error'));
+      return;
+    }
+
+   if(response.status === 207){
+      alert('Warning: ' + result.warning + '\n' + result.error);
+    } else {
+      alert(`✅ ${position} account created: ${name}`);
+      logActivity('user', `New ${position.toLowerCase()} account created: <b>${name}</b> (${email}).`);
+    }
+
+    // BAGO — auto-register sa Fleet roster para hindi na kailangang
+    // i-double-register manually. Hinahanap yung bagong profile row
+    // gamit ang name + contact (pinaka-bago sa created_at).
+    const { data: newProfileRows } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('name', name)
+      .eq('contact', contact)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const newProfileId = newProfileRows && newProfileRows[0] ? newProfileRows[0].id : null;
+
+    if(newProfileId){
+      const fleetType = position === 'Driver' ? 'Driver' : 'Medical Personnel';
+      const { error: fleetInsertError } = await supabase.from('fleet').insert({
+        name,
+        type: fleetType,
+        status: 'Available',
+        profile_id: newProfileId
+      });
+      if(fleetInsertError){
+        console.error('Hindi naidagdag sa fleet roster:', fleetInsertError.message);
+      } else {
+        logActivity('fleet', `<b>${name}</b> auto-registered sa fleet roster bilang ${fleetType}.`);
+      }
+    }
+
+    clearUserForm();
+    loadUsersFromSupabase();
+    loadFleetFromSupabase();
+
+  } catch (err) {
+    console.error(err);
+    alert('May naganap na error habang gumagawa ng account.');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create Responder Account';
+  }
+}
+
+function clearUserForm(){
+  document.getElementById('userForm').reset();
+  document.getElementById('userId').value = '';
+  const licenseWrap = document.getElementById('licenseFieldWrap'); // BAGO
+  if(licenseWrap) licenseWrap.style.display = 'none';              // BAGO
+}
+
+let resetTargetId = null;
+function openSecurityModal(id){
+  resetTargetId = id;
+  const u = usersCache.find(x => x.id === id);
+  if(!u) return;
+  document.getElementById('resetTargetName').textContent = u.name;
+  document.getElementById('resetTargetId').value = id;
+  document.getElementById('securityModal').style.display = 'flex';
+}
+function closeSecurityModal(){ document.getElementById('securityModal').style.display = 'none'; }
+
+/* ---------------------------------------------------------
+   BAGO — ID VERIFICATION MODAL
+   Nagpapakita ng barangay ID at face/selfie photo na
+   isinumite ng resident/user, para ma-verify ng admin na
+   tugma ang nakalagay na impormasyon bago i-mark verified.
+   --------------------------------------------------------- */
+let idVerifyTargetId = null;
+
+function idPhotoBoxHTML(label, boxId){
+  return `
+    <div style="flex:1; min-width:200px;">
+      <div style="font-size:0.75em; color:#999; margin-bottom:6px;">${label}</div>
+      <div style="background:#1a1c20; border:1px solid #333; border-radius:8px; min-height:180px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+        <img id="${boxId}-img" src="" style="display:none; max-width:100%; max-height:260px; object-fit:contain;">
+        <div id="${boxId}-empty" style="font-size:0.78em; color:#666; padding:20px; text-align:center;">Loading…</div>
+      </div>
+    </div>
+  `;
+}
+
+async function openIdVerificationModal(id){
+  const u = usersCache.find(x => x.id === id);
+  if(!u) return;
+  idVerifyTargetId = id;
+
+  document.getElementById('idVerifyName').textContent = u.name;
+  document.getElementById('idVerifyMeta').textContent =
+    `${u.contact || 'No contact on file'} · ${u.role === 'responder' && u.position ? u.position : u.role}`;
+  document.getElementById('idVerifyStatus').textContent = u.id_verified
+    ? '✅ Currently marked as Verified'
+    : '⏳ Not yet verified';
+
+  // BAGO — ang mga photo slots ay depende sa klase ng account:
+  //   resident  -> Face/Selfie Photo + Government ID
+  //   Driver    -> Barangay ID + Driver's License
+  //   Responder -> Barangay ID lang
+  let slots = [];
+  if(u.role === 'resident'){
+    slots = [
+      { label: 'Face / Selfie Photo', field: 'face_image_url', bucket: 'face-images', boxId: 'idVerifySlotFace' },
+      { label: 'Government ID',       field: 'id_image_url',   bucket: 'id-images',   boxId: 'idVerifySlotId' },
+    ];
+  }else if(u.position === 'Driver'){
+    slots = [
+      { label: 'Barangay ID',       field: 'id_image_url',      bucket: 'id-images',      boxId: 'idVerifySlotId' },
+      { label: "Driver's License",  field: 'license_image_url', bucket: 'license-images', boxId: 'idVerifySlotLicense' },
+    ];
+  }else{
+    slots = [
+      { label: 'Barangay ID', field: 'id_image_url', bucket: 'id-images', boxId: 'idVerifySlotId' },
+    ];
+  }
+
+  const grid = document.getElementById('idVerifyPhotoGrid');
+  grid.innerHTML = slots.map(s => idPhotoBoxHTML(s.label, s.boxId)).join('');
+
+  document.getElementById('idVerificationModal').style.display = 'flex';
+
+  // I-fetch ang signed URL para sa bawat applicable na photo
+  for(const s of slots){
+    const imgEl = document.getElementById(`${s.boxId}-img`);
+    const emptyEl = document.getElementById(`${s.boxId}-empty`);
+    const path = u[s.field];
+
+    if(!path){
+      emptyEl.textContent = 'No photo submitted.';
+      continue;
+    }
+
+    const { data, error } = await supabase.storage.from(s.bucket).createSignedUrl(path, 300);
+    if(!error && data?.signedUrl){
+      imgEl.src = data.signedUrl;
+      imgEl.style.display = 'block';
+      emptyEl.style.display = 'none';
+    }else{
+      emptyEl.textContent = 'Hindi ma-load ang photo.';
+    }
+  }
+}
+
+function closeIdVerificationModal(){
+  document.getElementById('idVerificationModal').style.display = 'none';
+  idVerifyTargetId = null;
+}
+
+async function setIdVerified(verified){
+  if(!idVerifyTargetId) return;
+  const u = usersCache.find(x => x.id === idVerifyTargetId);
+  if(!u) return;
+
+  const { error } = await supabase.from('profiles').update({ id_verified: verified }).eq('id', idVerifyTargetId);
+  if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+  logActivity('user', `ID for <b>${u.name}</b> marked as ${verified ? 'Verified ✅' : 'Not Verified'}.`);
+  closeIdVerificationModal();
+  loadUsersFromSupabase();
+}
+
+async function toggleUserActive(id){
+  const u = usersCache.find(x => x.id === id);
+  if(!u) return;
+  const wasActive = u.active !== false;
+  const confirmMsg = wasActive
+    ? `Deactivate ${u.name}'s account? Mawawalan sila ng access sa system.`
+    : `Reactivate ${u.name}'s account?`;
+  if(!confirm(confirmMsg)) return;
+
+  const { error } = await supabase.from('profiles').update({ active: !wasActive }).eq('id', id);
+  if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+  logActivity('user', `Account <b>${u.name}</b> ${!wasActive ? 'reactivated' : 'deactivated'}.`);
+  loadUsersFromSupabase();
+}
+
+async function handleResetPassword(e){
+  e.preventDefault();
+  const { error } = await supabase.from('profiles').update({ force_password_reset: true }).eq('id', resetTargetId);
+  if(error){ alert('Hindi na-flag: ' + error.message); return; }
+
+  const u = usersCache.find(x => x.id === resetTargetId);
+  logActivity('user', `Password reset flagged for <b>${u?.name || 'user'}</b> — sila mismo magse-set ng bagong password sa susunod na login.`);
+  closeSecurityModal();
+  loadUsersFromSupabase();
+}
+
+function subscribeProfilesRealtime(){
+  supabase
+    .channel('profiles-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+      loadUsersFromSupabase();
+    })
+    .subscribe();
+}
+
+    /* ---------------------------------------------------------
+    REAL-TIME REFRESH LOOP
+    (keeps "last updated" / live indicator ticking without reload)
+    --------------------------------------------------------- */
+    setInterval(() => {
+    const dashboardVisible = document.getElementById('dashboard-tab') && document.getElementById('dashboard-tab').style.display !== 'none';
+    if(dashboardVisible) renderQuickFleetStatus();
+    const fleetVisible = document.getElementById('fleet-tab') && document.getElementById('fleet-tab').style.display !== 'none';
+    if(fleetVisible) renderQuickFleetStatus();
+    }, 15000);
+
+    /* ---------------------------------------------------------
+    INIT
+    --------------------------------------------------------- */
+   document.addEventListener('DOMContentLoaded', async () => {
+    const profile = await checkAdminSession();
+    if (!profile) return;
+
+   initRoleBadge(profile);
+    requestNotifPermission();
+    await loadFleetFromSupabase();
+    subscribeFleetRealtime();
+    await loadUsersFromSupabase();
+    subscribeProfilesRealtime();
+    await loadIncidentsFromSupabase();
+    subscribeIncidentsRealtime();
+    await loadMedicalRequestsFromSupabase();
+    subscribeMedicalRequestsRealtime();
+    await loadTranspoFromSupabase();
+    subscribeTranspoRealtime();
+    switchTab('dashboard');
+});

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Medicare: Responder Dashboard</title>
+    <link rel="manifest" href="../manifest.json">
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="apple-touch-icon" href="../assets/logo.png">
+    <meta name="theme-color" content="#800000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="../css/responder.css">
+</head>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+
+    <!-- Top -->
+    <div class="header-top">
+
+        <div class="header-left">
+
+            <div class="logo-title">
+
+                <img src="../assets/logo.png" alt="e-Medicare Logo" class="logo-icon" onerror="this.onerror=null;this.src='../assets/logo.png';this.style.display='none';this.insertAdjacentHTML('afterend','<i class=\'fas fa-truck-medical logo-icon\'></i>');">
+
+                <div>
+
+                    <h1>e-Medicare</h1>
+
+                    <p class="dashboard-subtitle">
+                        Responder Dispatch Dashboard
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <button id="logoutBtn" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i>
+            Logout
+        </button>
+
+    </div>
+
+    <hr class="header-divider">
+
+    <!-- Bottom -->
+    <div class="header-right">
+
+        <!-- Assigned Unit -->
+        <div class="unit-label">
+
+            <i class="fas fa-truck-medical"></i>
+
+            <label for="assignedUnit">
+                Assigned Unit:
+            </label>
+
+            <select id="assignedUnit" class="unit-select">
+
+                <option value="Patrol-01">🚓 Patrol Vehicle-01</option>
+
+                <option value="PTV-01">🚐 Patient Transport Vehicle-01</option>
+
+                <option value="Tricycle-01">🛺 Emergency Tricycle-01</option>
+
+            </select>
+
+        </div>
+
+        <span class="separator">|</span>
+
+        <!-- Status -->
+
+        <div class="status-group">
+
+            <label for="unitStatus">
+
+                Unit Status
+
+            </label>
+
+            <select id="unitStatus" class="responder-status-select">
+
+                <option value="Available">
+                    🟢 Available
+                </option>
+
+                <option value="On Duty">
+                    🟡 On Duty
+                </option>
+
+                <option value="Unavailable">
+                    🔴 Unavailable
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- ================= END HEADER ================= -->
+
+
+    <div class="main-content">
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-users-cog"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Active Drivers</span>
+                    <span class="metric-value"><span id="activeDrivers">4</span> <small>On Standby</small></span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-ambulance"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Vehicle Status</span>
+                    <span class="metric-value"><span id="availableVehicles">2</span> <small>Available</small></span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-stopwatch"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Avg. Response</span>
+                    <span class="metric-value"><span id="averageResponse">7</span> <small>Minutes</small></span>
+                </div>
+            </div>
+        </div>
+
+<!-- ================= ASSIGNED PERSONNEL ================= -->
+
+<div class="panel personnel-panel">
+
+    <div class="panel-title">
+
+        Assigned Personnel
+
+    </div>
+
+    <div class="personnel-grid">
+
+        <!-- Driver -->
+
+        <div class="personnel-card">
+
+            <h4>
+
+                <i class="fas fa-id-card"></i>
+
+                Driver
+
+            </h4>
+
+            <p id="driverName">
+
+               Loading...
+
+            </p>
+
+        </div>
+
+        <!-- Responder -->
+
+        <div class="personnel-card">
+
+            <h4>
+
+                <i class="fas fa-shield-alt"></i>
+
+                Responder
+
+            </h4>
+
+            <ul id="assignedResponder">
+
+              <li>Loading...</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= END PERSONNEL ================= -->
+
+        <div class="layout">
+            <div>
+                <div class="panel request-panel">
+                    <div class="panel-title">
+                        Active Emergency Requests
+                        <span id="count" class="count-badge">0</span>
+                    </div>
+
+                    <div class="queue-toolbar">
+                        <div class="status-filters" id="statusFilters">
+                            <button type="button" class="filter-btn active" data-filter="all">All</button>
+                            <button type="button" class="filter-btn" data-filter="pending">Pending</button>
+                            <button type="button" class="filter-btn" data-filter="assigned">Assigned</button>
+                            <button type="button" class="filter-btn" data-filter="unattended">Unattended</button>
+                            <button type="button" class="filter-btn" data-filter="urgent">Urgent</button>
+                        </div>
+
+                        <label class="cross-barangay-toggle">
+                            <input type="checkbox" id="crossBarangayToggle" checked>
+                            <span>Cross-barangay visibility</span>
+                        </label>
+                    </div>
+
+                    <div id="incidentList"></div>
+                </div>
+            </div>
+
+            <div>
+                <div id="detailPanel" class="panel">
+                    <div class="panel-title">
+                        Response Panel
+                        <span id="liveIndicator" class="live-indicator">
+                            <span class="live-dot"></span> Live
+                        </span>
+                    </div>
+
+                    <div id="incidentDetails">
+                        <p style="opacity: 0.7;">Select a request from the sidebar to begin coordination.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="completionModal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2><i class="fas fa-file-medical"></i> Service Completion Record</h2>
+                    <p>Record the assistance, outcome, observations, and follow-up notes.</p>
+                </div>
+                <button type="button" class="modal-close" onclick="closeCompletionModal()" aria-label="Close">&times;</button>
+            </div>
+
+            <form id="completionForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="assistanceProvided">Assistance Provided</label>
+                        <select id="assistanceProvided" class="form-control" required>
+                            <option value="">Select assistance</option>
+                            <option>First Aid</option>
+                            <option>Vital Signs Assessment</option>
+                            <option>Emergency Transport</option>
+                            <option>Medication Assistance</option>
+                            <option>Wound Care</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="patientOutcome">Patient Outcome</label>
+                        <select id="patientOutcome" class="form-control" required>
+                            <option value="">Select outcome</option>
+                            <option>Stabilized on site</option>
+                            <option>Transported to hospital</option>
+                            <option>Referred to health center</option>
+                            <option>Patient declined transport</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="clinicalObservations">Clinical Observations</label>
+                        <textarea id="clinicalObservations" class="form-control" rows="4" required
+                            placeholder="Symptoms, vital signs, interventions, and response to treatment..."></textarea>
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="followUpQuote">Follow-up Notes / Patient Quote</label>
+                        <textarea id="followUpQuote" class="form-control" rows="3"
+                            placeholder="Follow-up instructions or relevant quoted statement..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="receivingFacility">Receiving Facility</label>
+                        <input id="receivingFacility" class="form-control" type="text"
+                            placeholder="Hospital or health center">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="completionTimestamp">Completion Time</label>
+                        <input id="completionTimestamp" class="form-control" type="text" readonly>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="status-btn btn-secondary" onclick="closeCompletionModal()">Cancel</button>
+                    <button type="submit" class="status-btn btn-success">
+                        <i class="fas fa-floppy-disk"></i> Save & Complete Case
+                    </button>
+                </div>
+
+                <p class="security-note">
+                    <i class="fas fa-lock"></i>
+                    Records are submitted through the secured server API. Browser JavaScript does not connect directly to MySQL.
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboardToast" class="dashboard-toast"></div>
+
+   <script type="module" src="../assets/responder.js"></script>
+   <script>
+       if ('serviceWorker' in navigator) {
+           navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
+       }
+   </script>
+
+</body>
+</html>

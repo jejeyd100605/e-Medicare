@@ -1,0 +1,396 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>e-Medicare: Resident Portal</title>
+        <link rel="manifest" href="../manifest.json">
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="apple-touch-icon" href="../assets/logo.png">
+    <meta name="theme-color" content="#800000">
+    <!-- Font Awesome Icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Leaflet Map -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="../css/resident.css">
+    </head>
+    <body>
+        <div class="header">
+            <h1>e-Medicare</h1>
+
+            <div class="user-nav">
+                <!-- 🔔 NOTIFICATION BELL -->
+                <div class="notif-container" onclick="toggleNotifMenu(event)">
+                    <i class="fas fa-bell"></i>
+                    <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
+                </div>
+
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-dropdown-header">
+                        <span>Notifications</span>
+                        <a href="#" onclick="markAllNotifsRead(event)">Mark all read</a>
+                    </div>
+                    <div id="notifList">
+                        <div class="notif-empty">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="profile-container" onclick="toggleProfileMenu(event)">
+                    <div class="header-avatar-circle">
+                        <img id="userProfilePic" src="../assets/images/default-avatar.png" alt="Profile" class="profile-pic-dash">
+                    </div>
+                    <span id="userName" style="font-weight: bold; color: white;">Resident</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                </div>
+
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid #eee; background: #f9f9f9;">
+                        <small style="display: block; color: #777; font-weight: 600;">Account Session</small>
+                        <span id="userSessionInfo" style="font-size: 0.8rem; color: #333; word-break: break-all; font-weight: bold;">Loading info...</span>
+                    </div>
+                    <a href="#" onclick="openChangePasswordModal()">
+                        <i class="fas fa-key" style="color: #666;"></i> Change Password
+                    </a>
+                    <a href="#" onclick="logout()" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="welcome-section">
+                <div class="mini-profile-circle">
+                    <img id="residentProfilePic" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <i id="residentDefaultIcon" class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h2>Hello, <span id="welcomeName">Juancho</span></h2>
+                    <p>Barangay Health & Emergency Portal</p>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card card-red" onclick="switchView('emergency-form'); getLocation();">
+                    <span class="card-icon"><i class="fas fa-truck-medical"></i></span>
+                    <h3>Emergency Request</h3>
+                </div>
+
+            <div class="card card-blue" onclick="switchView('transpo-form'); initTranspoForm();">
+                    <span class="card-icon"><i class="fas fa-calendar-check"></i></span>
+                    <h3>Schedule Transpo</h3>
+                </div>
+
+                <div class="card card-green" onclick="switchView('guide-view'); openGuideList();">
+                    <span class="card-icon"><i class="fas fa-square-plus"></i></span>
+                    <h3>Emergency Guide</h3>
+                </div>
+
+                <div class="card card-pink" style="position:relative;" onclick="switchView('advisories-view'); loadAdvisories(); markAdvisoriesSeen();">
+        <span class="card-icon"><i class="fas fa-bullhorn"></i></span>
+        <h3>Advisories</h3>
+        <span id="advisoryCardBadge" style="display:none; position:absolute; top:10px; right:14px; width:12px; height:12px; background:#ff1744; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.4);"></span>
+    </div>
+
+            <div class="card card-yellow" onclick="switchView('medical-form'); initMedicalForm();">
+                    <span class="card-icon"><i class="fas fa-hand-holding-medical"></i></span>
+                    <div class="card-info">
+                        <h3>Medical Assistance</h3>
+                        <p>Financial & Medicine Support</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dynamic-content-panel-overlay" class="panel-overlay">
+                <div id="dynamic-content-panel" class="panel">
+                    <button onclick="closeView()" style="position: absolute; top: 20px; right: 20px; background: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 10;">✕ Close</button>
+
+                    <div id="emergency-form" class="resident-view" style="display: none;">
+                        <h3 style="color:#800000; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-triangle"></i> Emergency Alert Submission
+                        </h3>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">DETECTED GPS LOCATION</label>
+                            <input type="text" id="emergencyLocation" class="form-control" placeholder="Detecting exact coordinates..." readonly>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <div id="emergencyMap"></div>
+                            <small id="mapStatus" style="display:block; margin-top:5px; color:#888; font-size:0.75rem;">
+                                <i class="fas fa-satellite-dish"></i> Naghihintay ng GPS signal...
+                            </small>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">CATEGORY</label>
+                            <select class="form-control" id="category">
+                                <option value="Medical Emergency">Medical Emergency</option>
+                                <option value="Accident">Accident / Injury</option>
+                                <option value="Fire Emergency">Fire Emergency</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">DETAILS / SITUATION</label>
+                            <textarea class="form-control" id="desc" rows="3" placeholder="I-type rito ang sitwasyon sa lokasyon..."></textarea>
+                        </div>
+                        <button class="btn-submit" style="background: #800000; color: white;" onclick="submitRequest('Emergency')">SEND EMERGENCY ALERT</button>
+                    </div>
+
+                    <div id="transpo-form" class="resident-view" style="display: none;">
+                        <h3 style="color:#0091ea; display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <i class="fas fa-car-side"></i> CENTRALIZED TRANSPO REQUEST
+                        </h3>
+                        <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Centralized request system para sa medical transport ng Barangay.</p>
+
+                       <div class="vehicle-selection" style="margin-bottom: 20px;">
+                        <p style="font-weight: bold; font-size: 0.8rem; margin-bottom: 10px; color: #333;">PILIIN ANG SASAKYAN:</p>
+                        <div class="vehicle-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            <div class="vehicle-card active" data-vehicle="PTV" onclick="selectVehicle(this, 'PTV')" style="border: 2px solid #0091ea; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; background: #f0f7ff; position: relative;">
+                                <span class="status-dot" id="dot-PTV" style="position: absolute; top: 5px; right: 5px; height: 8px; width: 8px; background: #00c853; border-radius: 50%;"></span>
+                                <i class="fas fa-hand-holding-medical" style="display: block; font-size: 1.2rem; color: #0091ea; margin-bottom: 5px;"></i>
+                                <span style="font-size: 0.6rem; font-weight: bold;">PTV</span>
+                            </div>
+                            <div class="vehicle-card" data-vehicle="Patrol" onclick="selectVehicle(this, 'Patrol')" style="border: 1px solid #eee; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; position: relative;">
+                                <span class="status-dot" id="dot-Patrol" style="position: absolute; top: 5px; right: 5px; height: 8px; width: 8px; background: #00c853; border-radius: 50%;"></span>
+                                <i class="fas fa-shield-alt" style="display: block; font-size: 1.2rem; color: #666; margin-bottom: 5px;"></i>
+                                <span style="font-size: 0.6rem; font-weight: bold;">PATROL</span>
+                            </div>
+                            <div class="vehicle-card" data-vehicle="Kolong-kolong" onclick="selectVehicle(this, 'Kolong-kolong')" style="border: 1px solid #eee; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; position: relative;">
+                                <span class="status-dot" id="dot-Kolong-kolong" style="position: absolute; top: 5px; right: 5px; height: 8px; width: 8px; background: #00c853; border-radius: 50%;"></span>
+                                <i class="fas fa-motorcycle" style="display: block; font-size: 1.2rem; color: #666; margin-bottom: 5px;"></i>
+                                <span style="font-size: 0.6rem; font-weight: bold;">KOLONG</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedVehicleType" value="PTV">
+                    </div>
+
+                        <div id="trackingStatus" style="background: #f0f7ff; border: 1px dashed #0091ea; padding: 15px; border-radius: 15px; margin-bottom: 20px; position: relative;">
+                            <label style="font-size: 0.7rem; font-weight: bold; color: #0091ea; text-transform: uppercase;">Request Progress</label>
+                            <div style="display: flex; justify-content: space-between; margin-top: 10px; position: relative;">
+                                <div style="text-align: center; flex: 1; z-index: 1;">
+                                    <i class="fas fa-file-alt" style="color: #0091ea;"></i><br><small style="font-size: 0.65rem;">Sent</small>
+                                </div>
+                                <div style="text-align: center; flex: 1; z-index: 1;">
+                                    <i class="fas fa-user-check" style="color: #ccc;"></i><br><small style="font-size: 0.65rem;">Assigned</small>
+                                </div>
+                                <div style="text-align: center; flex: 1; z-index: 1;">
+                                    <i class="fas fa-truck-moving" style="color: #ccc;"></i><br><small style="font-size: 0.65rem;">En Route</small>
+                                </div>
+                            </div>
+                            <div style="position: absolute; width: 60%; height: 2px; background: #eee; top: 48px; left: 20%; z-index: 0;"></div>
+                        </div>
+
+                        <div class="availability-status" style="margin-bottom: 15px; padding: 10px; border-radius: 10px; background: #fff3e0; border: 1px solid #ffe0b2;">
+                            <p id="availabilityMsg" style="font-size: 0.75em; color: #e65100; margin: 0;">
+                                <i class="fas fa-calendar-alt"></i> <strong>Availability:</strong> Pumili ng Date at Time para makita ang availability.
+                            </p>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">PATIENT CONDITION</label>
+                            <select class="form-control" id="patientCondition">
+                                <option value="Stable / Can Walk">Stable / Nakakalakad</option>
+                                <option value="Wheelchair Bound">Naka-wheelchair</option>
+                                <option value="Bedridden">Bedridden (Nakahiga)</option>
+                                <option value="Stroke/Special Case">Stroke / Special Medical Case</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom:12px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">DATE</label>
+                                <input type="date" class="form-control" id="transpoDate">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">TIME</label>
+                                <input type="time" class="form-control" id="transpoTime">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">PICKUP LOCATION</label>
+                            <input type="text" class="form-control" id="pickupPoint" placeholder="Saan susunduin?">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">DESTINATION</label>
+                            <input type="text" class="form-control" id="destination" placeholder="Hospital o Clinic na pupuntahan?">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">REASON/REMARKS</label>
+                            <textarea class="form-control" id="transpoReason" rows="2" placeholder="Halimbawa: Dialysis, Check-up, etc."></textarea>
+                        </div>
+
+                        <div id="transpoCooldownMsg" style="display:none; margin-bottom:12px; padding:10px; border-radius:10px; background:#ffebee; border:1px solid #ffcdd2; text-align:center; font-size:0.85rem; color:#c62828; font-weight:bold;"></div>
+                        <button class="btn-submit" id="transpoSubmitBtn" style="background:#0091ea; color:white;" onclick="submitTranspo()">SUBMIT TRANSPO REQUEST</button>
+
+                        <div class="hotline-footer" style="margin-top: 15px; text-align: center; padding: 12px; border-top: 1px dashed #eee;">
+                            <p style="font-size: 0.7em; color: #666; margin-bottom: 5px;">Hindi available ang sasakyan? Tumawag agad dito:</p>
+                            <h3 style="color: #800000; margin: 0; font-size: 0.85rem;">0951-836-021 / 0955-288-205 / 0922-298-1112</h3>
+                            <p style="font-size: 0.65em; font-weight: bold; color: #800000;">BAMBANG EMERGENCY HOTLINE (24/7)</p>
+                        </div>
+                    </div>
+
+                    <div id="medical-form" class="resident-view" style="display: none;">
+                        <h3 style="color:#ff9800; display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <i class="fas fa-hand-holding-heart"></i> Medical Assistance Request
+                        </h3>
+                        <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Pakisiguro na kumpleto ang mga sumusunod na dokumento:</p>
+
+                        <div style="background: #fff5e6; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; color: #855e2d; border: 1px solid #ffe0b2;">
+                            <strong style="display: block; margin-bottom: 5px;">Requirements:</strong>
+                            <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.5;">
+                                <li>• Medical Certificate / Abstract</li>
+                                <li>• Barangay Indigency</li>
+                                <li>• Letter address (To Barangay Captain)</li>
+                                <li>• Valid ID (xerox copy with 3 wet signatures)</li>
+                            </ul>
+                        </div>
+
+    <p style="font-size:0.75rem; color:#c62828; font-weight:bold; margin:0 0 8px 0; background:#ffebee; padding:8px 10px; border-radius:8px; border:1px solid #ffcdd2;">
+            <i class="fas fa-exclamation-circle"></i> Paki-combine po ang LAHAT ng required documents (Medical Certificate, Barangay Indigency, Letter, Valid ID) sa I-ISANG PDF FILE lamang bago i-upload.
+        </p>
+
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">TYPE OF ASSISTANCE</label>
+                            <select class="form-control" id="assistType">
+                                <option value="Medicine Assistance">Medicine Assistance</option>
+                                <option value="Hospital Bill">Hospital Bill Support</option>
+                                <option value="Laboratory">Laboratory / Diagnostic Fee</option>
+                            </select>
+                        </div>
+
+                    <div class="form-group" style="margin-bottom:12px;">
+        <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">UPLOAD DOCUMENTS (Image/PDF)</label>
+        <input type="file" class="form-control" id="assistDocs" multiple>
+        <div id="assistDocsList" style="font-size:0.8rem; color:#666; margin-top:6px;"></div>
+    </div>
+
+    <div id="medicalCooldownMsg" style="display:none; margin-bottom:12px; padding:10px; border-radius:10px; background:#ffebee; border:1px solid #ffcdd2; text-align:center; font-size:0.85rem; color:#c62828; font-weight:bold;"></div>
+
+    <div class="form-group" style="margin-bottom:20px;">
+        <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">DETAILS / PURPOSE</label>
+        <textarea class="form-control" id="assistDetails" rows="3" placeholder="I-type dito kung para saan ang assistance..."></textarea>
+    </div>
+
+                        <button class="btn-submit" style="background:#ff9800; color: #333;" onclick="submitMedicalRequest()">SUBMIT MEDICAL REQUEST</button>
+                    </div>
+
+                    <div id="guide-view" class="resident-view" style="display: none;">
+                        <h3 style="color:#2E7D32;"><i class="fas fa-book-medical"></i> First Aid Guides</h3>
+                        <div id="guideList" style="margin-top: 15px; max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+
+                    <div id="advisories-view" class="resident-view" style="display: none;">
+                        <h3 style="color:#f06292;"><i class="fas fa-bullhorn"></i> Barangay Announcements</h3>
+                        <hr style="opacity: 0.1; margin: 15px 0;">
+                        <div id="advisoryList">
+                            <div style="background: #fff3f0; padding: 15px; border-radius: 12px; border-left: 5px solid #f06292; margin-bottom: 10px;">
+                                <strong style="color: #d32f2f;">🚨 BAKUNA SCHEDULE</strong>
+                                <p style="font-size: 0.85rem; margin-top: 5px;">Magkakaroon ng libreng bakuna sa Barangay Hall ngayong darating na Sabado, 8:00 AM.</p>
+                                <small style="color: #888;">Posted: March 3, 2026</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tracking-section">
+                <h3 style="margin-bottom: 15px;">My Recent Requests</h3>
+                <div style="overflow-x: auto;">
+                    <table class="tracking-table">
+                        <thead>
+                            <tr>
+                                <th>Type/Category</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                                <th style="width:40px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestHistory"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tracking-section resource-card">
+                <h3 style="margin-bottom: 15px;"><i class="fas fa-shield-alt"></i> Live Resource Status</h3>
+                <div class="status-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div class="responders">
+                        <small style="display: block; color: #666; font-weight: 600;">Active Responders</small>
+                        <span id="responderCount" style="font-size: 1.2rem; font-weight: bold;">5</span>
+                    </div>
+                    <div class="overall-status" style="text-align: right;">
+                        <small style="display: block; color: #666; font-weight: 600; margin-bottom: 5px;">Ambulance Status</small>
+                        <span id="ambulanceStatus" class="status-badge" style="background: #00c853; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">READY</span>
+                    </div>
+                </div>
+
+            <div id="ambulanceList" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
+                    <div style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">
+                        <i class="fas fa-spinner fa-spin"></i> Loading fleet status...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="firstAidModal">
+            <div class="modal-content">
+                <div id="firstAidContent"></div>
+                <button class="btn-submit" style="background: #2E7D32; color: white; margin-top: 20px;" onclick="toggleModal('firstAidModal', false)">I UNDERSTAND</button>
+            </div>
+        </div>
+
+        <div class="modal" id="changePasswordModal">
+            <div class="modal-content">
+                <h3 style="color: #800000; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <i class="fas fa-lock"></i> Change Account Password
+                </h3>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 5px;">CURRENT PASSWORD</label>
+                    <input type="password" id="currentPassword" class="form-control" placeholder="I-type ang lumang password">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 5px;">NEW PASSWORD</label>
+                    <input type="password" id="newPassword" class="form-control" placeholder="I-type ang bagong password">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 5px;">CONFIRM NEW PASSWORD</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="Ulitin ang bagong password">
+                </div>
+            <button class="btn-submit" style="background: #800000; color: white;" onclick="submitChangePassword()">UPDATE PASSWORD</button>
+                <button class="close-modal" style="background: transparent; border: none; color: #666; width: 100%; margin-top: 12px; cursor: pointer;" onclick="toggleModal('changePasswordModal', false)">CANCEL</button>
+            </div>
+        </div>
+
+        <div class="modal" id="trackingModal">
+            <div class="modal-content" style="max-width:420px;">
+                <h3 style="color:#0091ea; display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                    <i class="fas fa-route"></i> Request Tracking
+                </h3>
+                <div id="trackingModalBody">Loading...</div>
+                <button class="btn-submit" style="background:#800000; color:white; margin-top:20px;" onclick="closeTrackingModal()">CLOSE</button>
+            </div>
+        </div>
+
+        <button id="sosFloatingBtn" onclick="handleSOSCall()" class="floating-emergency-btn">
+            <i class="fas fa-phone-alt"></i>
+            <span>SOS</span>
+        </button>
+
+        <div id="instantAlertToast" style="display:none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #d32f2f; color: white; padding: 20px; border-radius: 15px; z-index: 10000; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; border: 2px solid white;">
+            🚨 EMERGENCY ALERT SENT! <br>
+            <small style="font-weight: normal;">Officials have been notified. Stay calm.</small>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="../assets/resident.js"></script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
+            }
+        </script>
+    </body>
+    </html>
