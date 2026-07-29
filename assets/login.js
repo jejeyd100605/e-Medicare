@@ -53,6 +53,17 @@ async function initApp() {
             .single();
 
         if (profile) {
+            // Admin/official accounts should NEVER use the quick-unlock MPIN
+            // screen — laging kailangan nilang mag-full login gamit email +
+            // password, lalo na dahil pwedeng shared device ang gamit dito
+            // (parehong device ng resident/responder).
+            if (profile.role === "admin" || profile.role === "official") {
+                await supabase.auth.signOut();
+                document.getElementById("formView").classList.remove("hidden");
+                showForm("login");
+                return;
+            }
+
             window._currentProfile = profile;
 
             if (!profile.mpin) {
