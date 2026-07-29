@@ -891,12 +891,6 @@ async function submitChangePassword() {
 }
 
 // ==========================================================================
-// SOS EMERGENCY CALL — instant panic button, auto-submit sa database
-// ==========================================================================
-let sosCooldownActive = false;
-
-async function handleSOSCall() {
-    // ==========================================================================
 // SOS HOLD-TO-CONFIRM — kailangan i-hold ng 3 segundo bago mag-trigger,
 // para maiwasan ang di-sinasadyang pagpindot sa panic button
 // ==========================================================================
@@ -920,6 +914,9 @@ function initSOSHoldButton() {
             btn.classList.remove('holding');
             if (label) label.textContent = 'Hold SOS';
             sosHoldTimeout = null;
+
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+
             handleSOSCall();
         }, SOS_HOLD_DURATION);
     };
@@ -947,6 +944,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // SOS EMERGENCY CALL — instant panic button, auto-submit sa database
 // ==========================================================================
 let sosCooldownActive = false;
+
+async function handleSOSCall() {
     if (sosCooldownActive) return;
     if (!requireVerifiedOrWarn()) return;
     // BAGO — kunin ang pinaka-bagong user ID direkta kay Supabase,
