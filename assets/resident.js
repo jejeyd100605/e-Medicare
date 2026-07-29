@@ -891,10 +891,10 @@ async function submitChangePassword() {
 }
 
 // ==========================================================================
-// SOS HOLD-TO-CONFIRM — kailangan i-hold ng 3 segundo bago mag-trigger,
+// SOS HOLD-TO-CONFIRM — kailangan i-hold ng 2 segundo bago mag-trigger,
 // para maiwasan ang di-sinasadyang pagpindot sa panic button
 // ==========================================================================
-const SOS_HOLD_DURATION = 3000; // 3 segundo
+const SOS_HOLD_DURATION = 2000; // 2seconds
 let sosHoldTimeout = null;
 
 function initSOSHoldButton() {
