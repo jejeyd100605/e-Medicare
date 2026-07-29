@@ -392,7 +392,7 @@ body {
 }
 
 .floating-emergency-btn.holding .sos-progress {
-    transition: width 3s linear;
+    transition: width 2s linear;
     width: 100%;
 }
 

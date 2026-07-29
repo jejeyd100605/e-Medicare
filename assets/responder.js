@@ -638,8 +638,8 @@ function renderDetails(incidents) {
     }
 
     const mapsUrl = incident.lat && incident.lng
-        ? `https://www.google.com/maps?q=${incident.lat},${incident.lng}`
-        : `https://www.google.com/maps/search/${encodeURIComponent(`${incident.category} ${incident.description}`)}`;
+    ? `https://www.google.com/maps/dir/?api=1&destination=${incident.lat},${incident.lng}&travelmode=driving`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${incident.category} ${incident.description}`)}`;
 
     const eta = getCurrentEta(incident);
     const actionHtml = buildActionButtons(incident, mapsUrl);
