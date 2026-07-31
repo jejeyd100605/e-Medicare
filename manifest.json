@@ -1,0 +1,21 @@
+{
+  "name": "e-Medicare",
+  "short_name": "e-Medicare",
+  "description": "A Smart Medical Assistance Request System for Barangay Bambang",
+  "start_url": "/pages/index.html",
+  "display": "standalone",
+  "background_color": "#800000",
+  "theme_color": "#800000",
+  "icons": [
+    {
+      "src": "/assets/LOGO.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/LOGO.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
