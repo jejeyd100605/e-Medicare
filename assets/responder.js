@@ -238,6 +238,7 @@ async function handleCredsSubmit(e){
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if(error){ showAuthError('Incorrect email or password.'); return false; }
 
+
   // kunin ang role mula sa profiles table para malaman saan i-redirect
   const { data: profile } = await supabase
     .from('profiles')
@@ -248,6 +249,7 @@ async function handleCredsSubmit(e){
   if(profile.role === 'admin') window.location.href = '/pages/admin.html';
 else if(profile.role === 'responder') window.location.href = '/pages/responder.html';
 else window.location.href = '/pages/resident.html';
+}
 
 async function loadMyFleetRow(profileId){
     const { data, error } = await supabase
@@ -1362,4 +1364,3 @@ function escapeHtml(value) {
 }
 
 document.getElementById("logoutBtn")?.addEventListener("click", logout);
-}
