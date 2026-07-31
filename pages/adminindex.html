@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Medicare — Admin Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/adminlogin.css">
+</head>
+<body>
+
+    <div class="admin-auth-card">
+        <div class="admin-shield"><i class="fas fa-shield-halved"></i></div>
+        <h1 class="admin-title">Barangay Bambang</h1>
+        <p class="admin-subtitle">Admin Control Center Access</p>
+
+        <div id="adminAuthError" class="admin-error hidden"></div>
+
+        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+            <label class="admin-label">Email Address</label>
+            <input type="email" id="adminEmail" class="admin-input" placeholder="you@bambang.gov.ph" required autocomplete="username">
+
+            <label class="admin-label">Password</label>
+            <input type="password" id="adminPassword" class="admin-input" placeholder="••••••••" required autocomplete="current-password">
+
+            <button type="submit" id="adminLoginBtn" class="admin-btn">Sign In</button>
+        </form>
+
+        <p class="admin-note">
+            <i class="fas fa-lock"></i>
+            This portal is restricted to authorized barangay administrators only.
+            Resident and responder accounts cannot sign in here.
+        </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/admin-login.js"></script>
+</body>
+</html>
