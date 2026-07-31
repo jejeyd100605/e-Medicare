@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>e-Medicare: Responder Dashboard</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="icon" type="image/png" href="../assets/logo.png">
-    <link rel="apple-touch-icon" href="../assets/logo.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+    <link rel="apple-touch-icon" href="/assets/logo.png">
     <meta name="theme-color" content="#800000">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="../css/responder.css">
+    <link rel="stylesheet" href="/css/responder.css">
 </head>
 
 <!-- ================= HEADER ================= -->
@@ -24,7 +24,7 @@
 
             <div class="logo-title">
 
-                <img src="../assets/logo.png" alt="e-Medicare Logo" class="logo-icon" onerror="this.onerror=null;this.src='../assets/logo.png';this.style.display='none';this.insertAdjacentHTML('afterend','<i class=\'fas fa-truck-medical logo-icon\'></i>');">
+                <img src="/assets/logo.png" alt="e-Medicare Logo" class="logo-icon" onerror="this.onerror=null;this.src='/assets/logo.png';this.style.display='none';this.insertAdjacentHTML('afterend','<i class=\'fas fa-truck-medical logo-icon\'></i>');">
 
                 <div>
 
@@ -317,7 +317,7 @@
 
     <div id="dashboardToast" class="dashboard-toast"></div>
 
-   <script type="module" src="../assets/responder.js"></script>
+   <script type="module" src="/assets/responder.js"></script>
    <script>
        if ('serviceWorker' in navigator) {
            navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
