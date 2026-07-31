@@ -539,7 +539,7 @@ async function handleLogin(e) {
 async function handleMagicLink(email) {
     const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin + "/login.html" }
+       options: { emailRedirectTo: window.location.origin + "/pages/login.html" }
     });
 
     if (error) {
@@ -592,11 +592,11 @@ function executeSecureRouting(role) {
     }
 
     const routes = {
-        resident: "resident.html",
-        official: "Baranggayofficial.html",
-        responder: "responder.html",
-        admin: "admin.html"
-    };
+    resident: "/pages/resident.html",
+    official: "/pages/Baranggayofficial.html",
+    responder: "/pages/responder.html",
+    admin: "/pages/admin.html"
+};
 
-    window.location.href = routes[role.toLowerCase()] || "resident.html";
+window.location.href = routes[role.toLowerCase()] || "/pages/resident.html";
 }

@@ -222,14 +222,13 @@ function finalizeLogin(methodNote){
 
   const role = (pendingUser.role || '').toLowerCase();
   if(role.includes('admin')){
-    window.location.href = 'admin.html';
-  } else if(role.includes('responder')){
-    window.location.href = 'responder.html';
-  } else {
-    window.location.href = 'resident.html'; // or whatever your resident dashboard file is named
-  }
+    window.location.href = '/pages/admin.html';
+} else if(role.includes('responder')){
+    window.location.href = '/pages/responder.html';
+} else {
+    window.location.href = '/pages/resident.html';
 }
-
+}
 /* ---------------------------------------------------------
    ACCOUNT RECOVERY (secret question / answer)
 --------------------------------------------------------- */
@@ -294,10 +293,10 @@ function handleRecoveryReset(e){
   logActivity('auth', `<b>${user.name}</b> recovered account access via secret question and reset their password/MPIN.`);
   showRecMessage('recSuccess', 'Password and MPIN updated. Redirecting to login…');
   document.getElementById('recStepReset').style.display = 'none';
-  setTimeout(() => { window.location.href = 'login.html'; }, 1600);
+  setTimeout(() => { window.location.href = '/pages/login.html'; }, 1600);
   return false;
 }
 
 function goToRecovery(){
-  window.location.href = 'recovery.html';
+    window.location.href = '/pages/recovery.html';
 }

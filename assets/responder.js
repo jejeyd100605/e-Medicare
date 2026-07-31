@@ -159,7 +159,7 @@ async function checkResponderSession() {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-        window.location.href = 'login.html';
+        window.location.href ='/pages/login.html';
         return null;
     }
 
@@ -173,7 +173,7 @@ async function checkResponderSession() {
         console.error('Hindi makuha ang responder profile:', error?.message);
         alert('Hindi makuha ang account profile mo. Makipag-ugnayan sa admin.');
         await supabase.auth.signOut();
-        window.location.href = 'login.html';
+        window.location.href = '/pages/login.html';
         return null;
     }
 
@@ -182,7 +182,7 @@ async function checkResponderSession() {
     if (profile.active === false) {
         alert('Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.');
         await supabase.auth.signOut();
-        window.location.href = 'login.html';
+        window.location.href = '/pages/login.html';
         return null;
     }
 
@@ -190,7 +190,7 @@ async function checkResponderSession() {
     // nakapasok dito ang ibang role dahil sa maling redirect.
     if (profile.role !== 'responder') {
         alert('Ang account na ito ay hindi responder account.');
-        window.location.href = 'login.html';
+        window.location.href = '/pages/login.html';
         return null;
     }
 
@@ -245,10 +245,9 @@ async function handleCredsSubmit(e){
     .eq('id', data.user.id)
     .single();
 
-  if(profile.role === 'admin') window.location.href = 'admin.html';
-  else if(profile.role === 'responder') window.location.href = 'responder.html';
-  else window.location.href = 'resident.html';
-}
+  if(profile.role === 'admin') window.location.href = '/pages/admin.html';
+else if(profile.role === 'responder') window.location.href = '/pages/responder.html';
+else window.location.href = '/pages/resident.html';
 
 async function loadMyFleetRow(profileId){
     const { data, error } = await supabase
@@ -1305,8 +1304,8 @@ function logout() {
         if (safetyPollTimer) clearInterval(safetyPollTimer);
 
         supabase.auth.signOut().then(() => {
-            window.location.href = "login.html";
-        });
+    window.location.href = "/pages/login.html";
+});
     }
 }
 
@@ -1363,3 +1362,4 @@ function escapeHtml(value) {
 }
 
 document.getElementById("logoutBtn")?.addEventListener("click", logout);
+}

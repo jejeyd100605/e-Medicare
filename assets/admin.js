@@ -20,12 +20,12 @@ let medicalRequestsCache = [];
 let activeIncidentId = null;
 let responderProfilesCache = [];
 
-    async function checkAdminSession() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            window.location.href = 'adminlogin.html';
-            return null;
-        }
+   async function checkAdminSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        window.location.href = '/pages/adminlogin.html';
+        return null;
+    }
         const { data: profile } = await supabase
             .from('profiles')
             .select('role, name')
@@ -329,13 +329,13 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
     }
 }
 
-    function logout(){
+   function logout(){
     if(confirm('Log out of the Barangay Bambang control center?')){
         supabase.auth.signOut().then(() => {
-            window.location.href = 'adminlogin.html';
+            window.location.href = '/pages/adminlogin.html';
         });
     }
-    }
+}
 
     /* ---------------------------------------------------------
     DASHBOARD: SUMMARY COUNTS + INCIDENT FEED

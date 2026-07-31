@@ -37,10 +37,10 @@
                 .single();
 
             if(profile && profile.role === 'admin'){
-                window.location.href = 'admin.html';
-            } else {
-                await supabase.auth.signOut();
-            }
+    window.location.href = '/pages/admin.html';
+} else {
+    await supabase.auth.signOut();
+}
         }
     });
 
@@ -91,7 +91,7 @@
                 return;
             }
 
-            window.location.href = 'admin.html';
+           window.location.href = '/pages/admin.html';
         }catch(err){
             console.error('Unexpected admin login error:', err);
             showAdminError('Unexpected error: ' + err.message);

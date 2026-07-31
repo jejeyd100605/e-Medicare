@@ -16,10 +16,10 @@ let currentUserVerified = false; // BAGO — kailangan bago makapag-submit ng ka
 async function loadUserProfile() {
     const { data: { session } } = await supabase.auth.getSession();
 
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
-    }
+   if (!session) {
+    window.location.href = '/pages/login.html';
+    return;
+}
 
     currentUserId = session.user.id;
 
@@ -853,7 +853,7 @@ function showFirstAidGuide(guide) {
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
         supabase.auth.signOut().then(() => {
-            window.location.href = 'login.html';
+           window.location.href = '/pages/login.html';
         });
     }
 }
