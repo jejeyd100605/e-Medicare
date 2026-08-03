@@ -365,7 +365,7 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
     renderIncidentFeed();
     renderQuickFleetStatus();
-    renderWaitingList();
+    renderDocumentationHistory();
 }
 
    function renderIncidentFeed(){
@@ -1090,24 +1090,75 @@ function printIncidentReport(){
 }
 
 
-    function renderWaitingList(){
-    const wrap = document.getElementById('waitingList');
+  const TERMINAL_REQUEST_STATUSES = ['Disbursed','Approved','Rejected'];
+
+function renderDocumentationHistory(){
+    const wrap = document.getElementById('historyList');
     if(!wrap) return;
-    const pending = load(DB.requests, []).filter(r => r.status === 'Pending' || r.status === 'Under Review');
-    if(pending.length === 0){
-        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No documents awaiting review.</div>';
+    const completed = medicalRequestsCache
+        .filter(r => TERMINAL_REQUEST_STATUSES.includes(r.status))
+        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+    const badge = document.getElementById('historyCountBadge');
+    badge && (badge.textContent = completed.length + ' Records');
+
+    if(completed.length === 0){
+        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No completed cases yet.</div>';
         return;
     }
-    wrap.innerHTML = pending.slice(0,5).map(r => `
+    wrap.innerHTML = completed.slice(0,8).map(r => `
         <div class="fleet-quick-row">
         <div>
-            <div class="fleet-quick-name">${r.residentName}</div>
-            <div class="fleet-quick-type">${r.category}</div>
+            <div class="fleet-quick-name">${r.resident_name}</div>
+            <div class="fleet-quick-type">${r.category} · ${timeAgo(r.created_at)}</div>
         </div>
-        <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printRequestRecord('${r.id}')">🖨️</button>
+        </div>
         </div>
     `).join('');
-    }
+}
+
+function printRequestRecord(id){
+    const r = medicalRequestsCache.find(x => String(x.id) === String(id));
+    if(!r){ alert('Record not found.'); return; }
+
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Assistance Record - ${r.resident_name}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
+                h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ddd; font-size: 13px; }
+                th { width: 180px; color: #555; }
+                .footer { margin-top: 40px; font-size: 11px; color: #777; }
+            </style>
+        </head>
+        <body>
+            <h1>e-Medicare — Barangay Bambang Assistance Record</h1>
+            <table>
+                <tr><th>Resident</th><td>${r.resident_name}</td></tr>
+                <tr><th>Contact</th><td>${r.contact_number || 'N/A'}</td></tr>
+                <tr><th>Category</th><td>${r.category}</td></tr>
+                <tr><th>Priority</th><td>${r.priority}</td></tr>
+                <tr><th>Purpose</th><td>${r.purpose || 'N/A'}</td></tr>
+                <tr><th>Estimated Cost</th><td>₱${Number(r.estimated_cost||0).toLocaleString()}</td></tr>
+                <tr><th>Final Status</th><td>${r.status}</td></tr>
+                <tr><th>Admin Notes</th><td>${r.admin_notes || 'N/A'}</td></tr>
+                <tr><th>Date Submitted</th><td>${fmtTime(r.created_at)}</td></tr>
+            </table>
+            <div class="footer">Generated ${fmtTime(nowISO())} · e-Medicare Barangay Bambang Control Center</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 300);
+}
 
    function printFullReport(){
     const avgResponse = document.getElementById('repAvgResponse')?.textContent || '—';
@@ -1282,6 +1333,7 @@ function printIncidentReport(){
         medicalRequestsCache = data || [];
         renderRequests();
         renderQueue();
+        renderDocumentationHistory(); 
     }
 
     function subscribeMedicalRequestsRealtime(){
