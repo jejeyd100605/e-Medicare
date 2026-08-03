@@ -20,6 +20,14 @@ let medicalRequestsCache = [];
 let activeIncidentId = null;
 let responderProfilesCache = [];
 
+/* BAGO — Live Response Tracking map (Dispatch modal). Ginagamit kapag
+   naka-assign na ang isang team sa isang incident, para makita ng admin
+   ang lokasyon ng resident at ng responder nang magkatabi sa isang mapa. */
+let trackingMap = null;
+let trackingResidentMarker = null;
+let trackingResponderMarker = null;
+let trackingRouteLine = null;
+
    async function checkAdminSession() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -402,6 +410,7 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
     incidentsCache = data;
     renderDashboardCounts();
+    refreshTrackingModalIfOpen();
 }
 
 function subscribeIncidentsRealtime() {
@@ -738,6 +747,16 @@ async function handleQuickDispatch(e){
 
     /* ---------------------------------------------------------
     DISPATCH CONTROL CENTER MODAL (from Incident Feed cards)
+    ---------------------------------------------------------
+    BAGO: Ang modal na ito ay may 2 mode ngayon:
+      1) DISPATCH FORM — kapag wala pang naka-assign na team
+         (status: Pending / Waiting List). Dito pinipili ang
+         driver at responder.
+      2) LIVE TRACKING VIEW — kapag naka-assign na (status:
+         Assigned / In Transit / Arrived). Sa halip na ipakita
+         ulit ang dispatch form, isang mapa na ang lalabas na
+         nagpapakita ng lokasyon ng resident at ng responder,
+         kasama ang distansya sa pagitan nila.
     --------------------------------------------------------- */
     function openAssignModal(id){
         const inc = incidentsCache.find(i => String(i.id) === String(id));
@@ -758,29 +777,170 @@ async function handleQuickDispatch(e){
             `;
         }
 
-        const driverSel = document.getElementById('driverSelect');
-        const responderSel = document.getElementById('responderSelect');
-        const standby = fleetCache.filter(f => f.status === 'Available');
+        const dispatchForm = document.getElementById('dispatchAssignForm');
+        const trackingView = document.getElementById('trackingView');
+        const titleEl = document.getElementById('assignModalTitle');
 
-        if(driverSel){
-            const drivers = standby.filter(f => f.type === 'Driver');
-            driverSel.innerHTML = '<option value="" disabled selected>Select driver on standby</option>' +
-                drivers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+        // Sarado/tapos na — hindi na dapat i-dispatch pa o i-track pa,
+        // pero hayaan pa rin nating gamitin ang tracking view (read-only)
+        // kung meron pang GPS na naitala, kasama ang lumang Pending case
+        // na wala pang team gamit ang dispatch form.
+        const isTracking = ['Assigned', 'In Transit', 'Arrived'].includes(inc.status);
+
+        if(isTracking){
+            if(titleEl) titleEl.textContent = '📍 Live Response Tracking';
+            if(dispatchForm) dispatchForm.style.display = 'none';
+            if(trackingView) trackingView.style.display = 'block';
+            renderTrackingView(inc);
+        } else {
+            if(titleEl) titleEl.textContent = '🚀 Dispatch Control Center';
+            if(dispatchForm) dispatchForm.style.display = 'block';
+            if(trackingView) trackingView.style.display = 'none';
+            cleanupTrackingMap();
+
+            const driverSel = document.getElementById('driverSelect');
+            const responderSel = document.getElementById('responderSelect');
+            const standby = fleetCache.filter(f => f.status === 'Available');
+
+            if(driverSel){
+                const drivers = standby.filter(f => f.type === 'Driver');
+                driverSel.innerHTML = '<option value="" disabled selected>Select driver on standby</option>' +
+                    drivers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            }
+
+           if(responderSel){
+                const responders = standby.filter(f => f.type === 'Medical Personnel');
+                responderSel.innerHTML = '<option value="" disabled selected>Select responder on standby</option>' +
+                    responders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            }
+
+            const notesEl = document.getElementById('assignNotes');
+            if(notesEl) notesEl.value = '';
         }
-
-       if(responderSel){
-            const responders = standby.filter(f => f.type === 'Medical Personnel');
-            responderSel.innerHTML = '<option value="" disabled selected>Select responder on standby</option>' +
-                responders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
-        }
-
-        const notesEl = document.getElementById('assignNotes');
-        if(notesEl) notesEl.value = '';
-
-        const printBtn = document.getElementById('btn-print-report');
-        if(printBtn) printBtn.style.display = (inc.status === 'Assigned' || inc.status === 'Waiting List') ? 'inline-block' : 'none';
 
         document.getElementById('assignModal').style.display = 'flex';
+    }
+
+    /* Kapag may bagong data na dumating (realtime update) habang bukas
+       ang modal at nasa tracking mode, i-refresh ang mapa/info nang hindi
+       kinakailangang isara ito ng admin. */
+    function refreshTrackingModalIfOpen(){
+        const modal = document.getElementById('assignModal');
+        const trackingView = document.getElementById('trackingView');
+        if(!modal || !trackingView) return;
+        if(modal.style.display !== 'flex' || trackingView.style.display !== 'block') return;
+        if(!activeIncidentId) return;
+
+        const inc = incidentsCache.find(i => String(i.id) === String(activeIncidentId));
+        if(!inc) return;
+
+        if(['Assigned', 'In Transit', 'Arrived'].includes(inc.status)){
+            renderTrackingView(inc);
+        } else {
+            // Na-resolve o binago ang status habang bukas ang modal — isara na lang.
+            modal.style.display = 'none';
+        }
+    }
+
+    function cleanupTrackingMap(){
+        if(trackingMap){
+            trackingMap.remove();
+            trackingMap = null;
+            trackingResidentMarker = null;
+            trackingResponderMarker = null;
+            trackingRouteLine = null;
+        }
+    }
+
+    /** Distansya sa pagitan ng dalawang GPS coordinate, sa metro (Haversine formula). */
+    function haversineDistanceMeters(lat1, lng1, lat2, lng2){
+        const R = 6371000;
+        const toRad = d => d * Math.PI / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    function formatDistance(meters){
+        if(meters === null || meters === undefined || Number.isNaN(meters)) return null;
+        if(meters < 1000) return Math.round(meters) + ' m';
+        return (meters / 1000).toFixed(1) + ' km';
+    }
+
+    function renderTrackingView(inc){
+        cleanupTrackingMap();
+
+        const mapEl = document.getElementById('trackingMap');
+        const infoEl = document.getElementById('trackingInfo');
+        if(!mapEl) return;
+
+        if(!inc.lat || !inc.lng){
+            mapEl.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:0.82em;text-align:center;padding:14px;">
+                    Walang GPS data na isinumite ng resident para sa request na ito.
+                </div>`;
+        } else {
+            mapEl.innerHTML = '';
+            trackingMap = L.map(mapEl, { zoomControl: true }).setView([inc.lat, inc.lng], 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(trackingMap);
+
+            const residentIcon = L.divIcon({
+                className: '',
+                html: '<div style="background:#d32f2f;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px rgba(0,0,0,0.5);"></div>',
+                iconSize: [16, 16]
+            });
+            trackingResidentMarker = L.marker([inc.lat, inc.lng], { icon: residentIcon })
+                .addTo(trackingMap)
+                .bindPopup(`<b>${inc.sender ? inc.sender.name : 'Resident'}</b><br>${inc.category || inc.type}`)
+                .openPopup();
+
+            const bounds = [[inc.lat, inc.lng]];
+
+            if(inc.responder_lat && inc.responder_lng){
+                const responderIcon = L.divIcon({
+                    className: '',
+                    html: '<div style="background:#00b0ff;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px rgba(0,0,0,0.5);"></div>',
+                    iconSize: [16, 16]
+                });
+                trackingResponderMarker = L.marker([inc.responder_lat, inc.responder_lng], { icon: responderIcon })
+                    .addTo(trackingMap)
+                    .bindPopup(`Responder: ${inc.assigned_to || 'Papunta na'}`);
+
+                trackingRouteLine = L.polyline(
+                    [[inc.responder_lat, inc.responder_lng], [inc.lat, inc.lng]],
+                    { color: '#00b0ff', weight: 3, dashArray: '6,6' }
+                ).addTo(trackingMap);
+
+                bounds.push([inc.responder_lat, inc.responder_lng]);
+            }
+
+            if(bounds.length > 1){
+                trackingMap.fitBounds(bounds, { padding: [30, 30] });
+            }
+            setTimeout(() => { if(trackingMap) trackingMap.invalidateSize(); }, 200);
+        }
+
+        if(infoEl){
+            let distanceLine;
+            if(inc.lat && inc.lng && inc.responder_lat && inc.responder_lng){
+                const d = haversineDistanceMeters(inc.lat, inc.lng, inc.responder_lat, inc.responder_lng);
+                distanceLine = `<div>📏 Distance to resident: <b style="color:#ffd700;">${formatDistance(d)}</b></div>`;
+            } else {
+                distanceLine = `<div style="color:#888;">📏 Naghihintay pa ng GPS signal ng responder...</div>`;
+            }
+            infoEl.innerHTML = `
+                <div>👥 Assigned team: <b>${inc.assigned_to || 'Not yet on record'}</b></div>
+                <div>⏱ ETA / Notes: <b>${inc.eta || 'N/A'}</b></div>
+                ${distanceLine}
+                <div style="color:#666; font-size:0.85em; margin-top:4px;">${inc.location_updated_at ? 'Responder location updated ' + timeAgo(inc.location_updated_at) : 'No responder location update yet.'}</div>
+            `;
+        }
     }
 
 

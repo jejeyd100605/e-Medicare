@@ -9,6 +9,9 @@
     <link rel="apple-touch-icon" href="/assets/logo.png">
     <meta name="theme-color" content="#800000">
     <link rel="stylesheet" href="/css/admin.css">
+    <!-- BAGO: Leaflet, para sa Live Response Tracking map sa Dispatch modal -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -161,6 +164,11 @@
         <label style="font-size: 0.8em;">Responder:</label>
         <select id="dispatchResponder" class="form-control">
             <option value="">— None —</option>
+        </select>
+
+        <label style="font-size: 0.8em;">Link to Incident (optional):</label>
+        <select id="dispatchIncident" class="form-control">
+            <option value="">— No linked incident —</option>
         </select>
 
         <label style="font-size: 0.8em;">ETA / Notes:</label>
@@ -616,10 +624,14 @@
 
     <!-- MODAL: DISPATCH CONTROL CENTER -->
     <div class="modal" id="assignModal" style="display: none;">
-        <div class="modal-content">
-            <h4 style="font-size: 0.9em; color: #ffd700;">Dispatch Control Center</h4>
+        <div class="modal-content" style="max-width: 520px;">
+            <h4 style="font-size: 0.9em; color: #ffd700;" id="assignModalTitle">Dispatch Control Center</h4>
             <div id="assignIncidentInfo"></div>
-            <form onsubmit="handleAssignResponder(event)">
+
+            <!-- DISPATCH ASSIGNMENT FORM — shown only while walang naka-assign na team pa
+                 (status: Pending / Waiting List). Kapag na-dispatch na, ipapalit ito ng
+                 Live Tracking View sa ibaba. -->
+            <form id="dispatchAssignForm" onsubmit="handleAssignResponder(event)">
                 <label style="font-size: 0.75em;">Select Standby Driver/Unit:</label>
                 <label style="font-size:0.8em; color:#999; display:block; margin-bottom:4px;">Driver</label>
 <select id="driverSelect" class="form-control" required>
@@ -636,12 +648,24 @@
                         <button type="button" onclick="moveToWaitingList()" class="primary-btn btn-hold">📑 Require Docs</button>
                     </div>
                     <div class="action-row" style="margin-top: 10px;">
-                        <button id="btn-print-report" type="button" onclick="printIncidentReport()" class="primary-btn btn-print" style="display: none; flex: 1;">🖨️ Print Report</button>
-                        <!-- Added Close Button for better UX control -->
                         <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
                     </div>
                 </div>
             </form>
+
+            <!-- LIVE TRACKING VIEW — lumalabas kapag naka-assign na ang isang team.
+                 Ipinapakita ang lokasyon ng resident at ng responder sa mapa, kasama
+                 ang distansya sa pagitan nila, para ma-monitor ng admin ang response. -->
+            <div id="trackingView" style="display:none;">
+                <div id="trackingMap" style="height:260px;border-radius:10px;overflow:hidden;border:1px solid #333;margin-bottom:12px;"></div>
+                <div id="trackingInfo" style="font-size:0.8em; color:#ccc; line-height:1.7; margin-bottom:12px;"></div>
+                <div class="modal-action-grid">
+                    <div class="action-row">
+                        <button id="btn-print-report" type="button" onclick="printIncidentReport()" class="primary-btn btn-print" style="flex:1;">🖨️ Print Report</button>
+                        <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
