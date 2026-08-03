@@ -1090,45 +1090,49 @@ function printIncidentReport(){
 }
 
 
-  const TERMINAL_REQUEST_STATUSES = ['Disbursed','Approved','Rejected'];
+    const TERMINAL_INCIDENT_STATUSES = ['Resolved','Completed'];
 
-function renderDocumentationHistory(){
-    const wrap = document.getElementById('historyList');
+    function renderDocumentationHistory(){
+    const wrap = document.getElementById('incidentHistoryList');
     if(!wrap) return;
-    const completed = medicalRequestsCache
-        .filter(r => TERMINAL_REQUEST_STATUSES.includes(r.status))
+    const resolved = incidentsCache
+        .filter(i => TERMINAL_INCIDENT_STATUSES.includes(i.status))
         .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
 
     const badge = document.getElementById('historyCountBadge');
-    badge && (badge.textContent = completed.length + ' Records');
+    badge && (badge.textContent = resolved.length + ' Records');
 
-    if(completed.length === 0){
-        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No completed cases yet.</div>';
+    if(resolved.length === 0){
+        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No resolved incidents yet.</div>';
         return;
     }
-    wrap.innerHTML = completed.slice(0,8).map(r => `
+    wrap.innerHTML = resolved.slice(0,5).map(i => {
+        const callerName = i.sender ? i.sender.name : 'Unknown Resident';
+        return `
         <div class="fleet-quick-row">
         <div>
-            <div class="fleet-quick-name">${r.resident_name}</div>
-            <div class="fleet-quick-type">${r.category} · ${timeAgo(r.created_at)}</div>
+            <div class="fleet-quick-name">${i.category || i.type}</div>
+            <div class="fleet-quick-type">${callerName} · ${timeAgo(i.created_at)}</div>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-            <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
-            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printRequestRecord('${r.id}')">🖨️</button>
+            <span class="status-pill ${statusClass(i.status)}">${i.status}</span>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printIncidentRecordFromHistory('${i.id}')">🖨️</button>
         </div>
         </div>
-    `).join('');
-}
+    `;}).join('');
+    }
 
-function printRequestRecord(id){
-    const r = medicalRequestsCache.find(x => String(x.id) === String(id));
-    if(!r){ alert('Record not found.'); return; }
+    function printIncidentRecordFromHistory(id){
+    const inc = incidentsCache.find(i => String(i.id) === String(id));
+    if(!inc){ alert('Incident not found.'); return; }
+    const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
+    const contact = inc.sender ? inc.sender.contact : 'N/A';
 
     const printWindow = window.open('', '_blank', 'width=800,height=900');
     printWindow.document.write(`
         <html>
         <head>
-            <title>Assistance Record - ${r.resident_name}</title>
+            <title>Incident Report - ${inc.category || inc.type}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
                 h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -1139,17 +1143,16 @@ function printRequestRecord(id){
             </style>
         </head>
         <body>
-            <h1>e-Medicare — Barangay Bambang Assistance Record</h1>
+            <h1>e-Medicare — Barangay Bambang Incident Report</h1>
             <table>
-                <tr><th>Resident</th><td>${r.resident_name}</td></tr>
-                <tr><th>Contact</th><td>${r.contact_number || 'N/A'}</td></tr>
-                <tr><th>Category</th><td>${r.category}</td></tr>
-                <tr><th>Priority</th><td>${r.priority}</td></tr>
-                <tr><th>Purpose</th><td>${r.purpose || 'N/A'}</td></tr>
-                <tr><th>Estimated Cost</th><td>₱${Number(r.estimated_cost||0).toLocaleString()}</td></tr>
-                <tr><th>Final Status</th><td>${r.status}</td></tr>
-                <tr><th>Admin Notes</th><td>${r.admin_notes || 'N/A'}</td></tr>
-                <tr><th>Date Submitted</th><td>${fmtTime(r.created_at)}</td></tr>
+                <tr><th>Incident Type</th><td>${inc.category || inc.type}</td></tr>
+                <tr><th>Reported By</th><td>${callerName} (${contact})</td></tr>
+                <tr><th>Description</th><td>${inc.description || 'N/A'}</td></tr>
+                <tr><th>Status</th><td>${inc.status}</td></tr>
+                <tr><th>Assigned To</th><td>${inc.assigned_to || 'Not yet assigned'}</td></tr>
+                <tr><th>ETA / Notes</th><td>${inc.eta || 'N/A'}</td></tr>
+                <tr><th>Date Reported</th><td>${fmtTime(inc.created_at)}</td></tr>
+                <tr><th>Location (GPS)</th><td>${inc.lat && inc.lng ? `${inc.lat}, ${inc.lng}` : 'No GPS data'}</td></tr>
             </table>
             <div class="footer">Generated ${fmtTime(nowISO())} · e-Medicare Barangay Bambang Control Center</div>
         </body>
@@ -1158,7 +1161,7 @@ function printRequestRecord(id){
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => printWindow.print(), 300);
-}
+    }
 
    function printFullReport(){
     const avgResponse = document.getElementById('repAvgResponse')?.textContent || '—';
@@ -1333,7 +1336,7 @@ function printRequestRecord(id){
         medicalRequestsCache = data || [];
         renderRequests();
         renderQueue();
-        renderDocumentationHistory(); 
+        renderRequestHistory();
     }
 
     function subscribeMedicalRequestsRealtime(){
@@ -1541,6 +1544,76 @@ function printRequestRecord(id){
     `).join('');
     }
 
+    const TERMINAL_REQUEST_STATUSES = ['Disbursed','Approved','Rejected'];
+
+    function renderRequestHistory(){
+    const wrap = document.getElementById('requestHistoryList');
+    if(!wrap) return;
+    const completed = medicalRequestsCache
+        .filter(r => TERMINAL_REQUEST_STATUSES.includes(r.status))
+        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+    const badge = document.getElementById('requestHistoryCountBadge');
+    badge && (badge.textContent = completed.length + ' Records');
+
+    if(completed.length === 0){
+        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No completed assistance cases yet.</div>';
+        return;
+    }
+    wrap.innerHTML = completed.slice(0,5).map(r => `
+        <div class="fleet-quick-row">
+        <div>
+            <div class="fleet-quick-name">${r.resident_name}</div>
+            <div class="fleet-quick-type">${r.category} · ${timeAgo(r.created_at)}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printRequestRecord('${r.id}')">🖨️</button>
+        </div>
+        </div>
+    `).join('');
+    }
+
+    function printRequestRecord(id){
+    const r = medicalRequestsCache.find(x => String(x.id) === String(id));
+    if(!r){ alert('Record not found.'); return; }
+
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Assistance Record - ${r.resident_name}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
+                h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ddd; font-size: 13px; }
+                th { width: 180px; color: #555; }
+                .footer { margin-top: 40px; font-size: 11px; color: #777; }
+            </style>
+        </head>
+        <body>
+            <h1>e-Medicare — Barangay Bambang Assistance Record</h1>
+            <table>
+                <tr><th>Resident</th><td>${r.resident_name}</td></tr>
+                <tr><th>Contact</th><td>${r.contact_number || 'N/A'}</td></tr>
+                <tr><th>Category</th><td>${r.category}</td></tr>
+                <tr><th>Priority</th><td>${r.priority}</td></tr>
+                <tr><th>Purpose</th><td>${r.purpose || 'N/A'}</td></tr>
+                <tr><th>Estimated Cost</th><td>₱${Number(r.estimated_cost||0).toLocaleString()}</td></tr>
+                <tr><th>Final Status</th><td>${r.status}</td></tr>
+                <tr><th>Admin Notes</th><td>${r.admin_notes || 'N/A'}</td></tr>
+                <tr><th>Date Submitted</th><td>${fmtTime(r.created_at)}</td></tr>
+            </table>
+            <div class="footer">Generated ${fmtTime(nowISO())} · e-Medicare Barangay Bambang Control Center</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 300);
+    }
+
     async function disburseQueued(id){
     const r = medicalRequestsCache.find(x => String(x.id) === String(id));
     if(!r) return;
@@ -1575,6 +1648,7 @@ function printRequestRecord(id){
     if(error){ console.error('Hindi makuha ang transpo requests:', error.message); return; }
     transpoCache = data || [];
     renderTranspoList();
+    renderTranspoHistory();
 }
 
 function subscribeTranspoRealtime(){
@@ -1731,6 +1805,80 @@ async function handleTranspoEvaluation(e){
     loadTranspoFromSupabase();
     loadFleetFromSupabase();
 }
+
+    const TERMINAL_TRANSPO_STATUSES = ['Approved','Completed','Rejected'];
+
+    function renderTranspoHistory(){
+    const wrap = document.getElementById('transpoHistoryList');
+    if(!wrap) return;
+    const completed = transpoCache
+        .filter(r => TERMINAL_TRANSPO_STATUSES.includes(r.status))
+        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+    const badge = document.getElementById('transpoHistoryCountBadge');
+    badge && (badge.textContent = completed.length + ' Records');
+
+    if(completed.length === 0){
+        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No completed transport records yet.</div>';
+        return;
+    }
+    wrap.innerHTML = completed.slice(0,5).map(r => {
+        const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
+        return `
+        <div class="fleet-quick-row">
+        <div>
+            <div class="fleet-quick-name">${r.patient_name}</div>
+            <div class="fleet-quick-type">${r.pickup_location} → ${r.destination} · ${timeAgo(r.created_at)}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printTranspoRecord('${r.id}')">🖨️</button>
+        </div>
+        </div>
+    `;}).join('');
+    }
+
+    function printTranspoRecord(id){
+    const r = transpoCache.find(x => String(x.id) === String(id));
+    if(!r){ alert('Record not found.'); return; }
+    const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
+    const vehicle = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
+
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Transport Record - ${r.patient_name}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
+                h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ddd; font-size: 13px; }
+                th { width: 180px; color: #555; }
+                .footer { margin-top: 40px; font-size: 11px; color: #777; }
+            </style>
+        </head>
+        <body>
+            <h1>e-Medicare — Barangay Bambang Transport Record</h1>
+            <table>
+                <tr><th>Patient / Resident</th><td>${r.patient_name}</td></tr>
+                <tr><th>Pickup</th><td>${r.pickup_location}</td></tr>
+                <tr><th>Destination</th><td>${r.destination}</td></tr>
+                <tr><th>Schedule</th><td>${r.schedule_time ? new Date(r.schedule_time).toLocaleString('en-PH') : 'N/A'}</td></tr>
+                <tr><th>Vehicle</th><td>${vehicle ? vehicle.name : 'N/A'}</td></tr>
+                <tr><th>Driver</th><td>${driver ? driver.name : 'N/A'}</td></tr>
+                <tr><th>Status</th><td>${r.status}</td></tr>
+                <tr><th>Admin Notes</th><td>${r.admin_notes || 'N/A'}</td></tr>
+                <tr><th>Date Submitted</th><td>${fmtTime(r.created_at)}</td></tr>
+            </table>
+            <div class="footer">Generated ${fmtTime(nowISO())} · e-Medicare Barangay Bambang Control Center</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 300);
+    }
     /* ---------------------------------------------------------
     USER ACCOUNTS (kept from original, wired to storage)
     --------------------------------------------------------- */

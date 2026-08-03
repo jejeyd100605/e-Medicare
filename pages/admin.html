@@ -96,14 +96,17 @@
                         <div id="quickFleetStatus"></div>
                     </div>
 
-                   <div class="panel" style="border-top: 5px solid #ffeb3b;">
-    <div class="panel-header">
-        <div class="panel-title" style="color: #fbc02d;">📜 Documentation Tracker</div>
-        <span class="badge" id="historyCountBadge">0 Records</span>
-    </div>
-    <p style="font-size: 0.7em; color: #888;">Completed / resolved medical assistance cases — printable history.</p>
-    <div id="historyList"></div>
-</div>
+                    <!-- BAGO: Documentation Tracker — nakatutok na sa resolved/completed
+                         SOS at Emergency incidents (galing sa incidentsCache), hindi na
+                         sa lumang localStorage medical assistance seed data. -->
+                    <div class="panel" style="border-top: 5px solid #ffeb3b;">
+                        <div class="panel-header">
+                            <div class="panel-title" style="color: #fbc02d;">📜 Documentation Tracker</div>
+                            <span class="badge" id="historyCountBadge">0 Records</span>
+                        </div>
+                        <p style="font-size: 0.7em; color: #888;">Resolved/completed incident reports — printable history.</p>
+                        <div id="incidentHistoryList"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -227,6 +230,18 @@
                 <div id="transpoRequestsList"></div>
                 <div class="empty-state" id="transpoEmpty" style="display:block;">No submitted transport requests found.</div>
             </div>
+
+            <!-- BAGO: Completed Transport Records — approved/completed/rejected
+                 transpo requests, hiwalay sa Documentation Tracker at sa
+                 Assistance Queue history. -->
+            <div class="panel" style="border-top: 5px solid #0091ea;">
+                <div class="panel-header">
+                    <div class="panel-title">✅ Completed Transport Records</div>
+                    <span class="badge" id="transpoHistoryCountBadge">0 Records</span>
+                </div>
+                <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Approved and completed transport requests — printable history.</p>
+                <div id="transpoHistoryList"></div>
+            </div>
         </div>
 
         <div class="column" style="flex: 1.4;">
@@ -292,6 +307,18 @@
                 </div>
                 <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Sorted highest priority first. A request can be disbursed the moment the fund pool covers its cost.</p>
                 <div id="queueList"></div>
+            </div>
+
+            <!-- BAGO: Completed Assistance Records — disbursed/approved/rejected
+                 medical & financial assistance requests, hiwalay sa
+                 Documentation Tracker at sa Transport Queue history. -->
+            <div class="panel" style="border-top: 5px solid #ffeb3b;">
+                <div class="panel-header">
+                    <div class="panel-title" style="color:#ffd700;">✅ Completed Assistance Records</div>
+                    <span class="badge" id="requestHistoryCountBadge">0 Records</span>
+                </div>
+                <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Disbursed, approved, and rejected requests — printable history.</p>
+                <div id="requestHistoryList"></div>
             </div>
         </div>
 
