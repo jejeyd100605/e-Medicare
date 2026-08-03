@@ -746,8 +746,21 @@
         </div>
     </div>
 </div>
-
-
+  <!-- MODAL: RECORD DETAILS (shared ng Documentation Tracker, Assistance
+       history, at Transport history — makikita muna dito ang buong
+       detalye ng record bago i-print) -->
+<div class="modal" id="recordDetailModal" style="display: none;">
+    <div class="modal-content" style="max-width: 480px;">
+        <h4 style="font-size: 1em; color: #ffd700; margin-bottom: 12px;" id="recordDetailTitle">Record Details</h4>
+        <div id="recordDetailBody" style="font-size:0.85em;"></div>
+        <div class="modal-action-grid" style="margin-top: 16px;">
+            <div class="action-row">
+                <button type="button" id="recordDetailPrintBtn" class="primary-btn" style="background:#333; color:#eee; flex:1;">🖨️ Print</button>
+                <button type="button" onclick="closeRecordDetailModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

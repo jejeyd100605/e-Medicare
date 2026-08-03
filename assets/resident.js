@@ -821,12 +821,61 @@ async function loadRequestHistory() {
 
 // ==========================================================================
 // FIRST AID GUIDES
+// BAGO — bawat guide ay may kompletong step-by-step na instructions na,
+// hindi na isang pangungusap lang. Unang hakbang palagi ang pagtawag sa
+// emergency hotline, para hindi ito makaligtaan ng residente.
 // ==========================================================================
+const EMERGENCY_HOTLINES_TEXT = '0969-422-4180 (Punong Barangay) · 0931-006-8118 (MHO-RHU) · 0951-836-0294 / 0955-288-2055 (MDRRMO)';
+
 const firstAidGuides = [
-    { title: 'CPR (Adult)', icon: 'fa-heart-pulse', content: 'Tumawag agad sa hotline. Magsimula ng chest compressions sa gitna ng dibdib, 100-120 beses kada minuto.' },
-    { title: 'Choking / Nabubulunan', icon: 'fa-lungs', content: 'Gumawa ng abdominal thrusts (Heimlich maneuver). Kung sanggol, gamitin ang back blows at chest thrusts.' },
-    { title: 'Pagdurugo / Bleeding', icon: 'fa-droplet', content: 'Pindutin nang mahigpit ang sugat gamit ang malinis na tela. Itaas ang bahagi ng katawan kung kaya.' },
-    { title: 'Sunog / Burns', icon: 'fa-fire', content: 'Ilagay sa malamig na tubig ang apektadong bahagi ng 10-20 minuto. Huwag lagyan ng toothpaste o mantika.' }
+    {
+        title: 'CPR (Adult)',
+        icon: 'fa-heart-pulse',
+        steps: [
+            'Tumawag agad sa emergency hotline (Barangay Bambang / 911) bago o habang ginagawa ang CPR — kung may kasama, isa ang tatawag habang ikaw ay gumagawa.',
+            'Tiyaking safe ang paligid, tapos tawagin ang pangalan ng pasyente — kung walang tugon, magpatuloy.',
+            'Ilagay ang pasyente sa patag na sahig, nakahiga pataas.',
+            'Ilagay ang dalawang kamay sa gitna ng dibdib (sternum), magkapatong.',
+            'Compress nang malalim (mga 5-6 cm) at mabilis — 100-120 beats per minute (kasingbilis ng "Stayin\' Alive" beat).',
+            'Ipagpatuloy hanggang dumating ang tulong o may senyales ng paggalaw ang pasyente.'
+        ]
+    },
+    {
+        title: 'Choking / Nabubulunan',
+        icon: 'fa-lungs',
+        steps: [
+            'Tumawag agad sa emergency hotline kung may ibang tao — huwag itigil ang first aid habang tumatawag.',
+            'Tanungin: "Nabubulunan ka ba?" — kung hindi makasagot o makaubo, tulungan agad.',
+            'Yumuko papaunta sa harap, suportahan ang dibdib gamit ang isang kamay.',
+            'Bigyan ng 5 malakas na tapik sa likod (sa pagitan ng dalawang balikat).',
+            'Kung hindi pa lumabas: gawin ang Heimlich maneuver — yakapin mula likod, kamao sa itaas ng pusod, tulak paitaas nang mabilis.',
+            'Ulitin ang 5 tapik + 5 tulak hanggang lumabas ang sagabal o dumating ang tulong.'
+        ]
+    },
+    {
+        title: 'Pagdurugo / Bleeding',
+        icon: 'fa-droplet',
+        steps: [
+            'Tumawag agad sa emergency hotline, lalo na kung matindi ang pagdurugo.',
+            'Maghugas o magsuot ng gloves kung meron, para maiwasan ang impeksyon.',
+            'Diinan nang matatag ang sugat gamit ang malinis na tela o gasa.',
+            'Itaas ang bahagi ng katawan na may sugat, kung posible, nang mas mataas sa puso.',
+            'Huwag alisin ang unang tela kung tumagos ang dugo — magdagdag lang ng panibagong layer.',
+            'Manatiling nakabantay habang hinihintay ang responder.'
+        ]
+    },
+    {
+        title: 'Sunog / Burns',
+        icon: 'fa-fire',
+        steps: [
+            'Tumawag agad sa emergency hotline, lalo na kung malaki o malalim ang paso.',
+            'Ilayo agad ang pasyente sa pinagmulan ng init o apoy.',
+            'Buhusan ng malamig (hindi napakalamig) na tubig ang paso nang 10-20 minuto.',
+            'Huwag maglagay ng toothpaste, mantika, o yelo — makakasama ito.',
+            'Takpan nang maluwag gamit ang malinis, hindi kumakapit na tela.',
+            'Kung malaki o malalim ang paso, o nasa mukha/kamay/ari — dalhin agad sa ospital habang naghihintay ng responder.'
+        ]
+    }
 ];
 
 function openGuideList() {
@@ -842,8 +891,15 @@ function openGuideList() {
 }
 
 function showFirstAidGuide(guide) {
-    document.getElementById('firstAidContent').innerHTML =
-        `<h3 style="color:#2E7D32; margin-bottom:12px;"><i class="fas ${guide.icon}"></i> ${guide.title}</h3><p style="font-size:0.9rem; line-height:1.6;">${guide.content}</p>`;
+    document.getElementById('firstAidContent').innerHTML = `
+        <h3 style="color:#2E7D32; margin-bottom:12px;"><i class="fas ${guide.icon}"></i> ${guide.title}</h3>
+        <div style="background:#ffebee; border:1px solid #ffcdd2; border-radius:10px; padding:10px 12px; margin-bottom:14px; font-size:0.78rem; color:#c62828; font-weight:bold; line-height:1.5;">
+            <i class="fas fa-phone-volume"></i> Emergency Hotline (24/7): ${EMERGENCY_HOTLINES_TEXT}
+        </div>
+        <ol style="padding-left:20px; margin:0; font-size:0.88rem; line-height:1.9; color:#333;">
+            ${guide.steps.map(step => `<li style="margin-bottom:6px;">${step}</li>`).join('')}
+        </ol>
+    `;
     toggleModal('firstAidModal', true);
 }
 

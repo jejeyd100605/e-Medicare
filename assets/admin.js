@@ -1109,17 +1109,59 @@ function printIncidentReport(){
     wrap.innerHTML = resolved.slice(0,5).map(i => {
         const callerName = i.sender ? i.sender.name : 'Unknown Resident';
         return `
-        <div class="fleet-quick-row">
+        <div class="fleet-quick-row" onclick="viewIncidentHistoryDetail('${i.id}')" style="cursor:pointer;">
         <div>
             <div class="fleet-quick-name">${i.category || i.type}</div>
             <div class="fleet-quick-type">${callerName} · ${timeAgo(i.created_at)}</div>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
             <span class="status-pill ${statusClass(i.status)}">${i.status}</span>
-            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printIncidentRecordFromHistory('${i.id}')">🖨️</button>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printIncidentRecordFromHistory('${i.id}')">🖨️</button>
         </div>
         </div>
     `;}).join('');
+    }
+
+    /* BAGO — shared "Record Details" modal, ginagamit ng lahat ng
+       history list (incident, assistance, transpo) para makita muna
+       ng admin ang buong detalye ng isang record bago i-print. */
+    function showRecordDetailModal(title, rows, onPrint){
+        const titleEl = document.getElementById('recordDetailTitle');
+        const bodyEl = document.getElementById('recordDetailBody');
+        const printBtn = document.getElementById('recordDetailPrintBtn');
+        if(!titleEl || !bodyEl || !printBtn) return;
+
+        titleEl.textContent = title;
+        bodyEl.innerHTML = rows.map(([label, value]) => `
+            <div style="display:flex; justify-content:space-between; gap:14px; padding:7px 0; border-bottom:1px solid #333;">
+                <span style="color:#999; flex:0 0 130px;">${label}</span>
+                <span style="text-align:right; color:#eee; flex:1;">${value}</span>
+            </div>
+        `).join('');
+        printBtn.onclick = onPrint;
+
+        document.getElementById('recordDetailModal').style.display = 'flex';
+    }
+
+    function closeRecordDetailModal(){
+        document.getElementById('recordDetailModal').style.display = 'none';
+    }
+
+    function viewIncidentHistoryDetail(id){
+        const inc = incidentsCache.find(i => String(i.id) === String(id));
+        if(!inc){ alert('Incident not found.'); return; }
+        const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
+        const contact = inc.sender && inc.sender.contact ? inc.sender.contact : 'N/A';
+
+        showRecordDetailModal(`🚨 ${inc.category || inc.type}`, [
+            ['Reported By', `${callerName} (${contact})`],
+            ['Description', inc.description || 'N/A'],
+            ['Status', inc.status],
+            ['Assigned To', inc.assigned_to || 'Not yet assigned'],
+            ['ETA / Notes', inc.eta || 'N/A'],
+            ['Date Reported', fmtTime(inc.created_at)],
+            ['Location (GPS)', inc.lat && inc.lng ? `${inc.lat}, ${inc.lng}` : 'No GPS data'],
+        ], () => printIncidentRecordFromHistory(id));
     }
 
     function printIncidentRecordFromHistory(id){
@@ -1561,17 +1603,33 @@ function printIncidentReport(){
         return;
     }
     wrap.innerHTML = completed.slice(0,5).map(r => `
-        <div class="fleet-quick-row">
+        <div class="fleet-quick-row" onclick="viewRequestHistoryDetail('${r.id}')" style="cursor:pointer;">
         <div>
             <div class="fleet-quick-name">${r.resident_name}</div>
             <div class="fleet-quick-type">${r.category} · ${timeAgo(r.created_at)}</div>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
             <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
-            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printRequestRecord('${r.id}')">🖨️</button>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printRequestRecord('${r.id}')">🖨️</button>
         </div>
         </div>
     `).join('');
+    }
+
+    function viewRequestHistoryDetail(id){
+        const r = medicalRequestsCache.find(x => String(x.id) === String(id));
+        if(!r){ alert('Record not found.'); return; }
+
+        showRecordDetailModal(`💰 ${r.resident_name}`, [
+            ['Contact', r.contact_number || 'N/A'],
+            ['Category', r.category],
+            ['Priority', r.priority],
+            ['Purpose', r.purpose || 'N/A'],
+            ['Estimated Cost', `₱${Number(r.estimated_cost||0).toLocaleString()}`],
+            ['Final Status', r.status],
+            ['Admin Notes', r.admin_notes || 'N/A'],
+            ['Date Submitted', fmtTime(r.created_at)],
+        ], () => printRequestRecord(id));
     }
 
     function printRequestRecord(id){
@@ -1825,17 +1883,35 @@ async function handleTranspoEvaluation(e){
     wrap.innerHTML = completed.slice(0,5).map(r => {
         const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
         return `
-        <div class="fleet-quick-row">
+        <div class="fleet-quick-row" onclick="viewTranspoHistoryDetail('${r.id}')" style="cursor:pointer;">
         <div>
             <div class="fleet-quick-name">${r.patient_name}</div>
             <div class="fleet-quick-type">${r.pickup_location} → ${r.destination} · ${timeAgo(r.created_at)}</div>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
             <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
-            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="printTranspoRecord('${r.id}')">🖨️</button>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printTranspoRecord('${r.id}')">🖨️</button>
         </div>
         </div>
     `;}).join('');
+    }
+
+    function viewTranspoHistoryDetail(id){
+        const r = transpoCache.find(x => String(x.id) === String(id));
+        if(!r){ alert('Record not found.'); return; }
+        const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
+        const vehicle = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
+
+        showRecordDetailModal(`🚐 ${r.patient_name}`, [
+            ['Pickup', r.pickup_location],
+            ['Destination', r.destination],
+            ['Schedule', r.schedule_time ? new Date(r.schedule_time).toLocaleString('en-PH') : 'N/A'],
+            ['Vehicle', vehicle ? vehicle.name : 'N/A'],
+            ['Driver', driver ? driver.name : 'N/A'],
+            ['Status', r.status],
+            ['Admin Notes', r.admin_notes || 'N/A'],
+            ['Date Submitted', fmtTime(r.created_at)],
+        ], () => printTranspoRecord(id));
     }
 
     function printTranspoRecord(id){

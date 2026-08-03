@@ -354,6 +354,11 @@ body {
     max-width: 450px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
+/* BAGO — First Aid guide content */
+#firstAidModal .modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+}
 
 /* Floating SOS Button */
 .floating-emergency-btn {
