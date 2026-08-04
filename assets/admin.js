@@ -17,6 +17,7 @@ let fleetCache = [];
 let incidentsCache = [];
 let transpoCache = [];
 let medicalRequestsCache = [];
+let serviceRecordsCache = []; // BAGO — mula sa 'service_records' table (Responder's Service Completion Record)
 let activeIncidentId = null;
 let responderProfilesCache = [];
 
@@ -439,7 +440,43 @@ function subscribeIncidentsRealtime() {
 }
 
     /* ---------------------------------------------------------
-    FLEET & PERSONNEL — REAL-TIME AVAILABILITY MONITORING
+    SERVICE COMPLETION RECORDS — sinasagot ng responder gamit ang
+    "Service Completion Record" form sa responder.html. Naka-save ito
+    sa hiwalay na 'service_records' table (hindi sa emergency_requests),
+    kaya kinukuha natin ito nang hiwalay at pinapares sa kani-kanilang
+    incident gamit ang request_id, para makita ng admin sa Documentation
+    Tracker ang buong detalye ng ginawang assistance ng responder.
+    --------------------------------------------------------- */
+    async function loadServiceRecordsFromSupabase() {
+        const { data, error } = await supabase
+            .from('service_records')
+            .select('*')
+            .order('completed_at', { ascending: false });
+
+        if (error) {
+            console.error('Hindi makuha ang service records:', error.message);
+            return;
+        }
+
+        serviceRecordsCache = data || [];
+        renderDocumentationHistory();
+    }
+
+    function subscribeServiceRecordsRealtime() {
+        supabase
+            .channel('service-records-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'service_records' }, () => {
+                loadServiceRecordsFromSupabase();
+            })
+            .subscribe();
+    }
+
+    function findServiceRecordForIncident(incidentId){
+        return serviceRecordsCache.find(sr => String(sr.request_id) === String(incidentId)) || null;
+    }
+
+
+    /*FLEET & PERSONNEL — REAL-TIME AVAILABILITY MONITORING
     (Ngayon ay galing na sa Supabase, hindi na sa localStorage)
     --------------------------------------------------------- */
     async function loadFleetFromSupabase() {
@@ -1152,8 +1189,9 @@ function printIncidentReport(){
         if(!inc){ alert('Incident not found.'); return; }
         const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
         const contact = inc.sender && inc.sender.contact ? inc.sender.contact : 'N/A';
+        const svc = findServiceRecordForIncident(id);
 
-        showRecordDetailModal(`🚨 ${inc.category || inc.type}`, [
+        const rows = [
             ['Reported By', `${callerName} (${contact})`],
             ['Description', inc.description || 'N/A'],
             ['Status', inc.status],
@@ -1161,7 +1199,22 @@ function printIncidentReport(){
             ['ETA / Notes', inc.eta || 'N/A'],
             ['Date Reported', fmtTime(inc.created_at)],
             ['Location (GPS)', inc.lat && inc.lng ? `${inc.lat}, ${inc.lng}` : 'No GPS data'],
-        ], () => printIncidentRecordFromHistory(id));
+        ];
+
+        if(svc){
+            rows.push(
+                ['Assistance Provided', svc.assistance_provided || 'N/A'],
+                ['Patient Outcome', svc.patient_outcome || 'N/A'],
+                ['Clinical Observations', svc.clinical_observations || 'N/A'],
+                ['Follow-up Notes', svc.follow_up_quote || 'N/A'],
+                ['Receiving Facility', svc.receiving_facility || 'N/A'],
+                ['Completed By', svc.responder_name || 'N/A'],
+                ['Response Duration', svc.response_duration_label || 'N/A'],
+                ['Completion Time', svc.completed_at ? fmtTime(svc.completed_at) : 'N/A'],
+            );
+        }
+
+        showRecordDetailModal(`🚨 ${inc.category || inc.type}`, rows, () => printIncidentRecordFromHistory(id));
     }
 
     function printIncidentRecordFromHistory(id){
@@ -1169,6 +1222,19 @@ function printIncidentReport(){
     if(!inc){ alert('Incident not found.'); return; }
     const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
     const contact = inc.sender ? inc.sender.contact : 'N/A';
+    const svc = findServiceRecordForIncident(id);
+
+    const serviceRowsHtml = svc ? `
+                <tr><th colspan="2" style="background:#f2f2f2; color:#333;">Service Completion Record</th></tr>
+                <tr><th>Assistance Provided</th><td>${svc.assistance_provided || 'N/A'}</td></tr>
+                <tr><th>Patient Outcome</th><td>${svc.patient_outcome || 'N/A'}</td></tr>
+                <tr><th>Clinical Observations</th><td>${svc.clinical_observations || 'N/A'}</td></tr>
+                <tr><th>Follow-up Notes</th><td>${svc.follow_up_quote || 'N/A'}</td></tr>
+                <tr><th>Receiving Facility</th><td>${svc.receiving_facility || 'N/A'}</td></tr>
+                <tr><th>Completed By</th><td>${svc.responder_name || 'N/A'}</td></tr>
+                <tr><th>Response Duration</th><td>${svc.response_duration_label || 'N/A'}</td></tr>
+                <tr><th>Completion Time</th><td>${svc.completed_at ? fmtTime(svc.completed_at) : 'N/A'}</td></tr>
+    ` : '';
 
     const printWindow = window.open('', '_blank', 'width=800,height=900');
     printWindow.document.write(`
@@ -1195,6 +1261,7 @@ function printIncidentReport(){
                 <tr><th>ETA / Notes</th><td>${inc.eta || 'N/A'}</td></tr>
                 <tr><th>Date Reported</th><td>${fmtTime(inc.created_at)}</td></tr>
                 <tr><th>Location (GPS)</th><td>${inc.lat && inc.lng ? `${inc.lat}, ${inc.lng}` : 'No GPS data'}</td></tr>
+                ${serviceRowsHtml}
             </table>
             <div class="footer">Generated ${fmtTime(nowISO())} · e-Medicare Barangay Bambang Control Center</div>
         </body>
@@ -2312,6 +2379,8 @@ function subscribeProfilesRealtime(){
     subscribeProfilesRealtime();
     await loadIncidentsFromSupabase();
     subscribeIncidentsRealtime();
+    await loadServiceRecordsFromSupabase();
+    subscribeServiceRecordsRealtime();
     await loadMedicalRequestsFromSupabase();
     subscribeMedicalRequestsRealtime();
     await loadTranspoFromSupabase();
