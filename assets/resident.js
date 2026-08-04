@@ -9,6 +9,7 @@ var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUserId = null;
 let currentUserName = 'Resident';
 let currentUserBarangay = 'Bambang'; // ginagamit para i-tag ang mga request
+let currentUserContact = ''; // BAGO — ginagamit ng medical assistance request (contact_number)
 let currentUserVerified = false; // BAGO — kailangan bago makapag-submit ng kahit anong request
 // ==========================================================================
 // LOAD USER PROFILE — tinatawag pagbukas ng page
@@ -36,6 +37,7 @@ async function loadUserProfile() {
 
     currentUserName = profile.name;
     currentUserBarangay = profile.barangay || 'Bambang';
+    currentUserContact = profile.contact || ''; // BAGO
     currentUserVerified = profile.id_verified === true; // BAGO
 
     document.getElementById('userName').textContent = profile.name;
@@ -740,16 +742,24 @@ async function submitMedicalRequest() {
         uploadedPaths.push(filePath);
     }
 
-    const { error } = await supabase.from('emergency_requests').insert({
+    // BAGO — dati ay pumupunta ito sa 'emergency_requests' table, kaya
+    // nakikita rin ito ng RESPONDER dashboard (na kumukuha ng lahat ng
+    // laman ng emergency_requests). Ito ay financial/medical assistance
+    // APPLICATION, hindi isang dispatch-type na emergency — kaya hindi
+    // ito dapat pumupunta sa responder. Dito na mismo ito sa
+    // 'medical_assistance_requests' table pumupunta, ang tanging
+    // binabasa ng Admin's "Assistance Queue" tab.
+    const { error } = await supabase.from('medical_assistance_requests').insert({
         sender_id: currentUserId,
-        type: 'Medical Assistance',
+        resident_name: currentUserName,
+        contact_number: currentUserContact || null,
         category: type,
-        service_type: 'Medical Assistance',
-        description: details,
+        purpose: details,
+        priority: 'Routine',
+        estimated_cost: 0,
+        documents: uploadedPaths,
         status: 'Pending',
-        patient_name: currentUserName,
-        jurisdiction: currentUserBarangay,
-        details: { documents: uploadedPaths }
+        history: [{ status: 'Pending', at: new Date().toISOString(), note: 'Request submitted by resident' }]
     });
 
     if (error) {
