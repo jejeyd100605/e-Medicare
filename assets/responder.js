@@ -605,6 +605,11 @@ function matchesActiveFilter(incident) {
 function compareQueuePriority(a, b) {
     const score = item => {
         let value = 0;
+        // BAGO — kung ako (ang naka-login na responder) ang na-assign ng
+        // admin sa request na ito, dapat ito ang pinaka-priority sa
+        // listahan — lumalampas pa sa urgency/pending scoring, para
+        // agad itong makita ng responder sa taas.
+        if (isAssignedToMe(item)) value += 1000;
         if (isUrgent(item)) value += 100;
         if (item.status === 'Pending') value += 50;
         if (item.status === 'Unattended' || item.status === 'Waiting List') value += 35;
@@ -618,6 +623,10 @@ function compareQueuePriority(a, b) {
 
 function isUrgent(incident) {
     return ['Urgent', 'Critical', 'High'].includes(String(incident.urgency));
+}
+
+function isAssignedToMe(incident) {
+    return Boolean(CURRENT_RESPONDER?.id) && String(incident.assignedResponderId) === String(CURRENT_RESPONDER.id);
 }
 
 async function selectIncident(id) {
@@ -1236,6 +1245,25 @@ function startRealtimeMonitoring() {
                 showSOSBanner(payload.new);
                 showBrowserSOSNotificationResp(payload.new);
             }
+
+            // BAGO — kapag ang naka-login na responder mismo ang bagong
+            // na-assign ng admin sa request na ito, awtomatikong:
+            //  1) i-open ang request na iyon sa Response Panel (para
+            //     tugma ang nakalagay na detalye sa bagong assignment), at
+            //  2) i-notify ang responder na may bagong dispatch.
+            // Ang sorting sa compareQueuePriority() na ang bahalang
+            // maglagay nito sa taas ng listahan.
+            const newlyAssignedToMe =
+                CURRENT_RESPONDER?.id &&
+                payload.new?.assigned_responder_id === CURRENT_RESPONDER.id &&
+                payload.old?.assigned_responder_id !== CURRENT_RESPONDER.id;
+
+            if (newlyAssignedToMe) {
+                selectedId = payload.new.id;
+                playAlertSound();
+                showToast(`🚑 Bagong assignment: ${payload.new.patient_name || payload.new.category || 'Emergency request'}`);
+            }
+
             loadData();
         })
         .subscribe();
