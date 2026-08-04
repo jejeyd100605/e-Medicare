@@ -131,6 +131,26 @@ function requestRespNotifPermission(){
     }
 }
 
+/* ---------------------------------------------------------
+   ASSIGNMENT NOTIFICATION — para sa "may na-assign sa akin ang
+   admin" na event. Sadyang hiwalay ito sa SOS flow (walang
+   blinking banner, walang paulit-ulit na beep, walang tab-title
+   flash) dahil ito ay routine dispatch lang, hindi urgent SOS.
+--------------------------------------------------------- */
+function showAssignmentNotification(incident){
+    const name = incident?.patient_name || 'Isang residente';
+    const category = incident?.category || 'Emergency Request';
+
+    showToast(`📋 Bagong assignment mula sa admin: ${name} — ${category}`);
+
+    if('Notification' in window && Notification.permission === 'granted'){
+        const n = new Notification('📋 Bagong Assignment', {
+            body: `Na-assign ka sa: ${name} — ${category}`,
+        });
+        n.onclick = () => { window.focus(); n.close(); };
+    }
+}
+
 function showBrowserSOSNotificationResp(incident){
     if('Notification' in window && Notification.permission === 'granted'){
         const n = new Notification('🚨 New SOS Alert', {
@@ -1260,8 +1280,8 @@ function startRealtimeMonitoring() {
 
             if (newlyAssignedToMe) {
                 selectedId = payload.new.id;
-                playAlertSound();
-                showToast(`🚑 Bagong assignment: ${payload.new.patient_name || payload.new.category || 'Emergency request'}`);
+                playAssignmentNotificationSound();
+                showAssignmentNotification(payload.new);
             }
 
             loadData();
@@ -1311,6 +1331,43 @@ function playAlertSound() {
         gain.connect(audioContext.destination);
         oscillator.start();
         setTimeout(() => oscillator.stop(), 500);
+    } catch {
+        // Browsers may block audio until the first user interaction.
+    }
+}
+
+/* ---------------------------------------------------------
+   ASSIGNMENT NOTIFICATION SOUND — sadyang IBA ito sa SOS alarm
+   (playSOSBeep/startSOSAlertLoop, mataas at paulit-ulit) at sa
+   generic playAlertSound (isang beep lang, para sa bagong Pending
+   request sa queue). Ito ay isang mahinahon, dalawang-tono na
+   "ding-dong" chime na tumutunog isang beses lang — sapat para
+   mapansin ng responder na may na-dispatch sa kanya ang admin,
+   pero hindi kasing-alarma ng emergency SOS.
+--------------------------------------------------------- */
+function playAssignmentNotificationSound(){
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContext();
+        const now = audioContext.currentTime;
+
+        const playTone = (freq, startOffset, duration) => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + startOffset);
+            gain.gain.setValueAtTime(0.001, now + startOffset);
+            gain.gain.exponentialRampToValueAtTime(0.25, now + startOffset + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + startOffset + duration);
+            osc.connect(gain).connect(audioContext.destination);
+            osc.start(now + startOffset);
+            osc.stop(now + startOffset + duration + 0.05);
+        };
+
+        // "Ding" (mataas) pagkatapos "dong" (mas mababa) — parang
+        // notification chime ng mobile apps, hindi galaw ng SOS square wave.
+        playTone(1046.5, 0, 0.25);   // C6
+        playTone(783.99, 0.18, 0.35); // G5
     } catch {
         // Browsers may block audio until the first user interaction.
     }
