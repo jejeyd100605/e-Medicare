@@ -1469,9 +1469,9 @@ function printIncidentReport(){
 
     const openOnes = list.filter(r => r.status !== 'Disbursed' && r.status !== 'Rejected');
     badge && (badge.textContent = openOnes.length + ' Pending');
-    empty && (empty.style.display = list.length ? 'none' : 'block');
+    empty && (empty.style.display = openOnes.length ? 'none' : 'block');
 
-    wrap.innerHTML = list.map(r => `
+    wrap.innerHTML = openOnes.map(r => `
         <div class="request-card ${String(r.id) === String(selectedRequestId) ? 'selected':''}" onclick="selectRequest('${r.id}')">
         <div class="request-card-top">
             <span class="request-card-name">${r.resident_name}</span>
@@ -1488,7 +1488,7 @@ function printIncidentReport(){
 
     let selectedRequestId = null;
 
-   function selectRequest(id){
+   async function selectRequest(id){
     selectedRequestId = id;
     const r = medicalRequestsCache.find(x => String(x.id) === String(id));
     if(!r) return;
@@ -1501,16 +1501,46 @@ function printIncidentReport(){
     if(document.getElementById('evalCost')) document.getElementById('evalCost').value = r.estimated_cost || 0;
     document.getElementById('evalNotes').value = r.admin_notes || '';
 
-    const docs = Array.isArray(r.documents) ? r.documents : [];
-    document.getElementById('evalDocAttachments').innerHTML = docs.length
-        ? docs.map(d => `📎 ${d}`).join('<br>')
-        : 'No documents attached.';
+    await renderDocAttachments(r);
 
     renderStepper(r);
     renderRequests();
 
     document.getElementById('evalDocAttachments').scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
+
+    async function renderDocAttachments(r){
+    const wrap = document.getElementById('evalDocAttachments');
+    const docs = Array.isArray(r.documents) ? r.documents : [];
+    if(docs.length === 0){
+        wrap.innerHTML = 'No documents attached.';
+        return;
+    }
+
+    wrap.innerHTML = docs.map((d, i) => `📎 <a href="#" id="doc-link-${i}" style="color:#00b0ff; text-decoration:underline;">${d}</a>`).join('<br>');
+
+    for(let i = 0; i < docs.length; i++){
+        const path = docs[i];
+        const linkEl = document.getElementById(`doc-link-${i}`);
+        if(!linkEl) continue;
+
+        const { data, error } = await supabase.storage
+            .from('medical-documents')
+            .createSignedUrl(path, 300); // 5 minutes validity
+
+        if(error || !data?.signedUrl){
+            linkEl.style.color = '#888';
+            linkEl.style.textDecoration = 'none';
+            linkEl.title = 'Hindi ma-load ang file.';
+            linkEl.onclick = (e) => e.preventDefault();
+            continue;
+        }
+
+        linkEl.href = data.signedUrl;
+        linkEl.target = '_blank';
+        linkEl.rel = 'noopener noreferrer';
+    }
+}
 
     function renderStepper(r){
     const wrap = document.getElementById('statusStepper');

@@ -724,11 +724,24 @@ async function submitMedicalRequest() {
         return;
     }
 
+    const ASSIST_TYPE_FOLDERS = {
+        'Medicine Assistance': 'medicine-assistance',
+        'Hospital Bill': 'hospital-bill',
+        'Laboratory': 'laboratory'
+    };
+    const folderSlug = ASSIST_TYPE_FOLDERS[type] || 'other';
+const ASSIST_TYPE_FOLDERS = {
+        'Medicine Assistance': 'medicine-assistance',
+        'Hospital Bill': 'hospital-bill',
+        'Laboratory': 'laboratory'
+    };
+    const folderSlug = ASSIST_TYPE_FOLDERS[type] || 'other';
+
     const uploadedPaths = [];
 
     for (let i = 0; i < docs.length; i++) {
         const file = docs[i];
-        const filePath = `${currentUserId}/${Date.now()}_${file.name}`;
+        const filePath = `${folderSlug}/${currentUserId}/${Date.now()}_${file.name}`;
 
         const { error: uploadError } = await supabase.storage
             .from('medical-documents')
