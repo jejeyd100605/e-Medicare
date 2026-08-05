@@ -494,8 +494,15 @@ async function fetchRequestsFromSupabase() {
     // tab (na bumabasa sa hiwalay na 'medical_assistance_requests'
     // table). Ito rito ay safety net kung sakaling may stray/legacy row
     // pa rin sa 'emergency_requests' na may ganitong type.
+    //
+    // BAGO din — hindi dapat nakikita ng responder ang "Schedule Transpo"
+    // (PTV) requests. Admin lang ang dapat makatanggap nito, sa
+    // pamamagitan ng "Transport Queue" tab (na bumabasa sa hiwalay na
+    // 'transport_requests' table). Safety net din ito kung sakaling
+    // may stray/legacy PTV row pa rin sa 'emergency_requests'.
     let query = supabase.from('emergency_requests').select('*')
         .neq('type', 'Medical Assistance')
+        .neq('type', 'Transpo')
         .order('created_at', { ascending: false });
     if (!crossBarangay && CURRENT_RESPONDER?.jurisdiction) {
         query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);

@@ -420,13 +420,12 @@ function checkVehicleAvailability() {
 // ==========================================================================
 async function checkTranspoCooldown() {
     const { data, error } = await supabase
-        .from('emergency_requests')
+        .from('transport_requests')
         .select('created_at')
         .eq('sender_id', currentUserId)
-        .eq('type', 'Transpo')
         .order('created_at', { ascending: false })
         .limit(1);
-
+        
     if (error) {
         console.error('Hindi ma-check ang cooldown:', error.message);
         return { allowed: true };
@@ -784,23 +783,23 @@ async function submitTranspo() {
         return;
     }
 
-    const { error } = await supabase.from('emergency_requests').insert({
+    // BAGO — dati ay pumupunta ito sa 'emergency_requests' table, kaya
+    // nakikita rin ito ng RESPONDER dashboard. Ang Schedule Transpo ay
+    // hindi dispatch-type na emergency — dapat lang sa admin's
+    // "Transport Queue" tab ito lumabas, na bumabasa sa hiwalay na
+    // 'transport_requests' table.
+    const scheduleTime = new Date(`${date}T${time}`).toISOString();
+
+    const { error } = await supabase.from('transport_requests').insert({
         sender_id: currentUserId,
-        type: 'Transpo',
-        category: vehicle,
-        service_type: 'Transpo',
-        description: `${pickup} → ${destination}${reason ? ' | ' + reason : ''}`,
-        status: 'Pending',
         patient_name: currentUserName,
-        jurisdiction: currentUserBarangay,
-        details: {
-            patient_condition: condition,
-            date: date,
-            time: time,
-            pickup: pickup,
-            destination: destination,
-            reason: reason
-        }
+        pickup_location: pickup,
+        destination: destination,
+        transport_type: vehicle,
+        schedule_time: scheduleTime,
+        patient_condition: condition,
+        reason: reason,
+        status: 'Pending'
     });
 
     if (error) {
