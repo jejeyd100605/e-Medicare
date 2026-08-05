@@ -1832,12 +1832,21 @@ function renderTranspoList(){
     const badge = document.getElementById('transpoCountBadge');
     if(!wrap) return;
 
+    // BAGO — Pending lang ang dapat makita dito. Kapag na-approve/
+    // na-reject na, dapat mawala na sya dito at lumipat sa "Completed
+    // Transport Records" (renderTranspoHistory), na binabasa na ang
+    // Approved/Completed/Rejected statuses.
     const pending = transpoCache.filter(r => r.status === 'Pending');
     badge && (badge.textContent = pending.length + ' Pending');
-    empty && (empty.style.display = transpoCache.length ? 'none' : 'block');
+    empty && (empty.style.display = pending.length ? 'none' : 'block');
 
-    wrap.innerHTML = transpoCache.map(r => {
-        const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;   // BAGO
+    if(pending.length === 0){
+        wrap.innerHTML = '';
+        return;
+    }
+
+    wrap.innerHTML = pending.map(r => {
+        const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
         return `
         <div class="request-card ${String(r.id) === String(selectedTranspoId) ? 'selected':''}" onclick="selectTranspoRequest('${r.id}')">
         <div class="request-card-top">
