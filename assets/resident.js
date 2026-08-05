@@ -741,7 +741,7 @@ const ASSIST_TYPE_FOLDERS = {
 
     for (let i = 0; i < docs.length; i++) {
         const file = docs[i];
-        const filePath = `${folderSlug}/${currentUserId}/${Date.now()}_${file.name}`;
+      const filePath = `${currentUserId}/${folderSlug}/${Date.now()}_${file.name}`;
 
         const { error: uploadError } = await supabase.storage
             .from('medical-documents')
