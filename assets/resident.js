@@ -724,11 +724,6 @@ async function submitMedicalRequest() {
         return;
     }
 
-    const ASSIST_TYPE_FOLDERS = {
-        'Medicine Assistance': 'medicine-assistance',
-        'Hospital Bill': 'hospital-bill',
-        'Laboratory': 'laboratory'
-    };
     const folderSlug = ASSIST_TYPE_FOLDERS[type] || 'other';
 const ASSIST_TYPE_FOLDERS = {
         'Medicine Assistance': 'medicine-assistance',
