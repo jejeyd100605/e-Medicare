@@ -1110,7 +1110,7 @@ function printIncidentReport(){
     loadFleetFromSupabase();
 }
 
-    async function moveToWaitingList(){
+  async function moveToWaitingList(){
     const inc = incidentsCache.find(i => i.id === activeIncidentId);
     if(!inc) return;
 
@@ -1122,6 +1122,15 @@ function printIncidentReport(){
     if (error) { alert('Hindi na-update: ' + error.message); return; }
 
     logActivity('request', `Case for <b>${inc.sender ? inc.sender.name : 'Resident'}</b> moved to documentation tracker.`);
+
+    if(inc.sender_id){
+        await supabase.from('notifications').insert({
+            receiver_id: inc.sender_id,
+            title: 'Request Update',
+            message: `Hi ${inc.sender ? inc.sender.name : ''}, ang iyong ${inc.category || inc.type} request ay pansamantalang nasa waiting list habang naghihintay ng available na responder. Aabisuhan ka agad kapag na-assign na.`
+        });
+    }
+
     document.getElementById('assignModal').style.display = 'none';
     loadIncidentsFromSupabase();
 }
@@ -1908,10 +1917,28 @@ async function handleTranspoEvaluation(e){
     const r = transpoCache.find(x => String(x.id) === String(id));
     if(!r){ alert('Select a transpo request from the list first.'); return; }
 
-    const notes = document.getElementById('transpoNotes').value;
+   const notes = document.getElementById('transpoNotes').value;
 
     if(action === 'Reject'){
-        // ...walang binago dito
+        const { error: rejError } = await supabase
+            .from('transport_requests')
+            .update({ status: 'Rejected', admin_notes: notes })
+            .eq('id', r.id);
+        if(rejError){ alert('Hindi na-update: ' + rejError.message); return; }
+
+        logActivity('request', `Transpo request ni <b>${r.patient_name}</b> na-reject.`);
+
+        if(r.sender_id){
+            await supabase.from('notifications').insert({
+                receiver_id: r.sender_id,
+                title: 'Transpo Request Rejected',
+                message: `Hi ${r.patient_name}, hindi na-approve ang iyong transport request (${r.pickup_location} → ${r.destination}).${notes ? ' Dahilan: ' + notes : ''}`
+            });
+        }
+
+        document.getElementById('transpoNotes').value = '';
+        loadTranspoFromSupabase();
+        return;
     }
 
     const vehicleId = document.getElementById('transpoVehicleSelect').value;

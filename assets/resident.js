@@ -11,6 +11,114 @@ let currentUserName = 'Resident';
 let currentUserBarangay = 'Bambang'; // ginagamit para i-tag ang mga request
 let currentUserContact = ''; // BAGO — ginagamit ng medical assistance request (contact_number)
 let currentUserVerified = false; // BAGO — kailangan bago makapag-submit ng kahit anong request
+
+
+// ==========================================================================
+// NOTIFICATION BELL — nagpapakita ng mga update tungkol sa requests
+// ==========================================================================
+let notificationsCache = [];
+
+async function loadNotifications(){
+    if(!currentUserId) return;
+    const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('receiver_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+    if(error){ console.error('Hindi makuha ang notifications:', error.message); return; }
+    notificationsCache = data || [];
+    renderNotifications();
+}
+
+function notifTimeAgo(iso){
+    const s = Math.floor((Date.now() - new Date(iso).getTime())/1000);
+    if(s < 60) return 'ngayon lang';
+    if(s < 3600) return Math.floor(s/60) + 'm ago';
+    if(s < 86400) return Math.floor(s/3600) + 'h ago';
+    return Math.floor(s/86400) + 'd ago';
+}
+
+function renderNotifications(){
+    const list = document.getElementById('notifList');
+    const badge = document.getElementById('notifBadge');
+    if(!list) return;
+
+    const unreadCount = notificationsCache.filter(n => !n.read).length;
+    if(badge){
+        if(unreadCount > 0){
+            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    if(notificationsCache.length === 0){
+        list.innerHTML = '<div class="notif-empty">Wala ka pang notifications.</div>';
+        return;
+    }
+
+    list.innerHTML = notificationsCache.map(n => `
+        <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markNotifRead('${n.id}')">
+            <div style="font-weight:600;">${n.title || 'Update'}</div>
+            <div>${n.message}</div>
+            <span class="notif-time">${notifTimeAgo(n.created_at)}</span>
+        </div>
+    `).join('');
+}
+
+function toggleNotifMenu(e){
+    e.stopPropagation();
+    const menu = document.getElementById('notifDropdown');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+document.addEventListener('click', () => {
+    const menu = document.getElementById('notifDropdown');
+    if (menu) menu.style.display = 'none';
+});
+
+async function markNotifRead(id){
+    const n = notificationsCache.find(x => String(x.id) === String(id));
+    if(!n || n.read) return;
+
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
+    if(error){ console.error('Hindi na-mark as read:', error.message); return; }
+
+    n.read = true;
+    renderNotifications();
+}
+
+async function markAllNotifsRead(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if(!currentUserId) return;
+
+    const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('receiver_id', currentUserId)
+        .eq('read', false);
+
+    if(error){ console.error('Hindi na-mark all as read:', error.message); return; }
+
+    notificationsCache.forEach(n => n.read = true);
+    renderNotifications();
+}
+
+function subscribeNotificationsRealtime(){
+    if(!currentUserId) return;
+    supabase
+        .channel('resident-notifications-' + currentUserId)
+        .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${currentUserId}` },
+            () => {
+                loadNotifications();
+            })
+        .subscribe();
+}
 // ==========================================================================
 // LOAD USER PROFILE — tinatawag pagbukas ng page
 // ==========================================================================
@@ -61,6 +169,8 @@ async function loadUserProfile() {
 
     loadRequestHistory();
     subscribeRequestsRealtimeResident();
+    loadNotifications();
+    subscribeNotificationsRealtime();
 }
 
 // ==========================================================================
