@@ -573,13 +573,12 @@ function subscribeIncidentsRealtime() {
     wrap.innerHTML = stripHtml + rows;
 }
 
-  function renderFleet(){
-    const list = fleetCache;
-    const tbody = document.getElementById('fleetList');
-    if(!tbody) return;
-    tbody.innerHTML = list.map(f => {
-        const linked = f.profileId ? responderProfilesCache.find(p => p.id === f.profileId) : null;
-        return `
+  const FLEET_VEHICLE_TYPES = ['Medical (Full)', 'Transport', 'Rescue/Patrol', 'Auxiliary'];
+  const FLEET_PERSONNEL_TYPES = ['Driver', 'Medical Personnel'];
+
+  function fleetRowHTML(f){
+    const linked = f.profileId ? responderProfilesCache.find(p => p.id === f.profileId) : null;
+    return `
         <tr>
         <td>
             <div style="font-weight:600;">${f.name}</div>
@@ -601,7 +600,21 @@ function subscribeIncidentsRealtime() {
             <button class="primary-btn" style="background:#3a1c1c;color:#ff8a8a;font-size:.72em;padding:6px 10px;" onclick="removeFleet('${f.id}')">Remove</button>
         </td>
         </tr>
-    `;}).join('');
+    `;
+  }
+
+  // BAGO — hinati ang isang table dati na naghahalo ng sasakyan at tao
+  // sa dalawang magkahiwalay na listahan, para mas malinaw.
+  function renderFleet(){
+    const vehicles = fleetCache.filter(f => FLEET_VEHICLE_TYPES.includes(f.type));
+    const personnel = fleetCache.filter(f => FLEET_PERSONNEL_TYPES.includes(f.type));
+
+    const vehicleTbody = document.getElementById('fleetVehicleList');
+    if(vehicleTbody) vehicleTbody.innerHTML = vehicles.map(fleetRowHTML).join('');
+
+    const personnelTbody = document.getElementById('fleetPersonnelList');
+    if(personnelTbody) personnelTbody.innerHTML = personnel.map(fleetRowHTML).join('');
+
     renderQuickFleetStatus();
     populateDispatchSelects();
 }

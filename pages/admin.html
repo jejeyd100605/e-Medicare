@@ -196,10 +196,10 @@
                 <div class="column" style="flex: 2.8;">
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title">📋 Emergency Medical & Transportation Resources List</div>
+                            <div class="panel-title">🚑 Vehicles & Resource Units</div>
                             <span class="live-indicator"><span class="status-dot pulse"></span>Live</span>
                         </div>
-                        <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">Change any unit's status inline below — updates reflect immediately across the Incident Monitor and Dispatch Center.</p>
+                        <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">Ambulances, transport vehicles, rescue/patrol, and auxiliary units. Change any unit's status inline below.</p>
                         <table class="fleet-table" style="width: 100%;">
                             <thead>
                                 <tr>
@@ -210,7 +210,27 @@
                                     <th>Quick Actions / Override</th>
                                 </tr>
                             </thead>
-                            <tbody id="fleetList"></tbody>
+                            <tbody id="fleetVehicleList"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">🧑‍⚕️ Personnel (Drivers & Responders)</div>
+                            <span class="live-indicator"><span class="status-dot pulse"></span>Live</span>
+                        </div>
+                        <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">On-foot / staff personnel — drivers and medical responders. Change any status inline below.</p>
+                        <table class="fleet-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Personnel Name</th>
+                                    <th>Classification</th>
+                                    <th>Assigned Team</th>
+                                    <th>Live Availability Status</th>
+                                    <th>Quick Actions / Override</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fleetPersonnelList"></tbody>
                         </table>
                     </div>
                 </div>
