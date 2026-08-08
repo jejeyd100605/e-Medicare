@@ -1090,6 +1090,8 @@ function initSOSHoldButton() {
     const label = document.getElementById('sosBtnLabel');
     if (!btn) return;
 
+    btn.addEventListener('contextmenu', (e) => e.preventDefault());
+    
     const startHold = (e) => {
         e.preventDefault();
         if (sosCooldownActive || sosHoldTimeout) return;
