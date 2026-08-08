@@ -375,7 +375,7 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
     const empty = document.getElementById('reportsEmpty');
     const badge = document.getElementById('reportCountBadge');
     if(!wrap) return;
-    const open = list.filter(i => i.status !== 'Resolved');
+    const open = list.filter(i => !TERMINAL_INCIDENT_STATUSES.includes(i.status));
     badge && (badge.textContent = open.length + ' Reports');
     empty && (empty.style.display = open.length ? 'none' : 'block');
 
@@ -1149,7 +1149,7 @@ function printIncidentReport(){
 }
 
 
-    const TERMINAL_INCIDENT_STATUSES = ['Resolved','Completed'];
+   const TERMINAL_INCIDENT_STATUSES = ['Resolved','Completed','Rejected'];
 
     function renderDocumentationHistory(){
     const wrap = document.getElementById('incidentHistoryList');
