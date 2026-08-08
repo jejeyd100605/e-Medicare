@@ -93,7 +93,7 @@
                     <h3>Emergency Guide</h3>
                 </div>
 
-                <div class="card card-pink" style="position:relative;" onclick="switchView('advisories-view'); loadAdvisories(); markAdvisoriesSeen();">
+                <div class="card card-pink" style="position:relative;" onclick="openAdvisories();">
         <span class="card-icon"><i class="fas fa-bullhorn"></i></span>
         <h3>Advisories</h3>
         <span id="advisoryCardBadge" style="display:none; position:absolute; top:10px; right:14px; width:12px; height:12px; background:#ff1744; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.4);"></span>
@@ -297,12 +297,8 @@
                         <h3 style="color:#f06292;"><i class="fas fa-bullhorn"></i> Barangay Announcements</h3>
                         <hr style="opacity: 0.1; margin: 15px 0;">
                         <div id="advisoryList">
-                            <div style="background: #fff3f0; padding: 15px; border-radius: 12px; border-left: 5px solid #f06292; margin-bottom: 10px;">
-                                <strong style="color: #d32f2f;">🚨 BAKUNA SCHEDULE</strong>
-                                <p style="font-size: 0.85rem; margin-top: 5px;">Magkakaroon ng libreng bakuna sa Barangay Hall ngayong darating na Sabado, 8:00 AM.</p>
-                                <small style="color: #888;">Posted: March 3, 2026</small>
-                            </div>
-                        </div>
+    <div style="text-align:center;color:#999;padding:20px;font-size:0.85rem;">Loading advisories...</div>
+</div>
                     </div>
                 </div>
             </div>

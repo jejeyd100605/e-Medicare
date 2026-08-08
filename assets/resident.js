@@ -125,6 +125,75 @@ function subscribeNotificationsRealtime(){
             })
         .subscribe();
 }
+
+// ==========================================================================
+// COMMUNITY ADVISORIES — broadcast mula sa Admin, may "unread" indicator
+// ==========================================================================
+let advisoriesCache = [];
+
+async function loadAdvisories(){
+    const { data, error } = await supabase
+        .from('advisories')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+    if(error){ console.error('Hindi makuha ang advisories:', error.message); return; }
+    advisoriesCache = data || [];
+    renderAdvisories();
+    updateAdvisoryBadge();
+}
+
+function renderAdvisories(){
+    const wrap = document.getElementById('advisoryList');
+    if(!wrap) return;
+
+    if(advisoriesCache.length === 0){
+        wrap.innerHTML = '<div style="text-align:center;color:#999;padding:20px;font-size:0.85rem;">Wala pang advisories na na-post.</div>';
+        return;
+    }
+
+    wrap.innerHTML = advisoriesCache.map(a => `
+        <div style="background: #fff3f0; padding: 15px; border-radius: 12px; border-left: 5px solid #f06292; margin-bottom: 10px;">
+            <strong style="color: #d32f2f;">🚨 ${a.title}</strong>
+            <p style="font-size: 0.85rem; margin-top: 5px;">${a.message}</p>
+            <small style="color: #888;">Posted: ${new Date(a.created_at).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' })}</small>
+        </div>
+    `).join('');
+}
+
+function getLastSeenAdvisoryTime(){
+    if(!currentUserId) return null;
+    return localStorage.getItem('advisory_last_seen_' + currentUserId);
+}
+
+function updateAdvisoryBadge(){
+    const badge = document.getElementById('advisoryCardBadge');
+    if(!badge) return;
+    const lastSeen = getLastSeenAdvisoryTime();
+    const hasUnread = advisoriesCache.some(a => !lastSeen || new Date(a.created_at) > new Date(lastSeen));
+    badge.style.display = hasUnread ? 'block' : 'none';
+}
+
+function markAdvisoriesSeen(){
+    if(!currentUserId || advisoriesCache.length === 0) return;
+    localStorage.setItem('advisory_last_seen_' + currentUserId, advisoriesCache[0].created_at);
+    updateAdvisoryBadge();
+}
+
+function openAdvisories(){
+    switchView('advisories-view');
+    markAdvisoriesSeen();
+}
+
+function subscribeAdvisoriesRealtime(){
+    supabase
+        .channel('resident-advisories-changes')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'advisories' }, () => {
+            loadAdvisories();
+        })
+        .subscribe();
+}
 // ==========================================================================
 // LOAD USER PROFILE — tinatawag pagbukas ng page
 // ==========================================================================
@@ -172,11 +241,12 @@ async function loadUserProfile() {
             document.getElementById('residentDefaultIcon').style.display = 'none';
         }
     }
-
-    loadRequestHistory();
+loadRequestHistory();
     subscribeRequestsRealtimeResident();
     loadNotifications();
     subscribeNotificationsRealtime();
+    loadAdvisories();
+    subscribeAdvisoriesRealtime();
 }
 
 // ==========================================================================
@@ -1091,7 +1161,7 @@ function initSOSHoldButton() {
     if (!btn) return;
 
     btn.addEventListener('contextmenu', (e) => e.preventDefault());
-    
+
     const startHold = (e) => {
         e.preventDefault();
         if (sosCooldownActive || sosHoldTimeout) return;
