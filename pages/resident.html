@@ -27,15 +27,20 @@
                     <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
                 </div>
 
-                <div class="notif-dropdown" id="notifDropdown">
-                    <div class="notif-dropdown-header">
-                        <span>Notifications</span>
-                        <a href="#" onclick="markAllNotifsRead(event)">Mark all read</a>
-                    </div>
-                    <div id="notifList">
-                        <div class="notif-empty">Loading...</div>
-                    </div>
-                </div>
+           <div class="notif-overlay" id="notifOverlay" onclick="toggleNotifMenu(event)"></div>
+
+<div class="notif-dropdown" id="notifDropdown">
+    <div class="notif-dropdown-header">
+        <span>Notifications</span>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <a href="#" onclick="markAllNotifsRead(event)">Mark all read</a>
+            <button class="notif-close-btn" onclick="toggleNotifMenu(event)">✕</button>
+        </div>
+    </div>
+    <div id="notifList">
+        <div class="notif-empty">Loading...</div>
+    </div>
+</div>
 
                 <div class="profile-container" onclick="toggleProfileMenu(event)">
                     <div class="header-avatar-circle">
@@ -384,7 +389,7 @@
     <span class="sos-progress" id="sosProgressFill"></span>
     <i class="fas fa-phone-alt"></i>
     <span id="sosBtnLabel">Hold SOS</span>
-</button>
+</button
 
         <div id="instantAlertToast" style="display:none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #d32f2f; color: white; padding: 20px; border-radius: 15px; z-index: 10000; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; border: 2px solid white;">
             🚨 EMERGENCY ALERT SENT! <br>

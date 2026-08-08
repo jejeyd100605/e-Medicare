@@ -72,12 +72,18 @@ function renderNotifications(){
 function toggleNotifMenu(e){
     e.stopPropagation();
     const menu = document.getElementById('notifDropdown');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    const overlay = document.getElementById('notifOverlay');
+    const isShowing = menu.classList.contains('show');
+    menu.classList.toggle('show', !isShowing);
+    overlay.classList.toggle('show', !isShowing);
 }
+
 
 document.addEventListener('click', () => {
     const menu = document.getElementById('notifDropdown');
-    if (menu) menu.style.display = 'none';
+    const overlay = document.getElementById('notifOverlay');
+    if (menu) menu.classList.remove('show');
+    if (overlay) overlay.classList.remove('show');
 });
 
 async function markNotifRead(id){
