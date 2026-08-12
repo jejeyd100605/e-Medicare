@@ -963,11 +963,15 @@ textarea.form-control {
     }
 
     /* "menu" mo dito ay yung header controls / status filters -
-       ginagawang pababa (column) sa mobile imbes na patagilid */
+       Assigned Unit at Unit Status ay magkatabi (2 columns) sa mobile
+       imbes na nakapatong-patong pababa, para di sha kumakain ng
+       masyadong maraming vertical space. */
     .header-right {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+        gap: 10px 12px;
+        margin-top: 12px;
     }
 
     .status-group,
@@ -975,12 +979,20 @@ textarea.form-control {
         width: 100%;
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 5px;
+    }
+
+    .unit-label label,
+    .status-group label {
+        font-size: 0.72rem;
     }
 
     .unit-select,
     .responder-status-select {
         width: 100%;
+        min-height: 30px;
+        padding: 5px 24px 5px 9px;
+        font-size: 0.78rem;
     }
 
     .separator {
@@ -1009,6 +1021,77 @@ textarea.form-control {
 
     .incident-list-item {
         padding: 12px;
+    }
+
+    /* --- Thinner KPI boxes (Active Drivers / Vehicle Status / Avg.
+       Response) — panatilihin ang 3 sa isang row imbes na
+       nag-sstack pababa (na siyang dahilan bakit napakahaba ng
+       scroll), pero paliitin ang padding/icon/font para readable
+       pa rin kahit maliit ang bawat box. */
+    .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .metric-card {
+        padding: 8px;
+        gap: 6px;
+        border-radius: 8px;
+    }
+
+    .metric-icon {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+    }
+
+    .metric-label {
+        font-size: 0.56rem;
+        line-height: 1.15;
+    }
+
+    .metric-value {
+        font-size: 1rem;
+    }
+
+    .metric-value small {
+        font-size: 0.52rem;
+    }
+
+    /* --- Thinner Assigned Personnel — 2 columns magkatabi (Driver /
+       Responder) imbes na patong-patong pababa, mas maliit na
+       padding/fonts pero readable pa rin. */
+    .personnel-panel {
+        padding: 12px;
+        margin-bottom: 14px;
+    }
+
+    .personnel-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .personnel-card {
+        flex: unset;
+        max-width: 100%;
+        padding: 10px 12px;
+    }
+
+    .personnel-card h4 {
+        font-size: 12.5px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        gap: 6px;
+    }
+
+    .personnel-card p,
+    .personnel-card li {
+        font-size: 12px;
+        padding: 4px 0;
     }
 }
 @keyframes sosPulse {
