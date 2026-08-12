@@ -736,6 +736,22 @@ textarea.form-control {
         grid-template-columns: 1fr;
     }
 
+    /* NEW — sa mobile/single-column view, gusto ng responder na makita
+       agad ang RESPONSE PANEL (detail) sa ITAAS bago ang listahan ng
+       requests, imbes na nasa ilalim pa ito. Ang `order` property ay
+       gumagana rin sa grid items (hindi lang flex), kaya pwede natin
+       i-reorder ang dalawang direct column ng .layout nang walang
+       kailangang baguhin ang pagkakasunod-sunod nila sa HTML/DOM
+       (importante ito para hindi masira ang tab order/accessibility
+       sa desktop, kung saan side-by-side pa rin sila). */
+    .response-panel-col {
+        order: 1;
+    }
+
+    .request-list-col {
+        order: 2;
+    }
+
     .metrics-grid {
         grid-template-columns: 1fr;
     }

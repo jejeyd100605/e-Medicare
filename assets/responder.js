@@ -4,33 +4,6 @@
  * e-Medicare responder dashboard — SUPABASE EDITION
  * -------------------------------------------------
  * Backend: Supabase (Postgres + Realtime + Auth).
- *
- * STATUS AFTER THIS ROUND'S MIGRATION (see migration.sql):
- * - `emergency_requests` now has every column this dashboard needs
- *   (patient_name, jurisdiction, urgency, accepted_at, arrived_at,
- *   completed_at, responder_lat/lng, eta_minutes, assigned_responder_id/
- *   name, message, response_duration_*), and the `status` CHECK
- *   constraint now allows 'In Transit', 'Arrived', 'Completed',
- *   'Unattended' on top of the original values. Accept/Deploy, GPS
- *   tracking, ETA broadcast, and Service Completion all write to real
- *   columns now.
- * - `service_records` table now exists and matches exactly what
- *   saveServiceCompletion() below inserts.
- * - `CURRENT_RESPONDER.jurisdiction` is now sourced from
- *   `profiles.barangay`, so the cross-barangay filter in
- *   fetchRequestsFromSupabase() actually does something.
- * - Resident submissions (resident.js) now tag each request with
- *   `patient_name` and `jurisdiction` at insert time, so they show up
- *   here immediately with the right info.
- * - `fetchResponderStatuses()` no longer queries the non-existent
- *   `responder_statuses` table — it now counts active `profiles` with
- *   role = 'responder' for the "Active Drivers" metric.
- * - Assigned Personnel now reads from a new `fleet_personnel` table
- *   (fleet_id, profile_id, role) instead of the non-existent `units` /
- *   `unit_personnel` tables, and renderAssignedPersonnel() is now
- *   actually called (it previously existed but nothing invoked it).
- *   NOTE: `fleet_personnel` needs to be populated by an admin (no UI
- *   for it yet — see the sample INSERT at the bottom of migration.sql).
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -132,10 +105,7 @@ function requestRespNotifPermission(){
 }
 
 /* ---------------------------------------------------------
-   ASSIGNMENT NOTIFICATION — para sa "may na-assign sa akin ang
-   admin" na event. Sadyang hiwalay ito sa SOS flow (walang
-   blinking banner, walang paulit-ulit na beep, walang tab-title
-   flash) dahil ito ay routine dispatch lang, hindi urgent SOS.
+   ASSIGNMENT NOTIFICATION
 --------------------------------------------------------- */
 function showAssignmentNotification(incident){
     const name = incident?.patient_name || 'Isang residente';
@@ -169,10 +139,7 @@ let etaTimer = null;
 let safetyPollTimer = null;
 
 /* ============================================================
-   SESSION CHECK — kaparehong istruktura ng checkAdminSession() sa
-   admin.js — kinukuha ang session, tapos ang profile row, tapos
-   ginagarantiya na 'responder' talaga ang role bago payagang
-   tumuloy sa dashboard.
+   SESSION CHECK
    ============================================================ */
 
 async function checkResponderSession() {
@@ -197,8 +164,6 @@ async function checkResponderSession() {
         return null;
     }
 
-    // Bantayan din dito ang deactivated accounts, gaya ng ginagawa
-    // sa login.html/login.js flow.
     if (profile.active === false) {
         alert('Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.');
         await supabase.auth.signOut();
@@ -206,8 +171,6 @@ async function checkResponderSession() {
         return null;
     }
 
-    // Siguraduhin na 'responder' talaga ang role — kung sakaling
-    // nakapasok dito ang ibang role dahil sa maling redirect.
     if (profile.role !== 'responder') {
         alert('Ang account na ito ay hindi responder account.');
         window.location.href = '/pages/login.html';
@@ -217,7 +180,6 @@ async function checkResponderSession() {
     return profile;
 }
 
-// Maps our internal camelCase field names to Supabase's snake_case columns.
 const REQUEST_COLUMN_MAP = {
     serviceType: 'service_type',
     patientName: 'patient_name',
@@ -259,7 +221,6 @@ async function handleCredsSubmit(e){
   if(error){ showAuthError('Incorrect email or password.'); return false; }
 
 
-  // kunin ang role mula sa profiles table para malaman saan i-redirect
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
@@ -297,8 +258,6 @@ async function selfAssignFleet(fleetId, profileId){
     return true;
 }
 
-/* Shown when this responder has no linked fleet row yet — lets them pick
-   which existing (unassigned) unit/personnel entry is theirs. */
 async function promptSelfAssignIfNeeded(profile){
     if(myFleetRow) return;
     const options = await loadUnassignedFleetOptions();
@@ -397,13 +356,6 @@ function bindDashboardEvents() {
     document.getElementById('completionForm')?.addEventListener('submit', saveServiceCompletion);
 }
 
-// ---------------- ASSIGNED PERSONNEL (from admin's incident-assign dispatch) ----------------
-// Ang `myFleetRow` ay ang fleet unit na naka-link sa naka-login na account
-// (via profile_id). Kapag na-dispatch ito ng admin (Driver+Responder assign
-// modal), ang `assigned_to` text nito ay may laman na "(Driver: Name)" o
-// "(Responder: Name)" — dito natin kinukuha ang partner ng naka-login na
-// user. Dahil sariling fleet row lang ang binabasa dito, automatic na
-// makikita lang ito ng account na talagang na-assign.
 async function renderAssignedPersonnel() {
     const driverNameEl = document.getElementById('driverName');
     const respondersEl = document.getElementById('assignedResponder');
@@ -445,8 +397,6 @@ async function renderAssignedPersonnel() {
     }
 }
 
-/** Counts vehicles currently "Available", read live from the `fleet` table. */
-/** Counts available drivers and available vehicles separately, read live from `fleet`. */
 async function updateVehicleMetrics() {
     const { data, error } = await supabase.from('fleet').select('type, status');
     if (error) {
@@ -488,18 +438,6 @@ async function loadData() {
 async function fetchRequestsFromSupabase() {
     const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
 
-    // BAGO — hindi dapat nakikita ng responder ang "Medical Assistance"
-    // type na request (financial/hospital-bill applications). Admin lang
-    // ang dapat makatanggap nito, sa pamamagitan ng "Assistance Queue"
-    // tab (na bumabasa sa hiwalay na 'medical_assistance_requests'
-    // table). Ito rito ay safety net kung sakaling may stray/legacy row
-    // pa rin sa 'emergency_requests' na may ganitong type.
-    //
-    // BAGO din — hindi dapat nakikita ng responder ang "Schedule Transpo"
-    // (PTV) requests. Admin lang ang dapat makatanggap nito, sa
-    // pamamagitan ng "Transport Queue" tab (na bumabasa sa hiwalay na
-    // 'transport_requests' table). Safety net din ito kung sakaling
-    // may stray/legacy PTV row pa rin sa 'emergency_requests'.
     let query = supabase.from('emergency_requests').select('*')
         .neq('type', 'Medical Assistance')
         .neq('type', 'Transpo')
@@ -518,8 +456,6 @@ async function fetchRequestsFromSupabase() {
     return (data || []).map(normalizeIncident);
 }
 
-// "Active Drivers" metric — counts active responder profiles instead of
-// querying the non-existent `responder_statuses` table.
 async function fetchResponderStatuses() {
     const { data, error } = await supabase
         .from('profiles')
@@ -640,10 +576,6 @@ function matchesActiveFilter(incident) {
 function compareQueuePriority(a, b) {
     const score = item => {
         let value = 0;
-        // BAGO — kung ako (ang naka-login na responder) ang na-assign ng
-        // admin sa request na ito, dapat ito ang pinaka-priority sa
-        // listahan — lumalampas pa sa urgency/pending scoring, para
-        // agad itong makita ng responder sa taas.
         if (isAssignedToMe(item)) value += 1000;
         if (isUrgent(item)) value += 100;
         if (item.status === 'Pending') value += 50;
@@ -690,11 +622,8 @@ function renderDetails(incidents) {
     const actionHtml = buildActionButtons(incident, mapsUrl);
     const progress = buildProgressHtml(incident);
 
-    // BAGO — sirain muna nang tama ang lumang Leaflet map instance BAGO
-    // burahin ang HTML na naglalaman ng container nito. Kung hindi ito
-    // gagawin, mananatiling "buhay" ang lumang map object habang wala
-    // nang totoong DOM element — kaya nagkakaroon ng crash
-    // (Cannot read properties of undefined 'reading _leaflet_pos')
+    // Sirain muna nang tama ang lumang Leaflet map instance BAGO burahin
+    // ang HTML na naglalaman ng container nito, para maiwasan ang crash
     // sa susunod na pagtawag ng renderIncidentMap().
     if (incidentMap) {
         incidentMap.remove();
@@ -703,16 +632,6 @@ function renderDetails(incidents) {
         incidentResponderMarker = null;
         incidentRouteLine = null;
     }
-
-    detailDiv.innerHTML = `
-        <div class="incident-summary">
-            ...
-        </div>
-
-        ${actionHtml}
-    `;
-
-    renderIncidentMap(incident);
 
     detailDiv.innerHTML = `
         <div class="incident-summary">
@@ -777,9 +696,7 @@ function renderDetails(incidents) {
 }
 
 /* ---------------------------------------------------------
-   LIVE INCIDENT MAP — ipinapakita ang lokasyon ng resident
-   (mula sa kanyang GPS report) at ang live na posisyon ng
-   responder (kung naka-track na), gamit ang Leaflet.
+   LIVE INCIDENT MAP
 --------------------------------------------------------- */
 let incidentMap = null;
 let incidentPatientMarker = null;
@@ -1233,8 +1150,7 @@ async function saveServiceCompletion(event) {
 }
 
 /* ---------------------------------------------------------
-   RESPONDER OPERATIONAL STATUS — writes directly to the linked
-   `fleet` row. This is the actual "connection point" to admin.
+   RESPONDER OPERATIONAL STATUS
 --------------------------------------------------------- */
 async function updateResponderOperationalStatus(status){
     const select = document.getElementById('unitStatus');
@@ -1281,13 +1197,6 @@ function startRealtimeMonitoring() {
                 showBrowserSOSNotificationResp(payload.new);
             }
 
-            // BAGO — kapag ang naka-login na responder mismo ang bagong
-            // na-assign ng admin sa request na ito, awtomatikong:
-            //  1) i-open ang request na iyon sa Response Panel (para
-            //     tugma ang nakalagay na detalye sa bagong assignment), at
-            //  2) i-notify ang responder na may bagong dispatch.
-            // Ang sorting sa compareQueuePriority() na ang bahalang
-            // maglagay nito sa taas ng listahan.
             const newlyAssignedToMe =
                 CURRENT_RESPONDER?.id &&
                 payload.new?.assigned_responder_id === CURRENT_RESPONDER.id &&
@@ -1311,8 +1220,6 @@ function startRealtimeMonitoring() {
         })
         .subscribe();
 
-    // BAGO — makinig sa sariling notifications ng naka-login na account
-    // (dispatch assignments mula sa admin, atbp.)
     if (CURRENT_RESPONDER?.id) {
         supabase
             .channel('my-notifications-' + CURRENT_RESPONDER.id)
@@ -1351,15 +1258,6 @@ function playAlertSound() {
     }
 }
 
-/* ---------------------------------------------------------
-   ASSIGNMENT NOTIFICATION SOUND — sadyang IBA ito sa SOS alarm
-   (playSOSBeep/startSOSAlertLoop, mataas at paulit-ulit) at sa
-   generic playAlertSound (isang beep lang, para sa bagong Pending
-   request sa queue). Ito ay isang mahinahon, dalawang-tono na
-   "ding-dong" chime na tumutunog isang beses lang — sapat para
-   mapansin ng responder na may na-dispatch sa kanya ang admin,
-   pero hindi kasing-alarma ng emergency SOS.
---------------------------------------------------------- */
 function playAssignmentNotificationSound(){
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -1379,8 +1277,6 @@ function playAssignmentNotificationSound(){
             osc.stop(now + startOffset + duration + 0.05);
         };
 
-        // "Ding" (mataas) pagkatapos "dong" (mas mababa) — parang
-        // notification chime ng mobile apps, hindi galaw ng SOS square wave.
         playTone(1046.5, 0, 0.25);   // C6
         playTone(783.99, 0.18, 0.35); // G5
     } catch {
