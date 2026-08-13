@@ -838,6 +838,19 @@ function buildActionButtons(incident, mapsUrl) {
         `;
     }
 
+    // ================= LOCK: may naka-assign na PERO HINDI ako =================
+    const hasAssignment = Boolean(incident.assignedResponderId);
+    const notAssignedIncidents = ['Pending', 'Waiting List', 'Unattended'];
+    if (hasAssignment && !isAssignedToMe(incident) && !notAssignedIncidents.includes(incident.status)) {
+        return `
+            <div style="padding:20px;text-align:center;background:#fff3e0;border:1px solid #ef6c00;border-radius:15px;margin-top:15px;color:#ef6c00;font-weight:bold;">
+                <i class="fas fa-user-shield"></i> Kasalukuyang sinasagot ni <u>${escapeHtml(incident.assignedResponderName || 'ibang responder')}</u>.
+                <br><small style="font-weight:normal;">Hindi mo na maaaring galawin o i-update ang request na ito.</small>
+            </div>
+        `;
+    }
+    // ================= END LOCK =================
+
     if (['Accepted', 'Assigned', 'In Transit'].includes(incident.status)) {
         return `
             <div class="quick-sms-area">

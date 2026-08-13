@@ -30,6 +30,13 @@ body {
     opacity: 0; visibility: hidden; /* Fade effect when hidden */
 }
 
+.logo-inner-circle {
+    width: 120px; height: auto;
+    background: transparent !important;
+    border-radius: 0; border: none !important;
+    display: flex; align-items: center; justify-content: center;
+    overflow: visible; margin-bottom: 25px; box-shadow: none;
+}
 
 .logo-inner-circle img {
     width: 100%; height: auto;
