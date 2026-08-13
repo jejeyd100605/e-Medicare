@@ -31,17 +31,12 @@
 
 
 
-    <div class="auth-card hidden" id="formView">
+    <div class="auth-card hidden" id="formView" style="position:relative;">
         <div id="loginForm">
             <h2 style="color:#621a19; margin-bottom:20px;">Login</h2>
             <form onsubmit="handleLogin(event)"> <input type="email" class="input-field" id="loginEmail" placeholder="Email Address" required> <input type="password" class="input-field" id="loginPass" placeholder="Password" required> <button type="submit" class="btn-block">Continue</button> </form>
            <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
     </div>
-
-   <!-- ================= INSTALL HERE TEXT (OUTSIDE CARD) ================= -->
-    <p id="installText" class="hidden" style="text-align:center; margin-top:14px; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline;">
-        Install Here
-    </p>
 
 
         <div id="signupForm" class="hidden">
@@ -56,8 +51,11 @@
                 </select>
                 <button type="submit" class="btn-block">Create Account</button> </form>
             <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
-    </div>
 
+        <p id="installText" class="hidden" style="position:absolute; bottom:-32px; left:0; right:0; text-align:center; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline;">
+            Install Here
+        </p>
+    </div>
 
     <div id="otpOverlay" class="auth-card hidden" style="position: absolute; z-index: 2100;">
         <h2 style="color:#621a19;">OTP Verification</h2> <p style="color:#666; font-size:14px; margin: 10px 0 20px;">Enter the 6-digit code sent to your email</p>
