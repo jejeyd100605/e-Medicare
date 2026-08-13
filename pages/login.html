@@ -20,7 +20,6 @@
         <div class="logo-inner-circle"><img src="../assets/LOGO.png" alt="e-Medicare Logo"></div> <h1 class="brand-name">e-Medicare</h1> <p class="tagline">A Smart Medical Assistance Request System</p>
         <div class="yellow-line"></div> <div id="timer" class="timer-text">3</div> </div>
 
-
     <div class="auth-card hidden" id="mpinView">
         <div class="profile-avatar"><i class="fas fa-user-md fa-3x"></i></div> <h2 id="welcomeName" style="color:#621a19; margin-bottom:5px;">Welcome!</h2> <p style="color:#666; font-size:14px; margin-bottom:25px;">Enter your 4-digit MPIN</p> <div class="pin-container">
             <input type="password" maxlength="1" class="pin-input mpin-box" onkeyup="moveFocus(this)"> <input type="password" maxlength="1" class="pin-input mpin-box" onkeyup="moveFocus(this)"> <input type="password" maxlength="1" class="pin-input mpin-box" onkeyup="moveFocus(this)"> <input type="password" maxlength="1" class="pin-input mpin-box" onkeyup="moveFocus(this)"> </div>
@@ -51,11 +50,12 @@
                 </select>
                 <button type="submit" class="btn-block">Create Account</button> </form>
             <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
-
-        <p id="installText" style="position:absolute; bottom:-32px; left:0; right:0; text-align:center; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline;">
-            Install Here
-        </p>
     </div>
+
+    <!-- ================= INSTALL HERE TEXT (lalabas pagdating sa Login screen) ================= -->
+    <p id="installText" style="text-align:center; margin-top:14px; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline;">
+        Install Here
+    </p>
 
 
     <div id="otpOverlay" class="auth-card hidden" style="position: absolute; z-index: 2100;">
@@ -147,17 +147,17 @@
 </script>
 <script>
     /* ================= INSTALL HERE TEXT LOGIC =================
-       - Laging nakikita ang "Install Here" text (hindi na naghihintay
-         sa beforeinstallprompt event bago lumabas) para hindi maguluhan
-         ang mga hindi techy na users.
-       - Kung available ang native install prompt (Chrome/Edge/Android),
-         iyon ang gagamitin - isang click lang, direkta.
-       - Kung hindi available (halimbawa naka-Safari, o hindi pa
-         nag-fire ang event), magpapakita ng simpleng panuto sa loob
-         mismo ng page - walang kailangang malaman ang user.
+       - Nakatago muna ang "Install Here" habang loading screen o
+         ibang view (MPIN, OTP, etc). Lalabas lang ito kapag nakikita
+         na rin ang Login/Signup card (#formView) - kaya "nanonood"
+         tayo kung kailan nawawala ang "hidden" class ng formView.
+       - Pag pinindot: kung available ang native install prompt
+         (Chrome/Edge/Android), iyon ang gagamitin - isang click lang.
+       - Kung hindi available, magpapakita ng simpleng panuto.
     ---------------------------------------------------------------- */
     (function () {
         const installText = document.getElementById('installText');
+        const formView = document.getElementById('formView');
         let deferredPrompt = null;
 
         function isStandalone() {
@@ -169,9 +169,27 @@
             installText?.classList.add('hidden');
         }
 
-        // Kung naka-standalone na (naka-install na), itago agad
-        if (isStandalone()) {
-            hideInstallUI();
+        function syncWithFormView() {
+            if (!installText || !formView) return;
+            const formViewVisible = !formView.classList.contains('hidden');
+            if (formViewVisible && !isStandalone()) {
+                installText.classList.remove('hidden');
+            } else {
+                installText.classList.add('hidden');
+            }
+        }
+
+        // Simulan bilang hidden, tapos i-sync agad sa kasalukuyang state
+        hideInstallUI();
+        syncWithFormView();
+
+        // Panoorin ang formView - sa tuwing magbabago ang "hidden" class niya
+        // (ibig sabihin lumabas o nagtago ang Login card), i-sync ang install text
+        if (formView) {
+            new MutationObserver(syncWithFormView).observe(formView, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
         }
 
         // Chrome / Edge / Android - kunin ang native install prompt
