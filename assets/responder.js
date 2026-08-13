@@ -601,9 +601,34 @@ async function selectIncident(id) {
     const incidents = await fetchRequestsFromSupabase();
     renderList(incidents);
     renderDetails(incidents);
+    scrollDetailPanelIntoView();
 }
 // Expose to inline onclick handlers rendered via innerHTML.
 window.selectIncident = selectIncident;
+
+/* ---------------------------------------------------------
+   MOBILE UX — sa mobile, ang Response Panel ay naka-order na sa
+   ITAAS ng buong page (via CSS `order` sa .response-panel-col),
+   pero kapag naka-scroll pababa ang user papunta sa listahan ng
+   requests bago pumili, kailangan pa rin niyang mag-scroll
+   pataas manually para makita ang detalye. I-scroll natin
+   papunta doon nang smooth pagkatapos pumili, para agad makita
+   ng responder ang detalye ng request na pinindot niya.
+--------------------------------------------------------- */
+function scrollDetailPanelIntoView(){
+    const isMobileLayout = window.matchMedia('(max-width: 900px)').matches;
+    if(!isMobileLayout) return;
+
+    const panel = document.getElementById('detailPanel');
+    if(!panel) return;
+
+    // Konting delay para siguraduhing na-render na ang bagong content
+    // (renderIncidentMap, etc.) bago mag-scroll, para tama ang
+    // tinutukoy na height.
+    requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+}
 
 function renderDetails(incidents) {
     const detailDiv = document.getElementById('incidentDetails');
