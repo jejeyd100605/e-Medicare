@@ -968,7 +968,7 @@ textarea.form-control {
        masyadong maraming vertical space. */
     .header-right {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1.4fr 1fr;
         align-items: start;
         gap: 10px 12px;
         margin-top: 12px;
