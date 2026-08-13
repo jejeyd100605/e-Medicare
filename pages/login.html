@@ -35,13 +35,13 @@
         <div id="loginForm">
             <h2 style="color:#621a19; margin-bottom:20px;">Login</h2>
             <form onsubmit="handleLogin(event)"> <input type="email" class="input-field" id="loginEmail" placeholder="Email Address" required> <input type="password" class="input-field" id="loginPass" placeholder="Password" required> <button type="submit" class="btn-block">Continue</button> </form>
-            <p class="text-link" onclick="showForm('signup')">Create an Account</p>
+           <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
+    </div>
 
-            <!-- ================= INSTALL HERE TEXT ================= -->
-            <p id="installText" class="hidden" style="text-align:center; margin-top:12px; color:#621a19; font-size:13px; cursor:pointer; text-decoration:underline;">
-                Install Here
-            </p>
-        </div>
+    <!-- ================= INSTALL HERE TEXT (OUTSIDE CARD) ================= -->
+    <p id="installText" class="hidden" style="position:fixed; bottom:30px; left:0; right:0; text-align:center; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline; z-index:500;">
+        Install Here
+    </p>
 
 
         <div id="signupForm" class="hidden">
