@@ -52,7 +52,7 @@
                 <button type="submit" class="btn-block">Create Account</button> </form>
             <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
 
-       <p id="installText" style="position:absolute; bottom:-32px; left:0; right:0; text-align:center; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline;">
+        <p id="installText" style="position:absolute; bottom:-32px; left:0; right:0; text-align:center; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline;">
             Install Here
         </p>
     </div>
@@ -147,13 +147,14 @@
 </script>
 <script>
     /* ================= INSTALL HERE TEXT LOGIC =================
-       - Chrome/Edge/Android: gumagamit ng totoong `beforeinstallprompt`
-         event ng browser — pag pinindot ang "Install Here" text dito,
-         lalabas ang katotohanang native install dialog ng browser.
-       - Safari/iOS: walang ganitong event/API, kaya manual na lang
-         ang panuto (Share icon > Add to Home Screen).
-       - Awtomatikong nawawala ang text kapag naka-install/naka-open
-         na bilang standalone app.
+       - Laging nakikita ang "Install Here" text (hindi na naghihintay
+         sa beforeinstallprompt event bago lumabas) para hindi maguluhan
+         ang mga hindi techy na users.
+       - Kung available ang native install prompt (Chrome/Edge/Android),
+         iyon ang gagamitin - isang click lang, direkta.
+       - Kung hindi available (halimbawa naka-Safari, o hindi pa
+         nag-fire ang event), magpapakita ng simpleng panuto sa loob
+         mismo ng page - walang kailangang malaman ang user.
     ---------------------------------------------------------------- */
     (function () {
         const installText = document.getElementById('installText');
@@ -164,43 +165,46 @@
                 || window.navigator.standalone === true; // iOS Safari flag
         }
 
-        function showInstallText() {
-            if (!installText || isStandalone()) return;
-            installText.classList.remove('hidden');
-        }
-
-        function hideInstallText() {
+        function hideInstallUI() {
             installText?.classList.add('hidden');
         }
 
-        // Chrome / Edge / Android — totoong install prompt
+        // Kung naka-standalone na (naka-install na), itago agad
+        if (isStandalone()) {
+            hideInstallUI();
+        }
+
+        // Chrome / Edge / Android - kunin ang native install prompt
         window.addEventListener('beforeinstallprompt', (event) => {
             event.preventDefault();
             deferredPrompt = event;
-            showInstallText();
         });
 
         installText?.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            deferredPrompt = null;
-            hideInstallText();
+            if (deferredPrompt) {
+                // Meron tayong native prompt - direktang gamitin
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                if (outcome === 'accepted') hideInstallUI();
+                return;
+            }
+
+            // Walang native prompt available - magpakita ng manual guide
+            const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+            let message;
+            if (isIos) {
+                message = 'Paano mag-install:\n\n1. I-tap ang Share icon sa ibaba ng Safari\n2. Piliin ang "Add to Home Screen"\n3. I-tap ang "Add"';
+            } else {
+                message = 'Paano mag-install:\n\n1. I-tap ang tatlong tuldok (⋮) sa taas ng Chrome\n2. Piliin ang "Install app" o "Add to Home screen"\n3. I-tap ang "Install"';
+            }
+            alert(message);
         });
 
         window.addEventListener('appinstalled', () => {
-            hideInstallText();
+            hideInstallUI();
             deferredPrompt = null;
         });
-
-        // iOS Safari walang beforeinstallprompt — manual instructions na lang
-        const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-        if (isIos && !isStandalone()) {
-            if (installText) {
-                installText.textContent = 'Sa Safari: Share icon > "Add to Home Screen"';
-            }
-            showInstallText();
-        }
     })();
 </script>
  </body>
