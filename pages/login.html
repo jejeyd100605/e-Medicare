@@ -4,7 +4,116 @@
     <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>e-Medicare Login</title>
 
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <link rel="stylesheet" href="../css/login.css"> </head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <link rel="stylesheet" href="../css/login.css">
+    <style>
+        /* ================= INSTALL APP BANNER ================= */
+        .install-banner {
+            position: fixed;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            max-width: 480px;
+            margin: 0 auto;
+            background: #621a19;
+            color: #fff;
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            z-index: 3000;
+            animation: installBannerRise .35s ease;
+        }
+
+        .install-banner.hidden {
+            display: none;
+        }
+
+        .install-banner-icon img {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: block;
+            object-fit: cover;
+        }
+
+        .install-banner-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .install-banner-text strong {
+            font-size: 14px;
+            line-height: 1.25;
+        }
+
+        .install-banner-text span {
+            font-size: 12px;
+            color: #f0d9d8;
+            line-height: 1.35;
+        }
+
+        .install-banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .install-banner-btn {
+            background: #fff;
+            color: #621a19;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .install-banner-btn:hover {
+            filter: brightness(0.95);
+        }
+
+        .install-banner-close {
+            background: transparent;
+            border: none;
+            color: #f0d9d8;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 4px 6px;
+        }
+
+        .install-banner-close:hover {
+            color: #fff;
+        }
+
+        @keyframes installBannerRise {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .install-banner {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .install-banner-text span {
+                display: none;
+            }
+        }
+    </style>
+    </head>
 <body>
 
 
@@ -124,6 +233,21 @@
     <button type="button" class="btn-block" onclick="saveAccount()">Complete registration</button>
 </div>
 
+    <!-- ================= INSTALL APP BANNER ================= -->
+    <div id="installBanner" class="install-banner hidden" role="dialog" aria-live="polite" aria-label="I-install ang e-Medicare App">
+        <div class="install-banner-icon">
+            <img src="../assets/LOGO.png" alt="e-Medicare">
+        </div>
+        <div class="install-banner-text">
+            <strong>I-install ang e-Medicare App</strong>
+            <span>Mas mabilis na access sa emergency assistance, kahit nasa home screen mo lang.</span>
+        </div>
+        <div class="install-banner-actions">
+            <button type="button" id="installBtn" class="install-banner-btn">Install</button>
+            <button type="button" id="installDismissBtn" class="install-banner-close" aria-label="Isara">&times;</button>
+        </div>
+    </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="../assets/login.js"></script>
@@ -131,6 +255,100 @@
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
     }
+</script>
+<script>
+    /* ================= INSTALL APP BANNER LOGIC =================
+       - Chrome/Edge/Android: gumagamit ng totoong `beforeinstallprompt`
+         event ng browser — pag pinindot ang "Install" button dito,
+         lalabas ang katotohanang native install dialog.
+       - Safari/iOS: walang ganitong event/API, kaya manual na lang
+         ang panuto (Share icon > Add to Home Screen).
+       - Kung na-dismiss na ng user o naka-install/naka-open na bilang
+         standalone app, hindi na muling lalabas ang banner (7 days
+         cooldown pagkatapos i-dismiss).
+    ---------------------------------------------------------------- */
+    (function () {
+        const STORAGE_KEY = 'emedicareInstallDismissedAt';
+        const DISMISS_DAYS = 7;
+
+        const banner = document.getElementById('installBanner');
+        const installBtn = document.getElementById('installBtn');
+        const dismissBtn = document.getElementById('installDismissBtn');
+        let deferredPrompt = null;
+
+        function isStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true; // iOS Safari flag
+        }
+
+        function wasRecentlyDismissed() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+            const dismissedAt = Number(raw);
+            if (!Number.isFinite(dismissedAt)) return false;
+            const days = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
+            return days < DISMISS_DAYS;
+        }
+
+        function showBanner() {
+            if (!banner || isStandalone() || wasRecentlyDismissed()) return;
+            banner.classList.remove('hidden');
+        }
+
+        function hideBanner() {
+            banner?.classList.add('hidden');
+        }
+
+        function rememberDismissal() {
+            try {
+                localStorage.setItem(STORAGE_KEY, String(Date.now()));
+            } catch (err) {
+                console.warn('Hindi ma-save ang install dismissal:', err);
+            }
+        }
+
+        // Chrome / Edge / Android — totoong install prompt
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            deferredPrompt = event;
+            showBanner();
+        });
+
+        installBtn?.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                hideBanner();
+                return;
+            }
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            hideBanner();
+            if (outcome !== 'accepted') {
+                rememberDismissal();
+            }
+        });
+
+        dismissBtn?.addEventListener('click', () => {
+            hideBanner();
+            rememberDismissal();
+        });
+
+        window.addEventListener('appinstalled', () => {
+            hideBanner();
+            deferredPrompt = null;
+        });
+
+        // iOS Safari walang beforeinstallprompt — manual instructions na lang
+        const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+        if (isIos && !isStandalone() && !wasRecentlyDismissed()) {
+            const textEl = banner?.querySelector('.install-banner-text span');
+            if (textEl) {
+                textEl.textContent = 'Sa Safari: pindutin ang Share icon, pagkatapos piliin ang "Add to Home Screen".';
+            }
+            if (installBtn) installBtn.style.display = 'none';
+            showBanner();
+        }
+    })();
 </script>
  </body>
 </html>
