@@ -52,10 +52,6 @@
             <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
     </div>
 
-    <!-- ================= INSTALL HERE TEXT (lalabas pagdating sa Login screen) ================= -->
-    <p id="installText" style="text-align:center; margin-top:14px; color:#4da6ff; font-size:14px; cursor:pointer; text-decoration:underline;">
-        Install Here
-    </p>
 
 
     <div id="otpOverlay" class="auth-card hidden" style="position: absolute; z-index: 2100;">
@@ -144,86 +140,6 @@
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
     }
-</script>
-<script>
-    /* ================= INSTALL HERE TEXT LOGIC =================
-       - Nakatago muna ang "Install Here" habang loading screen o
-         ibang view (MPIN, OTP, etc). Lalabas lang ito kapag nakikita
-         na rin ang Login/Signup card (#formView) - kaya "nanonood"
-         tayo kung kailan nawawala ang "hidden" class ng formView.
-       - Pag pinindot: kung available ang native install prompt
-         (Chrome/Edge/Android), iyon ang gagamitin - isang click lang.
-       - Kung hindi available, magpapakita ng simpleng panuto.
-    ---------------------------------------------------------------- */
-    (function () {
-        const installText = document.getElementById('installText');
-        const formView = document.getElementById('formView');
-        let deferredPrompt = null;
-
-        function isStandalone() {
-            return window.matchMedia('(display-mode: standalone)').matches
-                || window.navigator.standalone === true; // iOS Safari flag
-        }
-
-        function hideInstallUI() {
-            installText?.classList.add('hidden');
-        }
-
-        function syncWithFormView() {
-            if (!installText || !formView) return;
-            const formViewVisible = !formView.classList.contains('hidden');
-            if (formViewVisible && !isStandalone()) {
-                installText.classList.remove('hidden');
-            } else {
-                installText.classList.add('hidden');
-            }
-        }
-
-        // Simulan bilang hidden, tapos i-sync agad sa kasalukuyang state
-        hideInstallUI();
-        syncWithFormView();
-
-        // Panoorin ang formView - sa tuwing magbabago ang "hidden" class niya
-        // (ibig sabihin lumabas o nagtago ang Login card), i-sync ang install text
-        if (formView) {
-            new MutationObserver(syncWithFormView).observe(formView, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
-        }
-
-        // Chrome / Edge / Android - kunin ang native install prompt
-        window.addEventListener('beforeinstallprompt', (event) => {
-            event.preventDefault();
-            deferredPrompt = event;
-        });
-
-        installText?.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                // Meron tayong native prompt - direktang gamitin
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                if (outcome === 'accepted') hideInstallUI();
-                return;
-            }
-
-            // Walang native prompt available - magpakita ng manual guide
-            const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-            let message;
-            if (isIos) {
-                message = 'Paano mag-install:\n\n1. I-tap ang Share icon sa ibaba ng Safari\n2. Piliin ang "Add to Home Screen"\n3. I-tap ang "Add"';
-            } else {
-                message = 'Paano mag-install:\n\n1. I-tap ang tatlong tuldok (⋮) sa taas ng Chrome\n2. Piliin ang "Install app" o "Add to Home screen"\n3. I-tap ang "Install"';
-            }
-            alert(message);
-        });
-
-        window.addEventListener('appinstalled', () => {
-            hideInstallUI();
-            deferredPrompt = null;
-        });
-    })();
 </script>
  </body>
 </html>

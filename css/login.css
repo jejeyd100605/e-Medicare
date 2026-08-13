@@ -31,17 +31,6 @@ body {
 }
 
 
-/* LOGO CONTAINER - Custom logo styling */
-.logo-inner-circle {
-    width: 180px; height: auto;
-    background: transparent !important;
-    filter: brightness(0) invert(1); /* Makes logo white for dark background */
-    border-radius: 0; border: none !important;
-    display: flex; align-items: center; justify-content: center;
-    overflow: visible; margin-bottom: 25px; box-shadow: none;
-}
-
-
 .logo-inner-circle img {
     width: 100%; height: auto;
     object-fit: contain; /* Logo maintains aspect ratio */
