@@ -987,6 +987,10 @@ textarea.form-control {
         font-size: 0.72rem;
     }
 
+    .unit-label i {
+        display: none;
+    }
+
     .unit-select,
     .responder-status-select {
         width: 100%;
