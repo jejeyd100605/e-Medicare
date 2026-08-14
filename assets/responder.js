@@ -14,6 +14,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let CURRENT_RESPONDER = null; // { id (profile id), name, jurisdiction }
 let myFleetRow = null;        // the row in `fleet` linked to this responder
+const FLEET_VEHICLE_TYPES = ['Medical (Full)', 'Transport', 'Rescue/Patrol', 'Auxiliary'];
 /* ---------------------------------------------------------
    SOS ALARM — loud repeating beep + persistent banner,
    tulad ng ginagawa sa admin dashboard.
