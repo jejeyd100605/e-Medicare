@@ -895,9 +895,3 @@ window.location.href = routes[role.toLowerCase()] || "/pages/resident.html";
 
 
 
-
-
-
-
-
-
