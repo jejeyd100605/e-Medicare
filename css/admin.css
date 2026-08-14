@@ -386,3 +386,54 @@ textarea.form-control{ resize: vertical; }
 #reportsList::-webkit-scrollbar{ width: 6px; }
 #reportsList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #reportsList::-webkit-scrollbar-track{ background: transparent; }
+
+/* ---------------- DOCUMENTATION TRACKER — sariling scroll ---------------- */
+#incidentHistoryList{
+  max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#incidentHistoryList::-webkit-scrollbar{ width: 6px; }
+#incidentHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+#incidentHistoryList::-webkit-scrollbar-track{ background: transparent; }
+
+/* ---------------- SCHEDULE TRANSPO REQUESTS — sariling scroll ---------------- */
+#transpoRequestsList{
+  max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#transpoRequestsList::-webkit-scrollbar{ width: 6px; }
+#transpoRequestsList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+#transpoRequestsList::-webkit-scrollbar-track{ background: transparent; }
+
+/* ---------------- COMPLETED TRANSPORT RECORDS — sariling scroll ---------------- */
+#transpoHistoryList{
+  max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#transpoHistoryList::-webkit-scrollbar{ width: 6px; }
+#transpoHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+#transpoHistoryList::-webkit-scrollbar-track{ background: transparent; }
+
+/* ---------------- MEDICAL ASSISTANCE REQUESTS — sariling scroll ---------------- */
+#assistanceRequestsList{
+  max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#assistanceRequestsList::-webkit-scrollbar{ width: 6px; }
+#assistanceRequestsList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+#assistanceRequestsList::-webkit-scrollbar-track{ background: transparent; }
+
+/* ---------------- COMPLETED ASSISTANCE RECORDS — sariling scroll ---------------- */
+#requestHistoryList{
+  max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#requestHistoryList::-webkit-scrollbar{ width: 6px; }
+#requestHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+#requestHistoryList::-webkit-scrollbar-track{ background: transparent; }
+
