@@ -1962,6 +1962,7 @@ function subscribeTranspoRealtime(){
     supabase
         .channel('transport-requests-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'transport_requests' }, (payload) => {
+            console.log('TRANSPO REALTIME EVENT:', payload.eventType, payload);   // TEMP DEBUG
             if(payload.eventType === 'INSERT') markTabUpdated('docs');   // BAGO
             loadTranspoFromSupabase();
         })
