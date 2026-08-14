@@ -96,10 +96,23 @@ body{
   background: transparent; border: none; color: var(--text-muted);
   padding: 10px 16px; font-size: .88em; cursor:pointer;
   border-bottom: 2px solid transparent; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  position: relative;   /* BAGO — reference point para sa tab-dot */
 }
 .tab-btn:hover{ color: var(--text-main); background: rgba(255,255,255,0.03); }
 .tab-btn.active{ color: var(--gold); border-bottom-color: var(--gold); font-weight:600; }
 
+/* BAGO — red dot indicator kapag may bagong record sa tab */
+.tab-dot{
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 2px var(--bg-header);
+  animation: pulseAnim 1.8s infinite;
+}
 .layout{ display:flex; gap: 20px; align-items:flex-start; flex-wrap: wrap; }
 .column{ flex:1; min-width: 320px; display:flex; flex-direction:column; gap: 18px; }
 

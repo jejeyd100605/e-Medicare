@@ -21,6 +21,33 @@ let serviceRecordsCache = []; // BAGO — mula sa 'service_records' table (Respo
 let activeIncidentId = null;
 let responderProfilesCache = [];
 
+/* ---------------------------------------------------------
+   TAB UPDATE INDICATORS — red dot sa tab button kapag may
+   bagong (INSERT) record habang naka-ibang tab ang admin.
+   --------------------------------------------------------- */
+function isTabActive(tab){
+    const panel = document.getElementById(tab + '-tab');
+    return !!panel && panel.style.display !== 'none';
+}
+
+function setTabDot(tab, show){
+    const btn = document.getElementById('btn-' + tab);
+    if(!btn) return;
+    let dot = btn.querySelector('.tab-dot');
+    if(show && !dot){
+        dot = document.createElement('span');
+        dot.className = 'tab-dot';
+        btn.appendChild(dot);
+    } else if(!show && dot){
+        dot.remove();
+    }
+}
+
+function markTabUpdated(tab){
+    if(isTabActive(tab)) return;
+    setTabDot(tab, true);
+}
+
 /* BAGO — Live Response Tracking map (Dispatch modal). Ginagamit kapag
    naka-assign na ang isang team sa isang incident, para makita ng admin
    ang lokasyon ng resident at ng responder nang magkatabi sa isang mapa. */
@@ -237,8 +264,9 @@ let trackingRouteLine = null;
     const list = load(DB.activity, []);
     list.unshift({ id: uid('act'), type, message, at: nowISO() });
     save(DB.activity, list.slice(0, 300));
-    renderActivity();
+   renderActivity();
     renderDashboardCounts();
+    markTabUpdated('activity');   // BAGO
     }
 
     const ACTIVITY_ICONS = {
@@ -314,6 +342,7 @@ let trackingRouteLine = null;
         if(panel) panel.style.display = (t === tab) ? 'block' : 'none';
         if(btn) btn.classList.toggle('active', t === tab);
     });
+    setTabDot(tab, false);   // BAGO
     if(tab === 'dashboard') renderDashboardCounts();
     if(tab === 'fleet') loadFleetFromSupabase();
     if(tab === 'docs') loadTranspoFromSupabase();
@@ -429,6 +458,7 @@ function subscribeIncidentsRealtime() {
                     startSOSAlertLoop();
                     showSOSToast(inc);
                     showBrowserSOSNotification(inc);
+                    markTabUpdated('dashboard');   // BAGO
                     const label = inc.type === 'SOS' ? '🚨 SOS Panic Button' : '🚨 New emergency';
                     logActivity('notify', `${label} received from <b>${inc?.sender?.name || 'resident'}</b>.`);
                 });
@@ -560,10 +590,11 @@ function subscribeIncidentsRealtime() {
     }
 
 
-    function subscribeFleetRealtime() {
+   function subscribeFleetRealtime() {
         supabase
             .channel('fleet-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'fleet' }, () => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'fleet' }, (payload) => {
+                if(payload.eventType === 'INSERT') markTabUpdated('fleet');   // BAGO
                 loadFleetFromSupabase();
             })
             .subscribe();
@@ -1538,15 +1569,15 @@ function printIncidentReport(){
         renderRequestHistory();
     }
 
-    function subscribeMedicalRequestsRealtime(){
+   function subscribeMedicalRequestsRealtime(){
         supabase
             .channel('medical-assistance-requests-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'medical_assistance_requests' }, () => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'medical_assistance_requests' }, (payload) => {
+                if(payload.eventType === 'INSERT') markTabUpdated('queue');   // BAGO
                 loadMedicalRequestsFromSupabase();
             })
             .subscribe();
     }
-
 
     const STATUS_STEPS = ['Pending','Under Review','Queued','Approved','Disbursed'];
 
@@ -1930,7 +1961,8 @@ function checkTranspoConflict(){
 function subscribeTranspoRealtime(){
     supabase
         .channel('transport-requests-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transport_requests' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transport_requests' }, (payload) => {
+            if(payload.eventType === 'INSERT') markTabUpdated('docs');   // BAGO
             loadTranspoFromSupabase();
         })
         .subscribe();
@@ -2584,7 +2616,8 @@ async function handleResetPassword(e){
 function subscribeProfilesRealtime(){
   supabase
     .channel('profiles-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
+      if(payload.eventType === 'INSERT') markTabUpdated('users');   // BAGO
       loadUsersFromSupabase();
     })
     .subscribe();
