@@ -69,6 +69,7 @@
                     <div style="padding: 12px 16px; border-bottom: 1px solid #eee; background: #f9f9f9;">
                         <small style="display: block; color: #777; font-weight: 600;">Account Session</small>
                         <span id="userSessionInfo" style="font-size: 0.8rem; color: #333; word-break: break-all; font-weight: bold;">Loading info...</span>
+        <div id="verificationStatus" style="margin-top:8px; font-size:0.75rem; font-weight:bold;"></div>
                     </div>
                     <a href="#" onclick="openChangePasswordModal()">
                         <i class="fas fa-key" style="color: #666;"></i> Change Password
@@ -146,7 +147,7 @@
 
             <div id="dynamic-content-panel-overlay" class="panel-overlay">
                 <div id="dynamic-content-panel" class="panel">
-                    <button onclick="closeView()" style="position: absolute; top: 20px; right: 20px; background: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 10;">✕ Close</button>
+                    <button onclick="closeView()" style="position: absolute; top: 14px; right: 14px; background: #e53935; color: white; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; padding: 0; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">✕</button>
 
 
 
@@ -314,16 +315,15 @@
 
 
 
-                        <div class="hotline-footer" style="margin-top: 15px; text-align: center; padding: 12px; border-top: 1px dashed #eee;">
-                             <p style="font-size: 0.7em; color: #666; margin-bottom: 8px;">Hindi available ang sasakyan? Tumawag agad dito:</p>
-    <p style="font-weight: bold; color: #800000; font-size: 0.85rem; margin: 0; line-height: 1.6;">
-        0969-422-4180 <small style="font-weight:normal; color:#666;">(Punong Baranggay)</small> /
-        0931-006-8118 <small style="font-weight:normal; color:#666;">(MHO-RHU)</small> /
-        0951-836-0294 / 0955- 288-2055 <small style="font-weight:normal; color:#666;">(MDRRMO)</small> /
-        (044) 792-0119 / 0922-298-1112 <small style="font-weight:normal; color:#666;">(GEN.Gregorio District Hospital)</small>
+                      <div class="hotline-footer" style="margin-top: 15px; text-align: center; padding: 12px; border-top: 1px dashed #eee;">
+     <p style="font-size: 0.7em; color: #666; margin-bottom: 8px;">Hindi available ang sasakyan? Tumawag agad dito:</p>
+    <p id="hotlineNumbers" style="font-weight: bold; color: #800000; font-size: 0.9rem; margin: 0; line-height: 1.8; text-align: center; word-wrap: break-word;">
+        <span style="white-space:nowrap;">0969-422-4180 <small style="font-weight:normal; color:#666;">(Punong Baranggay)</small></span> /
+        <span style="white-space:nowrap;">0931-006-8118 <small style="font-weight:normal; color:#666;">(MHO-RHU)</small></span> /
+        <span style="white-space:nowrap;">0951-836-0294 / 0955-288-2055 <small style="font-weight:normal; color:#666;">(MDRRMO)</small></span>
     </p>
     <p style="font-size: 0.65em; font-weight: bold; color: #800000; margin-top: 10px;">BAMBANG EMERGENCY HOTLINE (24/7)</p>
-                        </div>
+</div>
                     </div>
 
 
@@ -419,52 +419,52 @@
 
 
 
-            <div class="tracking-section">
-                <h3 style="margin-bottom: 15px;">My Recent Requests</h3>
-                <div style="overflow-x: auto;">
-                    <table class="tracking-table">
-                        <thead>
-                            <tr>
-                                <th>Type/Category</th>
-                                <th>Date & Time</th>
-                                <th>Status</th>
-                                <th>Remarks</th>
-                                <th style="width:40px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="requestHistory"></tbody>
-                    </table>
-                </div>
-            </div>
-
-
-
-
-            <div class="tracking-section resource-card">
-                <h3 style="margin-bottom: 15px;"><i class="fas fa-shield-alt"></i> Live Resource Status</h3>
-                <div class="status-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                    <div class="responders">
-                        <small style="display: block; color: #666; font-weight: 600;">Active Responders</small>
-                        <span id="responderCount" style="font-size: 1.2rem; font-weight: bold;">5</span>
-                    </div>
-                    <div class="overall-status" style="text-align: right;">
-                        <small style="display: block; color: #666; font-weight: 600; margin-bottom: 5px;">Ambulance Status</small>
-                        <span id="ambulanceStatus" class="status-badge" style="background: #00c853; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">READY</span>
-                    </div>
-                </div>
-
-
-
-
-            <div id="ambulanceList" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
-                    <div style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">
-                        <i class="fas fa-spinner fa-spin"></i> Loading fleet status...
-                    </div>
-                </div>
-            </div>
+            <!-- 1st: LIVE RESOURCE STATUS (ito na ngayon yung unang lalabas) -->
+<div class="tracking-section resource-card">
+    <h3 style="margin-bottom: 15px;"><i class="fas fa-shield-alt"></i> Live Resource Status</h3>
+    <div class="status-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+        <div class="responders">
+            <small style="display: block; color: #666; font-weight: 600;">Active Responders</small>
+            <span id="responderCount" style="font-size: 1.2rem; font-weight: bold;">5</span>
         </div>
+        <div class="overall-status" style="text-align: right;">
+            <small style="display: block; color: #666; font-weight: 600; margin-bottom: 5px;">Ambulance Status</small>
+            <span id="ambulanceStatus" class="status-badge" style="background: #00c853; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">READY</span>
+        </div>
+    </div>
 
 
+    <div id="ambulanceList" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
+        <div style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">
+            <i class="fas fa-spinner fa-spin"></i> Loading fleet status...
+        </div>
+    </div>
+</div>
+
+
+<!-- 2nd: MY RECENT REQUESTS — pinaikli height at scrollable na -->
+<div class="tracking-section" style="position:relative;">
+    <h3 style="margin-bottom: 15px;">My Recent Requests</h3>
+    <div id="requestHistoryScrollWrap" class="custom-scroll-hide" style="overflow-x: auto; overflow-y: auto; max-height: 260px; -webkit-overflow-scrolling: touch; padding-right: 12px;">
+        <table class="tracking-table">
+            <thead>
+                <tr>
+                    <th>Type/Category</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                    <th style="width:40px;"></th>
+                </tr>
+            </thead>
+            <tbody id="requestHistory"></tbody>
+        </table>
+    </div>
+    <div id="requestHistoryScrollTrack" class="custom-scroll-track">
+    <div id="requestHistoryScrollThumb" class="custom-scroll-thumb"></div>
+</div>
+<div id="requestHistoryScrollTrackV" class="custom-scroll-track-v">
+    <div id="requestHistoryScrollThumbV" class="custom-scroll-thumb-v"></div>
+</div>
 
 
         <div class="modal" id="firstAidModal">

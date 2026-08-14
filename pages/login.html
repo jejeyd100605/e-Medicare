@@ -4,6 +4,12 @@
     <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>e-Medicare Login</title>
 
 
+
+
+
+
+
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <link rel="stylesheet" href="../css/login.css">
     <link rel="manifest" href="/manifest.json">
     <style>
@@ -16,9 +22,18 @@
 <body>
 
 
+
+
+
+
+
+
     <div class="loading-screen" id="loadingScreen">
         <div class="logo-inner-circle"><img src="../assets/LOGO.png" alt="e-Medicare Logo"></div> <h1 class="brand-name">e-Medicare</h1> <p class="tagline">A Smart Medical Assistance Request System</p>
         <div class="yellow-line"></div> <div id="timer" class="timer-text">3</div> </div>
+
+
+
 
     <div class="auth-card hidden" id="mpinView">
         <div class="profile-avatar"><i class="fas fa-user-md fa-3x"></i></div> <h2 id="welcomeName" style="color:#621a19; margin-bottom:5px;">Welcome!</h2> <p style="color:#666; font-size:14px; margin-bottom:25px;">Enter your 4-digit MPIN</p> <div class="pin-container">
@@ -26,6 +41,18 @@
         <button class="btn-block" onclick="verifyMpin()">Unlock Account</button> <div style="margin-top:10px;">
             <span class="text-link" onclick="forgotMpin()" style="color:#d9534f; margin-right:15px;">Forgot MPIN?</span> <span class="text-link" onclick="showForm('login')">Switch Account</span> </div>
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -38,19 +65,54 @@
         </div>
 
 
+
+
+
+
+
+
         <div id="signupForm" class="hidden">
             <h2 style="color:#621a19; margin-bottom:20px;">Sign Up</h2>
             <form onsubmit="handleSignup(event)"> <input type="text" class="input-field" id="regFirstName" placeholder="First Name" required>
                 <input type="text" class="input-field" id="regMiddleName" placeholder="Middle Name (Optional)">
                 <input type="text" class="input-field" id="regLastName" placeholder="Last Name" required>
 
-                <input type="email" class="input-field" id="regEmail" placeholder="Email Address" required> <input type="password" class="input-field" id="regPass" placeholder="Password" required> <select class="input-field" id="regRole" required>
-                    <option value="" disabled selected>Select Role</option>
-                    <option value="resident">Resident</option>
-                </select>
+
+
+
+                <input type="email" class="input-field" id="regEmail" placeholder="Email Address" required>
+
+
+<div style="position:relative; margin-bottom:15px;">
+    <input type="password" class="input-field" id="regPass" placeholder="Password" required style="margin-bottom:0; padding-right:40px;">
+    <i class="fas fa-eye" id="toggleRegPass" onclick="togglePasswordVisibility('regPass', 'toggleRegPass')"
+       style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
+</div>
+
+
+<div style="position:relative; margin-bottom:15px;">
+    <input type="password" class="input-field" id="regConfirmPass" placeholder="Re-type Password" required style="margin-bottom:0; padding-right:40px;">
+    <i class="fas fa-eye" id="toggleRegConfirmPass" onclick="togglePasswordVisibility('regConfirmPass', 'toggleRegConfirmPass')"
+       style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
+</div>
+
+
+<select class="input-field" id="regRole" required>
+    <option value="" disabled>Select Role</option>
+    <option value="resident" selected>Resident</option>
+</select>
                 <button type="submit" class="btn-block">Create Account</button> </form>
             <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
     </div>
+
+
+
+
+
+
+
+
+
 
 
 
@@ -67,6 +129,12 @@
         <button class="btn-block" onclick="verifyOtp()">Verify OTP</button> <p class="text-link" onclick="showForm('login')">Cancel</p> </div>
 
 
+
+
+
+
+
+
     <div id="facialCaptureOverlay" class="auth-card hidden" style="position: absolute; z-index: 2150;">
         <h2 style="color:#621a19;">Facial Registration</h2>
         <p id="cameraStatus" style="color:#666; font-size:14px; margin-bottom:15px;">Initializing camera...</p>
@@ -76,6 +144,9 @@
         <canvas id="photoCanvas" style="display: none;"></canvas>
         <button class="btn-block" onclick="captureLivePhoto()">Capture Photo</button>
     </div>
+
+
+
 
     <div id="idConsentOverlay" class="auth-card hidden" style="position: absolute; z-index: 2155; text-align:left;">
         <h2 style="color:#621a19; text-align:center;">Data Privacy Notice</h2>
@@ -97,21 +168,36 @@
         <p class="text-link" onclick="showForm('login')">Cancel</p>
     </div>
 
+
+
+
 <div id="idCaptureOverlay" class="auth-card hidden" style="position: absolute; z-index: 2160;">
     <h2 style="color:#621a19;">ID Verification</h2>
     <p id="idCameraStatus" style="color:#666; font-size:14px; margin-bottom:15px;">Position your ID inside the frame</p>
+
+
+
 
     <div style="width: 280px; height: 180px; margin: 0 auto 15px; border-radius: 12px; overflow: hidden; border: 3px solid #621a19;">
         <video id="idWebcam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
     </div>
     <canvas id="idPhotoCanvas" style="display: none;"></canvas>
 
+
+
+
     <button class="btn-block" id="captureIdBtn" onclick="captureIdPhoto()">Capture ID</button>
+
+
+
 
     <div id="idResultBox" class="hidden" style="margin-top:15px; padding:12px; border-radius:10px; font-size:14px; text-align:left;">
         <p id="idMatchStatus" style="font-weight:600; margin-bottom:8px;"></p>
         <p id="idExtractedText" style="color:#666; font-size:12px; word-break:break-word;"></p>
     </div>
+
+
+
 
     <div id="idActionButtons" class="hidden" style="margin-top:10px; display:flex; gap:10px;">
         <button class="btn-block" style="background:#888;" onclick="retakeIdPhoto()">Retake</button>
@@ -119,9 +205,15 @@
     </div>
 </div>
 
+
+
+
     <div id="setMpinOverlay" class="auth-card hidden" style="position: absolute; z-index: 2000;">
     <h2 style="color:#621a19;">Setup MPIN</h2>
     <p style="color:#666; font-size:14px; margin-bottom:15px;">Create your security PIN</p>
+
+
+
 
     <div class="pin-container">
         <input type="password" maxlength="1" class="pin-input reg-mpin" onkeyup="moveFocus(this)">
@@ -130,8 +222,14 @@
         <input type="password" maxlength="1" class="pin-input reg-mpin" onkeyup="moveFocus(this)">
     </div>
 
+
+
+
     <button type="button" class="btn-block" onclick="saveAccount()">Complete registration</button>
 </div>
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -143,3 +241,5 @@
 </script>
  </body>
 </html>
+
+

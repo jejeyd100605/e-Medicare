@@ -336,6 +336,7 @@ async function loadUserProfile() {
     currentUserBarangay = profile.barangay || 'Bambang';
     currentUserContact = profile.contact || ''; // BAGO
     currentUserVerified = profile.id_verified === true; // BAGO
+    renderVerificationStatus(); // BAGO — i-display ang verification status sa dropdown
 
 
 
@@ -373,6 +374,24 @@ loadRequestHistory();
 }
 
 
+// ==========================================================================
+// VERIFICATION STATUS — makikita sa Account Session dropdown
+// ==========================================================================
+function renderVerificationStatus() {
+    const el = document.getElementById('verificationStatus');
+    if (!el) return;
+
+
+    if (currentUserVerified) {
+        el.innerHTML = '<span style="color:#2E7D32;"><i class="fas fa-circle-check"></i> ID Verified</span>';
+        el.style.cursor = 'default';
+        el.onclick = null;
+    } else {
+        el.innerHTML = '<span style="color:#e65100; cursor:pointer;"><i class="fas fa-triangle-exclamation"></i> Not Verified — I-tap para malaman</span>';
+        el.style.cursor = 'pointer';
+        el.onclick = () => requireVerifiedOrWarn();
+    }
+}
 
 
 // ==========================================================================
@@ -672,6 +691,11 @@ function initTranspoForm() {
 
 
     startTranspoCooldownWatcher();
+
+
+    // BAGO — i-refresh ang custom draggable scrollbar ng hotline numbers,
+    // dahil kaka-lantad lang ng panel na ito kaya tamang-tama na ang laki
+    setTimeout(() => { if (updateHotlineScrollbar) updateHotlineScrollbar(); }, 50);
 }
 
 
@@ -1532,6 +1556,15 @@ async function loadRequestHistory() {
     if (activeTrackingRequestId) {
         openTrackingModal(activeTrackingRequestId);
     }
+
+
+    // BAGO — i-refresh ang custom draggable scrollbars ng table (parehong
+    // horizontal at vertical), dahil nagbago ang laman nito pagkatapos
+    // ma-render ang mga rows
+    setTimeout(() => {
+        if (updateRequestHistoryScrollbarH) updateRequestHistoryScrollbarH();
+        if (updateRequestHistoryScrollbarV) updateRequestHistoryScrollbarV();
+    }, 50);
 }
 
 
@@ -2070,6 +2103,158 @@ function finishEmergencyCamera() {
     updateEmergencyCamBadge();
     closeCameraModal();
 }
+
+
+// ==========================================================================
+// CUSTOM DRAGGABLE SCROLLBARS — para sa mga horizontal-scroll na container
+// (Hotline numbers, My Recent Requests table). Ito ay isang "fake" na
+// scrollbar (track + thumb) na naka-sync sa totoong scroll ng container —
+// pwede nang i-click at i-drag ang scrollbar mismo, gamit ang mouse
+// (desktop) o daliri (mobile/touch), hindi lang basta i-swipe sa laman.
+// ==========================================================================
+// orientation: 'horizontal' (default) o 'vertical'
+function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
+    const wrap = document.getElementById(wrapId);
+    const track = document.getElementById(trackId);
+    const thumb = document.getElementById(thumbId);
+    if (!wrap || !track || !thumb) return null;
+
+
+    const isH = orientation !== 'vertical';
+    let isDragging = false;
+    let startPos = 0;
+    let startScroll = 0;
+
+
+    function updateThumb() {
+        const trackSize = isH ? track.clientWidth : track.clientHeight;
+        const scrollSize = isH ? wrap.scrollWidth : wrap.scrollHeight;
+        const clientSize = isH ? wrap.clientWidth : wrap.clientHeight;
+
+
+        // kung kasya naman lahat, itago na lang ang custom scrollbar
+        if (scrollSize <= clientSize + 1) {
+            track.style.display = 'none';
+            return;
+        }
+        track.style.display = 'block';
+
+
+        const thumbSize = Math.max((clientSize / scrollSize) * trackSize, 30);
+        const maxThumbPos = trackSize - thumbSize;
+        const maxScroll = scrollSize - clientSize;
+        const scrollVal = isH ? wrap.scrollLeft : wrap.scrollTop;
+        const ratio = maxScroll > 0 ? scrollVal / maxScroll : 0;
+        const thumbPos = ratio * maxThumbPos;
+
+
+        if (isH) {
+            thumb.style.width = thumbSize + 'px';
+            thumb.style.left = thumbPos + 'px';
+        } else {
+            thumb.style.height = thumbSize + 'px';
+            thumb.style.top = thumbPos + 'px';
+        }
+    }
+
+
+    function onDragStart(pos) {
+        isDragging = true;
+        startPos = pos;
+        startScroll = isH ? wrap.scrollLeft : wrap.scrollTop;
+        thumb.style.cursor = 'grabbing';
+    }
+
+
+    function onDragMove(pos) {
+        if (!isDragging) return;
+        const trackSize = isH ? track.clientWidth : track.clientHeight;
+        const thumbSize = isH ? thumb.offsetWidth : thumb.offsetHeight;
+        const scrollSize = isH ? wrap.scrollWidth : wrap.scrollHeight;
+        const clientSize = isH ? wrap.clientWidth : wrap.clientHeight;
+        const maxThumbPos = trackSize - thumbSize;
+        const maxScroll = scrollSize - clientSize;
+        if (maxThumbPos <= 0) return;
+
+
+        const delta = pos - startPos;
+        const deltaScroll = (delta / maxThumbPos) * maxScroll;
+
+
+        if (isH) wrap.scrollLeft = startScroll + deltaScroll;
+        else wrap.scrollTop = startScroll + deltaScroll;
+    }
+
+
+    function onDragEnd() {
+        isDragging = false;
+        thumb.style.cursor = 'grab';
+    }
+
+
+    // MOUSE — i-click at i-drag ang thumb (desktop)
+    thumb.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        onDragStart(isH ? e.clientX : e.clientY);
+    });
+    document.addEventListener('mousemove', (e) => onDragMove(isH ? e.clientX : e.clientY));
+    document.addEventListener('mouseup', onDragEnd);
+
+
+    // TOUCH — i-tap at i-drag ang thumb (mobile)
+    thumb.addEventListener('touchstart', (e) => {
+        onDragStart(isH ? e.touches[0].clientX : e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging) onDragMove(isH ? e.touches[0].clientX : e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchend', onDragEnd);
+
+
+    // I-click ang track (hindi mismo ang thumb) — jump-scroll papunta doon
+    track.addEventListener('click', (e) => {
+        if (e.target === thumb) return;
+        const trackRect = track.getBoundingClientRect();
+        const clickPos = isH ? (e.clientX - trackRect.left) : (e.clientY - trackRect.top);
+        const thumbSize = isH ? thumb.offsetWidth : thumb.offsetHeight;
+        const trackSize = isH ? track.clientWidth : track.clientHeight;
+        const maxThumbPos = trackSize - thumbSize;
+        const targetThumbPos = Math.min(Math.max(clickPos - thumbSize / 2, 0), maxThumbPos);
+        const ratio = maxThumbPos > 0 ? targetThumbPos / maxThumbPos : 0;
+        const scrollSize = isH ? wrap.scrollWidth : wrap.scrollHeight;
+        const clientSize = isH ? wrap.clientWidth : wrap.clientHeight;
+        if (isH) wrap.scrollLeft = ratio * (scrollSize - clientSize);
+        else wrap.scrollTop = ratio * (scrollSize - clientSize);
+    });
+
+
+    // I-sync ang custom thumb sa totoong scroll (swipe sa content, atbp)
+    wrap.addEventListener('scroll', updateThumb);
+    window.addEventListener('resize', updateThumb);
+
+
+    updateThumb();
+
+
+    // ibalik ang update function para matawag ulit kapag nagbago
+    // ang laman/lapad/taas ng container (hal. pagkatapos mag-load ng data)
+    return updateThumb;
+}
+
+
+let updateHotlineScrollbar = null;
+let updateRequestHistoryScrollbarH = null;
+let updateRequestHistoryScrollbarV = null;
+
+
+function initAllCustomScrollbars() {
+    updateHotlineScrollbar = setupDraggableScrollbar('hotlineScrollWrap', 'hotlineScrollTrack', 'hotlineScrollThumb', 'horizontal');
+    updateRequestHistoryScrollbarH = setupDraggableScrollbar('requestHistoryScrollWrap', 'requestHistoryScrollTrack', 'requestHistoryScrollThumb', 'horizontal');
+    updateRequestHistoryScrollbarV = setupDraggableScrollbar('requestHistoryScrollWrap', 'requestHistoryScrollTrackV', 'requestHistoryScrollThumbV', 'vertical');
+}
+
+
+document.addEventListener('DOMContentLoaded', initAllCustomScrollbars);
 
 
 
