@@ -290,7 +290,11 @@ function renderUnitHeader(){
     const unitSelect = document.getElementById('assignedUnit');
     const statusSelect = document.getElementById('unitStatus');
     if(myFleetRow && unitSelect){
-        unitSelect.innerHTML = `<option value="${myFleetRow.id}" selected>${myFleetRow.name} (${myFleetRow.type})</option>`;
+        const vehicleMatch = myFleetRow.assigned_to ? myFleetRow.assigned_to.match(/Vehicle:\s*([^)]+)/) : null;
+        const label = vehicleMatch
+            ? `🚑 ${vehicleMatch[1].trim()}`
+            : `${myFleetRow.name} (${myFleetRow.type})`;
+        unitSelect.innerHTML = `<option value="${myFleetRow.id}" selected>${escapeHtml(label)}</option>`;
         unitSelect.onchange = null;
     }
     if(myFleetRow && statusSelect){
@@ -306,8 +310,7 @@ function subscribeMyFleetRealtime(){
             { event: 'UPDATE', schema: 'public', table: 'fleet', filter: `id=eq.${myFleetRow.id}` },
             payload => {
                 myFleetRow = payload.new;
-                const statusSelect = document.getElementById('unitStatus');
-                if(statusSelect) statusSelect.value = myFleetRow.status;
+                renderUnitHeader();
                 updateVehicleMetrics();
                 renderAssignedPersonnel();
             })
