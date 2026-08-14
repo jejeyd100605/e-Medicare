@@ -517,7 +517,7 @@ function subscribeIncidentsRealtime() {
 
         const rows = missing.map(p => ({
             name: p.name,
-            type: (p.role || '').toLowerCase() === 'driver' ? 'Driver' : 'Medical Personnel',
+          type: (p.position || '').toLowerCase() === 'driver' ? 'Driver' : 'Medical Personnel',
             status: 'Available',
             profile_id: p.id
         }));
@@ -541,11 +541,11 @@ function subscribeIncidentsRealtime() {
         }
     }
 
-  async function loadResponderProfilesForFleet(){
+ async function loadResponderProfilesForFleet(){
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, role')
-            .or('role.ilike.responder,role.ilike.driver')
+            .select('id, name, role, position')
+            .eq('role', 'responder')
             .order('name', { ascending: true });
         if(error){ console.error('Hindi makuha ang responder accounts:', error.message); return; }
         responderProfilesCache = data || [];
@@ -554,10 +554,11 @@ function subscribeIncidentsRealtime() {
         if(sel){
             const current = sel.value;
             sel.innerHTML = '<option value="">— No linked account —</option>' +
-                responderProfilesCache.map(p => `<option value="${p.id}">${p.name} (${p.role})</option>`).join('');
+                responderProfilesCache.map(p => `<option value="${p.id}">${p.name} (${p.position || 'Responder'})</option>`).join('');
             if(current) sel.value = current;
         }
     }
+
 
     function subscribeFleetRealtime() {
         supabase
