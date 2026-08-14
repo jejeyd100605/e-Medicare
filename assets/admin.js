@@ -428,14 +428,45 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
     renderQuickFleetStatus();
     renderDocumentationHistory();
 }
+/* BAGO — priority order ng Incoming Emergency Feed:
+      0) SOS na Pending           — pinaka-agarang kailangan ng aksyon
+      1) Emergency na Pending     — kasunod na priyoridad
+      2) Assigned                 — meron nang team, dinidispatch pa lang
+      3) In Transit                — papunta na ang responder
+      4) Arrived                  — nasa lokasyon na, malapit nang matapos
+      5) iba pa (hal. Waiting List) — panghuli
+      Ang kani-kanilang orden sa loob ng parehong ranggo ay unseen-first,
+      tapos pinakabago. */
+   function incidentFeedRank(i){
+        if(i.type === 'SOS' && i.status === 'Pending') return 0;
+        if(i.type === 'Emergency' && i.status === 'Pending') return 1;
+        if(i.status === 'Assigned') return 2;
+        if(i.status === 'In Transit') return 3;
+        if(i.status === 'Arrived') return 4;
+        return 5;
+    }
 
    function renderIncidentFeed(){
-    const list = sortUnseenFirst(incidentsCache, 'dashboard');   // BAGO
     const wrap = document.getElementById('reportsList');
     const empty = document.getElementById('reportsEmpty');
     const badge = document.getElementById('reportCountBadge');
     if(!wrap) return;
-    const open = list.filter(i => !TERMINAL_INCIDENT_STATUSES.includes(i.status));
+
+    const open = incidentsCache
+        .filter(i => !TERMINAL_INCIDENT_STATUSES.includes(i.status))
+        .slice()
+        .sort((a, b) => {
+            const rankDiff = incidentFeedRank(a) - incidentFeedRank(b);
+            if(rankDiff !== 0) return rankDiff;
+
+            const unseen = unseenIds.dashboard;
+            const aUnseen = unseen.has(String(a.id)) ? 0 : 1;
+            const bUnseen = unseen.has(String(b.id)) ? 0 : 1;
+            if(aUnseen !== bUnseen) return aUnseen - bUnseen;
+
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
+
     badge && (badge.textContent = open.length + ' Reports');
     empty && (empty.style.display = open.length ? 'none' : 'block');
 
