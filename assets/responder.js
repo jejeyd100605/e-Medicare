@@ -292,10 +292,11 @@ function renderUnitHeader(){
     const unitSelect = document.getElementById('assignedUnit');
     const statusSelect = document.getElementById('unitStatus');
     if(myFleetRow && unitSelect){
-      const vehicleMatch = myFleetRow.assigned_to ? myFleetRow.assigned_to.match(/Vehicle:\s*([^,)]+)/) : null;
+        const vehicleMatch = myFleetRow.assigned_to ? myFleetRow.assigned_to.match(/Vehicle:\s*([^,)]+)/) : null;
+        const isVehicleRow = FLEET_VEHICLE_TYPES.includes(myFleetRow.type);
         const label = vehicleMatch
             ? `🚑 ${vehicleMatch[1].trim()}`
-            : `${myFleetRow.name} (${myFleetRow.type})`;
+            : (isVehicleRow ? `${myFleetRow.name} (${myFleetRow.type})` : 'None');
         unitSelect.innerHTML = `<option value="${myFleetRow.id}" selected>${escapeHtml(label)}</option>`;
         unitSelect.onchange = null;
     }
