@@ -354,6 +354,31 @@ body {
     box-shadow: inset 0 0 0 2px var(--red);
 }
 
+/* ---------------- ASSIGNED TO ME BADGE ---------------- */
+.incident-list-item.mine {
+    border-left: 4px solid var(--blue);
+}
+
+.assigned-to-me-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 4px 10px;
+    background: rgba(0, 176, 255, 0.15);
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    font-size: 0.68rem;
+    font-weight: 800;
+    border-radius: 20px;
+}
+
+.incident-list-item.active .assigned-to-me-badge {
+    background: rgba(20, 20, 20, 0.15);
+    border-color: #141414;
+    color: #141414;
+}
+
 .incident-list-item strong {
     color: inherit !important;
 }

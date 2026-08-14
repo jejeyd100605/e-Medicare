@@ -536,12 +536,13 @@ function renderList(incidents) {
         return;
     }
 
-    listDiv.innerHTML = visible.map(incident => {
+   listDiv.innerHTML = visible.map(incident => {
         const urgent = isUrgent(incident);
         const statusClass = cssStatus(urgent && incident.status === 'Pending' ? 'Urgent' : incident.status);
+        const assignedToMe = isAssignedToMe(incident);   // BAGO
 
         return `
-            <div class="incident-list-item ${selectedId === incident.id ? 'active' : ''} ${urgent ? 'urgent' : ''}"
+            <div class="incident-list-item ${selectedId === incident.id ? 'active' : ''} ${urgent ? 'urgent' : ''} ${assignedToMe ? 'mine' : ''}"
                  onclick="selectIncident(${JSON.stringify(incident.id)})">
                 <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
                     <strong>${escapeHtml(incident.category)}</strong>
@@ -549,6 +550,12 @@ function renderList(incidents) {
                         ${urgent && incident.status === 'Pending' ? 'Urgent' : escapeHtml(incident.status)}
                     </span>
                 </div>
+
+                ${assignedToMe ? `
+                <div class="assigned-to-me-badge">
+                    <i class="fas fa-user-check"></i> Naka-assign Sa'yo
+                </div>
+                ` : ''}
 
                 <div class="incident-meta">
                     <i class="fas fa-user"></i> ${escapeHtml(incident.patientName)}<br>
