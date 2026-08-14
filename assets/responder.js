@@ -247,8 +247,10 @@ async function loadUnassignedFleetOptions(){
         .from('fleet')
         .select('*')
         .is('profile_id', null)
+        .eq('status', 'Available')
+        .in('type', FLEET_VEHICLE_TYPES)
         .order('name', { ascending: true });
-    if(error) console.error('Hindi makuha ang unassigned units:', error.message);
+    if(error) console.error('Hindi makuha ang available vehicles:', error.message);
     return data || [];
 }
 
@@ -264,8 +266,8 @@ async function promptSelfAssignIfNeeded(profile){
     const unitSelect = document.getElementById('assignedUnit');
     if(!unitSelect) return;
 
-    if(options.length === 0){
-        unitSelect.innerHTML = '<option value="">No unassigned unit found — ask admin to register you</option>';
+   if(options.length === 0){
+        unitSelect.innerHTML = '<option value="">None</option>';
         return;
     }
 
