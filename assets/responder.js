@@ -500,8 +500,9 @@ function normalizeIncident(row) {
         etaMinutes: Number(row.eta_minutes || 0),
         eta: row.eta || null,
         etaUpdatedAt: row.eta_updated_at || null,
-        assignedResponderId: row.assigned_responder_id || null,
-        assignedResponderName: row.assigned_responder_name || null
+       assignedResponderId: row.assigned_responder_id || null,
+        assignedResponderName: row.assigned_responder_name || null,
+        assignedDriverId: row.assigned_driver_id || null
     };
 }
 
@@ -625,7 +626,9 @@ function isUrgent(incident) {
 }
 
 function isAssignedToMe(incident) {
-    return Boolean(CURRENT_RESPONDER?.id) && String(incident.assignedResponderId) === String(CURRENT_RESPONDER.id);
+    if (!CURRENT_RESPONDER?.id) return false;
+    return String(incident.assignedResponderId) === String(CURRENT_RESPONDER.id)
+        || String(incident.assignedDriverId) === String(CURRENT_RESPONDER.id);
 }
 
 async function selectIncident(id) {
