@@ -522,12 +522,27 @@ function renderList(incidents) {
     const listDiv = document.getElementById('incidentList');
     const countSpan = document.getElementById('count');
     const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
+    const jurisdictionMatch = item => crossBarangay || !CURRENT_RESPONDER?.jurisdiction || item.jurisdiction === CURRENT_RESPONDER.jurisdiction;
 
-    const visible = incidents
-        .filter(isActiveIncident)
-        .filter(item => crossBarangay || !CURRENT_RESPONDER?.jurisdiction || item.jurisdiction === CURRENT_RESPONDER.jurisdiction)
-        .filter(matchesActiveFilter)
-        .sort(compareQueuePriority);
+    // BAGO — "Completed Cases" ay ibang landas, dahil dito talaga
+    // ipinapakita ang mga case na TINANGGAL sa normal na listahan
+    // (Completed/Resolved). Ipinapakita lang dito ang mga completed
+    // ng RESPONDER MISMO, sorted pinaka-bago muna.
+    let visible;
+    if (activeFilter === 'completed') {
+        visible = incidents
+            .filter(item => ['Completed', 'Resolved'].includes(item.status))
+            .filter(item => isAssignedToMe(item))
+            .filter(jurisdictionMatch)
+            .sort((a, b) => new Date(b.completedAt || b.createdAt) - new Date(a.completedAt || a.createdAt));
+    } else {
+        visible = incidents
+            .filter(isActiveIncident)
+            .filter(jurisdictionMatch)
+            .filter(isVisibleToResponder)
+            .filter(matchesActiveFilter)
+            .sort(compareQueuePriority);
+    }
 
     countSpan.textContent = visible.length;
 
@@ -565,6 +580,26 @@ function renderList(incidents) {
             </div>
         `;
     }).join('');
+}
+
+// BAGO — itago ang mga request na naka-assign na sa IBANG responder (hindi sa akin).
+// Yung mga wala pang naka-assign (Pending/Waiting List/Unattended) ay dapat
+// makita pa rin ng lahat, para may makakuha at makatugon dito.
+function isVisibleToResponder(incident) {
+    const notYetAssignedStatuses = ['Pending', 'Waiting List', 'Unattended'];
+    if (notYetAssignedStatuses.includes(incident.status)) return true;
+    if (!incident.assignedResponderId) return true;
+    return isAssignedToMe(incident);
+}
+
+function matchesActiveFilter(incident) {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'urgent') return isUrgent(incident);
+    if (activeFilter === 'pending') return incident.status === 'Pending';
+    if (activeFilter === 'assigned') {
+        return ['Assigned', 'Accepted', 'In Transit', 'Arrived'].includes(incident.status);
+    }
+    return true;
 }
 
 function matchesActiveFilter(incident) {

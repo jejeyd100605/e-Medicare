@@ -1140,3 +1140,13 @@ textarea.form-control {
   0%, 100% { box-shadow: 0 6px 20px rgba(255,0,0,.3); }
   50% { box-shadow: 0 6px 30px rgba(255,0,0,.7); }
 }
+
+/* ---------------- ACTIVE EMERGENCY REQUESTS — sariling scroll ---------------- */
+#incidentList{
+  max-height: 600px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#incidentList::-webkit-scrollbar{ width: 6px; }
+#incidentList::-webkit-scrollbar-thumb{ background: var(--gold); border-radius: 6px; }
+#incidentList::-webkit-scrollbar-track{ background: transparent; }
