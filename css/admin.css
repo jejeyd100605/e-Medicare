@@ -437,3 +437,17 @@ textarea.form-control{ resize: vertical; }
 #requestHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #requestHistoryList::-webkit-scrollbar-track{ background: transparent; }
 
+/* ---------------- SYSTEM ACCOUNTS LIST — sariling scroll (table) ---------------- */
+.table-scroll-wrap{
+  max-height: 520px;
+  overflow-y: auto;
+}
+.table-scroll-wrap thead th{
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+  z-index: 1;
+}
+.table-scroll-wrap::-webkit-scrollbar{ width: 6px; }
+.table-scroll-wrap::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+.table-scroll-wrap::-webkit-scrollbar-track{ background: transparent; }
