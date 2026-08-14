@@ -506,11 +506,11 @@ function subscribeIncidentsRealtime() {
         renderQuickFleetStatus();
     }
 
-    async function loadResponderProfilesForFleet(){
+  async function loadResponderProfilesForFleet(){
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, name')
-            .eq('role', 'responder')
+            .select('id, name, role')
+            .or('role.ilike.responder,role.ilike.driver')
             .order('name', { ascending: true });
         if(error){ console.error('Hindi makuha ang responder accounts:', error.message); return; }
         responderProfilesCache = data || [];
@@ -519,7 +519,7 @@ function subscribeIncidentsRealtime() {
         if(sel){
             const current = sel.value;
             sel.innerHTML = '<option value="">— No linked account —</option>' +
-                responderProfilesCache.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                responderProfilesCache.map(p => `<option value="${p.id}">${p.name} (${p.role})</option>`).join('');
             if(current) sel.value = current;
         }
     }
