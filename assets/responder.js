@@ -602,19 +602,6 @@ function matchesActiveFilter(incident) {
     return true;
 }
 
-function matchesActiveFilter(incident) {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'urgent') return isUrgent(incident);
-    if (activeFilter === 'pending') return incident.status === 'Pending';
-    if (activeFilter === 'assigned') {
-        return ['Assigned', 'Accepted', 'In Transit', 'Arrived'].includes(incident.status);
-    }
-    if (activeFilter === 'unattended') {
-        return ['Unattended', 'Waiting List'].includes(incident.status);
-    }
-    return true;
-}
-
 function compareQueuePriority(a, b) {
     const score = item => {
         let value = 0;
