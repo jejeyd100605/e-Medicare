@@ -6,15 +6,24 @@
     font-family: Arial, sans-serif;
 }
 
+
+
+
 html, body {
     overflow-x: hidden;
 }
+
+
+
 
 body {
     background-color: #f8f9fa;
     color: #333;
     line-height: 1.5;
 }
+
+
+
 
 /* Header Style */
 .header {
@@ -27,10 +36,16 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
+
+
+
 .header h1 {
     font-size: 1.5rem;
     font-weight: bold;
 }
+
+
+
 
 .user-nav {
     position: relative;
@@ -38,6 +53,9 @@ body {
     align-items: center;
     gap: 6px;
 }
+
+
+
 
 .profile-container {
     display: flex;
@@ -49,9 +67,15 @@ body {
     transition: background 0.2s;
 }
 
+
+
+
 .profile-container:hover {
     background: rgba(255,255,255,0.15);
 }
+
+
+
 
 .header-avatar-circle {
     width: 32px;
@@ -64,11 +88,17 @@ body {
     justify-content: center;
 }
 
+
+
+
 .profile-pic-dash {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
+
+
 
 .profile-dropdown {
     position: absolute;
@@ -83,6 +113,9 @@ body {
     overflow: hidden;
 }
 
+
+
+
 .profile-dropdown a {
     display: block;
     padding: 10px 16px;
@@ -92,14 +125,23 @@ body {
     transition: background 0.2s;
 }
 
+
+
+
 .profile-dropdown a:hover {
     background: #f5f5f5;
 }
+
+
+
 
 .profile-dropdown a i {
     margin-right: 8px;
     width: 16px;
 }
+
+
+
 
 /* ---------------- NOTIFICATION BELL ---------------- */
 .notif-container {
@@ -131,6 +173,9 @@ body {
     line-height: 1.4;
 }
 
+
+
+
 /* FIXED: dropdown is anchored to the viewport (position: fixed), not
    to the bell button, so it can never push the page wider than the
    screen and cause a horizontal swipe. width + max-width(vw-based)
@@ -148,6 +193,9 @@ body {
 .notif-overlay.show {
   display: block;
 }
+
+
+
 
 .notif-dropdown {
   position: fixed;
@@ -218,12 +266,18 @@ body {
 .notif-item .notif-time { display: block; color: #999; font-size: 0.7rem; margin-top: 3px; }
 .notif-empty { padding: 20px; text-align: center; color: #999; font-size: 0.85rem; }
 
+
+
+
 /* Container */
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
 }
+
+
+
 
 /* Welcome Section */
 .welcome-section {
@@ -232,6 +286,9 @@ body {
     gap: 14px;
     margin-bottom: 2.5rem;
 }
+
+
+
 
 .mini-profile-circle {
     width: 48px;
@@ -247,10 +304,16 @@ body {
     flex-shrink: 0;
 }
 
+
+
+
 .mini-profile-circle i {
     color: white;
     font-size: 18px;
 }
+
+
+
 
 .welcome-section h2 {
     font-size: 1.8rem;
@@ -258,16 +321,25 @@ body {
     line-height: 1.2;
 }
 
+
+
+
 .welcome-section h2 span {
     color: #800000;
     font-weight: bold;
 }
+
+
+
 
 .welcome-section p {
     opacity: 0.8;
     margin: 0;
     font-size: 0.95rem;
 }
+
+
+
 
 /* Card Grid */
 .card-grid {
@@ -276,6 +348,9 @@ body {
     gap: 1.5rem;
     margin-bottom: 2.5rem;
 }
+
+
+
 
 .card {
     padding: 1.8rem;
@@ -287,10 +362,16 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
+
+
+
 .card:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
+
+
+
 
 .card-icon {
     font-size: 2rem;
@@ -298,10 +379,16 @@ body {
     display: inline-block;
 }
 
+
+
+
 .card h3 {
     font-size: 1.1rem;
     font-weight: bold;
 }
+
+
+
 
 .card-red { background-color: #e53935; }
 .card-blue { background-color: #0091ea; }
@@ -313,11 +400,17 @@ body {
     grid-column: 1 / -1;
 }
 
+
+
+
 .card-info p {
     font-size: 0.85rem;
     margin-top: 4px;
     opacity: 0.85;
 }
+
+
+
 
 /* Panel & Forms */
 .panel {
@@ -330,6 +423,9 @@ body {
     margin-bottom: 2.5rem;
 }
 
+
+
+
 .form-control {
     width: 100%;
     padding: 10px 12px;
@@ -338,11 +434,17 @@ body {
     font-size: 0.95rem;
 }
 
+
+
+
 .form-control:focus {
     outline: none;
     border-color: #800000;
     box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.15);
 }
+
+
+
 
 .btn-submit {
     border: none;
@@ -355,6 +457,9 @@ body {
     transition: background 0.2s;
 }
 
+
+
+
 /* Tables & Status */
 .tracking-section {
     background: white;
@@ -364,11 +469,17 @@ body {
     margin-bottom: 1.5rem;
 }
 
+
+
+
 .tracking-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
 }
+
+
+
 
 .tracking-table th, .tracking-table td {
     padding: 12px;
@@ -376,9 +487,15 @@ body {
     border-bottom: 1px solid #eee;
 }
 
+
+
+
 .tracking-table thead tr {
     background: #f8f9fa;
 }
+
+
+
 
 /* Modal Styles (para sa firstAidModal at changePasswordModal) */
 .modal {
@@ -394,6 +511,9 @@ body {
     justify-content: center;
 }
 
+
+
+
 .modal-content {
     background: white;
     border-radius: 20px;
@@ -407,6 +527,9 @@ body {
     max-height: 85vh;
     overflow-y: auto;
 }
+
+
+
 
 /* Floating SOS Button */
 .floating-emergency-btn {
@@ -428,15 +551,24 @@ body {
     touch-action: manipulation;
 }
 
+
+
+
 .floating-emergency-btn:hover {
     background: #b71c1c;
 }
+
+
+
 
 /* ---------------- SOS HOLD-TO-CONFIRM ---------------- */
 .floating-emergency-btn {
     overflow: hidden;
     position: fixed; /* meron na ito, iniwan lang para linaw */
 }
+
+
+
 
 .floating-emergency-btn .sos-progress {
     position: absolute;
@@ -449,10 +581,16 @@ body {
     pointer-events: none;
 }
 
+
+
+
 .floating-emergency-btn.holding .sos-progress {
     transition: width 2s linear;
     width: 100%;
 }
+
+
+
 
 .floating-emergency-btn i,
 .floating-emergency-btn span:not(.sos-progress) {
@@ -460,9 +598,15 @@ body {
     z-index: 1;
 }
 
+
+
+
 .floating-emergency-btn.holding {
     background: #b71c1c;
 }
+
+
+
 
 /* Overlay para sa dynamic-content-panel — centered popup */
 .panel-overlay {
@@ -478,9 +622,15 @@ body {
     justify-content: center;
 }
 
+
+
+
 .panel-overlay.active {
     display: flex;
 }
+
+
+
 
 .panel-overlay .panel {
     max-width: 500px;
@@ -490,6 +640,9 @@ body {
     margin: 0;
 }
 
+
+
+
 /* Live Location Map (Emergency Form) */
 #emergencyMap {
     width: 100%;
@@ -498,6 +651,9 @@ body {
     border: 1px solid #cccccc;
     z-index: 1;
 }
+
+
+
 
 .live-pulse-marker {
     width: 18px;
@@ -509,11 +665,17 @@ body {
     animation: pulse-marker 1.5s infinite;
 }
 
+
+
+
 @keyframes pulse-marker {
     0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.6); }
     70% { box-shadow: 0 0 0 12px rgba(229, 57, 53, 0); }
     100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
 }
+
+
+
 
 /* ---------------- REQUEST TRACKING STEPPER ---------------- */
 .tracking-table tbody tr {
@@ -529,6 +691,9 @@ body {
 .tracking-table tbody tr td:last-child i {
     transition: transform 0.15s;
 }
+
+
+
 
 .req-eta-box {
     background: #f0f7ff;
@@ -550,6 +715,9 @@ body {
     margin-top: 2px;
 }
 
+
+
+
 .req-info-line {
     font-size: 0.85rem;
     color: #444;
@@ -558,6 +726,9 @@ body {
 .req-info-line strong {
     color: #800000;
 }
+
+
+
 
 .req-progress-steps {
     display: flex;
@@ -622,6 +793,9 @@ body {
     margin-top: 2px;
 }
 
+
+
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .card-grid {
@@ -635,6 +809,9 @@ body {
     }
 }
 
+
+
+
 /* ===============================================
    MOBILE-ONLY OVERRIDES
    (gumagana lang sa maliit na screen / phone,
@@ -642,24 +819,39 @@ body {
 ================================================= */
 @media (max-width: 480px) {
 
+
+
+
     /* --- Header: para hindi magkasiksikan ang title, bell, at profile --- */
     .header {
         padding: 0.75rem 1rem;
         gap: 8px;
     }
 
+
+
+
     .header h1 {
         font-size: 1.15rem;
     }
+
+
+
 
     .user-nav {
         gap: 2px;
     }
 
+
+
+
     .profile-container {
         padding: 4px 6px;
         gap: 5px;
     }
+
+
+
 
     /* siguraduhing may laman lang ang lapad ng pangalan, hindi ito
        nagpapa-overflow o nagpapatanggal ng ibang elemento */
@@ -671,14 +863,23 @@ body {
         font-size: 0.85rem;
     }
 
+
+
+
     .header-avatar-circle {
         width: 28px;
         height: 28px;
     }
 
+
+
+
     /* --- Notif dropdown ngayon ay centered popup (see base .notif-dropdown
        rule above) — automatic na siyang naaangkop sa lahat ng screen
        size, kaya wala nang mobile-specific override na kailangan. --- */
+
+
+
 
     .profile-dropdown {
         width: calc(100vw - 24px);
@@ -686,41 +887,68 @@ body {
         right: -12px;
     }
 
+
+
+
     /* --- Container / Welcome section: mas maliit ang padding at font --- */
     .container {
         padding: 0.85rem;
     }
+
+
+
 
     .welcome-section {
         gap: 10px;
         margin-bottom: 1.5rem;
     }
 
+
+
+
     .mini-profile-circle {
         width: 40px;
         height: 40px;
     }
 
+
+
+
     .welcome-section h2 {
         font-size: 1.3rem;
     }
 
+
+
+
     .welcome-section p {
         font-size: 0.82rem;
     }
+
+
+
 
     /* --- Cards: mas maliit ang padding para hindi sumobra sa screen --- */
     .card {
         padding: 1.3rem 1rem;
     }
 
+
+
+
     .card-icon {
         font-size: 1.6rem;
     }
 
+
+
+
     .card h3 {
         font-size: 1rem;
     }
+
+
+
 
     /* --- Panels/Modals: pinaliit ang padding para sakop ang buong screen --- */
     .panel {
@@ -728,10 +956,16 @@ body {
         border-radius: 14px;
     }
 
+
+
+
     .modal-content {
         padding: 1.25rem;
         width: 94%;
     }
+
+
+
 
     /* --- Floating SOS button: hindi na dikit sa sulok --- */
     .floating-emergency-btn {
@@ -741,15 +975,24 @@ body {
         font-size: 0.95rem;
     }
 
+
+
+
     /* --- Tracking table: horizontal scroll imbes na mag-overflow --- */
     .tracking-section {
         padding: 1rem;
         overflow-x: auto;
     }
 
+
+
+
     .tracking-table {
         min-width: 480px;
     }
+
+
+
 
     /* --- Request progress stepper: paliitin ang text para kasya --- */
     .req-step .req-step-icon {
@@ -758,15 +1001,51 @@ body {
         font-size: 0.7rem;
     }
 
+
+
+
     .req-step small {
         font-size: 0.56rem;
     }
+
+
+
 
     .req-step .req-step-time {
         font-size: 0.52rem;
     }
 
+
+
+
     .req-eta-box .req-eta-value {
         font-size: 1.4rem;
     }
 }
+
+
+
+
+
+
+/* ---------------- EMERGENCY CAMERA BUTTON ---------------- */
+#emergencyCameraBtn {
+    position: relative;
+}
+#emergencyCameraBtn .cam-check-badge {
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    width: 14px;
+    height: 14px;
+    background: #00c853;
+    border: 2px solid white;
+    border-radius: 50%;
+    display: none;
+}
+#emergencyCameraBtn.has-photo .cam-check-badge {
+    display: block;
+}
+
+
+
