@@ -479,7 +479,7 @@ function subscribeIncidentsRealtime() {
     /*FLEET & PERSONNEL — REAL-TIME AVAILABILITY MONITORING
     (Ngayon ay galing na sa Supabase, hindi na sa localStorage)
     --------------------------------------------------------- */
-    async function loadFleetFromSupabase() {
+ async function loadFleetFromSupabase() {
         const { data, error } = await supabase
             .from('fleet')
             .select('*')
@@ -502,8 +502,43 @@ function subscribeIncidentsRealtime() {
         }));
 
         await loadResponderProfilesForFleet();
+        await syncMissingPersonnelToFleet();   // BAGO
         renderFleet();
         renderQuickFleetStatus();
+    }
+
+    // BAGO — hinahanap ang Driver/Responder accounts na wala pang
+    // kaukulang row sa 'fleet' table (hal. matagal nang gawa, bago
+    // pa nailagay ang auto-register), at ginagawan ng fleet row.
+    async function syncMissingPersonnelToFleet(){
+        const linkedProfileIds = new Set(fleetCache.filter(f => f.profileId).map(f => f.profileId));
+        const missing = responderProfilesCache.filter(p => !linkedProfileIds.has(p.id));
+        if(missing.length === 0) return;
+
+        const rows = missing.map(p => ({
+            name: p.name,
+            type: (p.role || '').toLowerCase() === 'driver' ? 'Driver' : 'Medical Personnel',
+            status: 'Available',
+            profile_id: p.id
+        }));
+
+        const { error } = await supabase.from('fleet').insert(rows);
+        if(error){
+            console.error('Hindi na-sync ang ilang personnel sa fleet:', error.message);
+            return;
+        }
+
+        logActivity('fleet', `${missing.length} personnel account(s) auto-synced sa fleet roster.`);
+
+        // ulitin ang fetch para makuha yung bagong naidagdag na rows
+        const { data: refreshed } = await supabase.from('fleet').select('*').order('name', { ascending: true });
+        if(refreshed){
+            fleetCache = refreshed.map(f => ({
+                id: f.id, name: f.name, type: f.type, plate: f.plate_number,
+                status: f.status, assignedTo: f.assigned_to, profileId: f.profile_id,
+                lastUpdated: f.updated_at || f.created_at
+            }));
+        }
     }
 
   async function loadResponderProfilesForFleet(){
