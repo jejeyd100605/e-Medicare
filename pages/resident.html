@@ -202,7 +202,41 @@
                         </h3>
                         <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Centralized request system para sa medical transport ng Barangay.</p>
 
+<div class="resident-view" id="reverify-view" style="display:none;">
+    <h3 style="color:#621a19;">Mag-verify Muli ng ID</h3>
+    <p style="font-size:13px; color:#666; margin-bottom:12px;">Kumuha ng malinaw na selfie, tapos malinaw na larawan ng iyong Valid ID.</p>
 
+    <!-- STEP 1: SELFIE -->
+    <div id="reverifySelfieStep">
+        <p style="font-size:13px; font-weight:600;">Hakbang 1: Selfie</p>
+        <div style="width:200px; height:200px; margin:0 auto 10px; border-radius:50%; overflow:hidden; border:3px solid #621a19;">
+            <video id="reverifySelfieVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform:scaleX(-1);"></video>
+        </div>
+        <canvas id="reverifySelfieCanvas" style="display:none;"></canvas>
+        <p id="reverifySelfieStatus" style="font-size:12px; color:#666; text-align:center;"></p>
+        <button class="primary-btn" style="width:100%;" onclick="captureReVerifySelfie()">Kunin ang Selfie</button>
+    </div>
+
+    <!-- STEP 2: ID -->
+    <div id="reverifyIdStep" style="display:none;">
+        <p style="font-size:13px; font-weight:600;">Hakbang 2: Valid ID</p>
+        <div style="width:280px; height:180px; margin:0 auto 10px; border-radius:12px; overflow:hidden; border:3px solid #621a19;">
+            <video id="reverifyIdVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+        </div>
+        <canvas id="reverifyIdCanvas" style="display:none;"></canvas>
+        <p id="reverifyIdStatus" style="font-size:12px; color:#666; text-align:center;"></p>
+        <button class="primary-btn" style="width:100%;" onclick="captureReVerifyId()">Kunin ang ID</button>
+    </div>
+
+    <!-- STEP 3: CONFIRM -->
+    <div id="reverifyConfirmStep" style="display:none; text-align:center;">
+        <p style="color:#2E7D32; font-weight:600;">✅ Kumpleto na ang dalawang litrato.</p>
+        <button class="primary-btn" style="width:100%; background:#2E7D32;" onclick="submitReVerification()">I-submit para sa Review</button>
+        <p class="text-link" onclick="retakeReVerification()">Kunin ulit</p>
+    </div>
+
+    <p class="text-link" onclick="closeView()">Kanselahin</p>
+</div>
 
 
                        <div class="vehicle-selection" style="margin-bottom: 20px;">

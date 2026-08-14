@@ -19,6 +19,10 @@ let currentUserContact = ''; // BAGO — ginagamit ng medical assistance request
 let currentUserVerified = false; // BAGO — kailangan bago makapag-submit ng kahit anong 
 let currentUserRejected = false;
 let currentUserRejectReason = '';
+let reverifySelfieStream = null;
+let reverifyIdStream = null;
+let reverifySelfieBlob = null;
+let reverifyIdBlob = null;
 
 
 
@@ -408,7 +412,8 @@ function renderVerificationStatus() {
 // ==========================================================================
 function requireVerifiedOrWarn() {
     if (currentUserRejected) {
-        alert('❌ Na-reject ang iyong ID verification.\n\nDahilan: ' + (currentUserRejectReason || 'Malabo o hindi malinaw.') + '\n\nMag-submit ulit ng malinaw na selfie at ID sa iyong profile.');
+        alert('❌ Na-reject ang iyong ID verification.\n\nDahilan: ' + (currentUserRejectReason || 'Malabo o hindi malinaw.') + '\n\nMag-submit ulit ng malinaw na selfie at ID.');
+        openReVerification();
         return false;
     }
     if (!currentUserVerified) {
@@ -622,6 +627,8 @@ function closeView() {
     stopLocationTracking();
     stopTranspoCooldownWatcher();
     stopEmergencyCameraStream();
+    stopReVerifySelfieCam();
+    stopReVerifyIdCam();
 }
 
 
@@ -2257,6 +2264,120 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
 let updateHotlineScrollbar = null;
 let updateRequestHistoryScrollbarH = null;
 let updateRequestHistoryScrollbarV = null;
+
+function openReVerification(){
+    reverifySelfieBlob = null;
+    reverifyIdBlob = null;
+    document.getElementById('reverifySelfieStep').style.display = 'block';
+    document.getElementById('reverifyIdStep').style.display = 'none';
+    document.getElementById('reverifyConfirmStep').style.display = 'none';
+    switchView('reverify-view');
+    startReVerifySelfieCam();
+}
+
+function startReVerifySelfieCam(){
+    const video = document.getElementById('reverifySelfieVideo');
+    const status = document.getElementById('reverifySelfieStatus');
+    status.innerText = 'Ino-open ang camera...';
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        .then(stream => {
+            reverifySelfieStream = stream;
+            video.srcObject = stream;
+            status.innerText = 'Nakaposisyon ang mukha sa loob ng circle.';
+        })
+        .catch(err => { status.innerText = 'Hindi ma-access ang camera.'; console.error(err); });
+}
+
+function stopReVerifySelfieCam(){
+    if(reverifySelfieStream){ reverifySelfieStream.getTracks().forEach(t => t.stop()); reverifySelfieStream = null; }
+}
+
+function captureReVerifySelfie(){
+    const video = document.getElementById('reverifySelfieVideo');
+    const canvas = document.getElementById('reverifySelfieCanvas');
+    if(!video.videoWidth) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(blob => {
+        reverifySelfieBlob = blob;
+        stopReVerifySelfieCam();
+        document.getElementById('reverifySelfieStep').style.display = 'none';
+        document.getElementById('reverifyIdStep').style.display = 'block';
+        startReVerifyIdCam();
+    }, 'image/png');
+}
+
+function startReVerifyIdCam(){
+    const video = document.getElementById('reverifyIdVideo');
+    const status = document.getElementById('reverifyIdStatus');
+    status.innerText = 'Ino-open ang camera...';
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+            reverifyIdStream = stream;
+            video.srcObject = stream;
+            status.innerText = 'Ilagay ang ID sa loob ng frame.';
+        })
+        .catch(err => { status.innerText = 'Hindi ma-access ang camera.'; console.error(err); });
+}
+
+function stopReVerifyIdCam(){
+    if(reverifyIdStream){ reverifyIdStream.getTracks().forEach(t => t.stop()); reverifyIdStream = null; }
+}
+
+function captureReVerifyId(){
+    const video = document.getElementById('reverifyIdVideo');
+    const canvas = document.getElementById('reverifyIdCanvas');
+    if(!video.videoWidth) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(blob => {
+        reverifyIdBlob = blob;
+        stopReVerifyIdCam();
+        document.getElementById('reverifyIdStep').style.display = 'none';
+        document.getElementById('reverifyConfirmStep').style.display = 'block';
+    }, 'image/png');
+}
+
+function retakeReVerification(){
+    openReVerification();
+}
+
+async function submitReVerification(){
+    if(!reverifySelfieBlob || !reverifyIdBlob){
+        alert('Kumpletuhin muna ang dalawang litrato.');
+        return;
+    }
+
+    const facePath = `${currentUserId}/face.png`;
+    const idPath = `${currentUserId}/id.png`;
+
+    const { error: faceErr } = await supabase.storage
+        .from('face-images')
+        .upload(facePath, reverifySelfieBlob, { upsert: true, contentType: 'image/png' });
+    if(faceErr){ alert('Hindi na-upload ang selfie: ' + faceErr.message); return; }
+
+    const { error: idErr } = await supabase.storage
+        .from('id-images')
+        .upload(idPath, reverifyIdBlob, { upsert: true, contentType: 'image/png' });
+    if(idErr){ alert('Hindi na-upload ang ID: ' + idErr.message); return; }
+
+    const { error: updateErr } = await supabase.from('profiles').update({
+        face_image_url: facePath,
+        id_image_url: idPath,
+        id_verified: false,
+        id_rejected: false
+    }).eq('id', currentUserId);
+
+    if(updateErr){ alert('Hindi na-update ang profile: ' + updateErr.message); return; }
+
+    alert('✅ Naisumite na ulit ang iyong ID at selfie. Hinihintay na ang review ng Barangay Admin.');
+    currentUserRejected = false;
+    currentUserVerified = false;
+    renderVerificationStatus();
+    closeView();
+}
 
 
 function initAllCustomScrollbars() {
