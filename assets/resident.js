@@ -389,7 +389,6 @@ function renderVerificationStatus() {
     const el = document.getElementById('verificationStatus');
     if (!el) return;
 
-
     if (currentUserVerified) {
         el.innerHTML = '<span style="color:#2E7D32;"><i class="fas fa-circle-check"></i> ID Verified</span>';
         el.style.cursor = 'default';
@@ -397,14 +396,22 @@ function renderVerificationStatus() {
     } else if (currentUserRejected) {
         el.innerHTML = '<span style="color:#c62828; cursor:pointer;"><i class="fas fa-circle-xmark"></i> Na-reject ang ID — I-tap para malaman</span>';
         el.style.cursor = 'pointer';
-        el.onclick = () => requireVerifiedOrWarn();
+        el.onclick = openVerificationHelp;
     } else {
         el.innerHTML = '<span style="color:#e65100; cursor:pointer;"><i class="fas fa-triangle-exclamation"></i> Not Verified — I-tap para malaman</span>';
         el.style.cursor = 'pointer';
-        el.onclick = () => requireVerifiedOrWarn();
+        el.onclick = openVerificationHelp;
     }
 }
 
+function openVerificationHelp() {
+    if (currentUserRejected) {
+        alert('❌ Na-reject ang iyong ID verification.\n\nDahilan: ' + (currentUserRejectReason || 'Malabo o hindi malinaw.') + '\n\nMag-submit ulit ng malinaw na selfie at ID.');
+    } else {
+        alert('⚠️ Hindi ka pa verified.\n\nMag-submit ng malinaw na selfie at Valid ID para ma-verify ng Barangay Admin.');
+    }
+    openReVerification();
+}
 
 // ==========================================================================
 // ID VERIFICATION GATE — kailangan ma-verify muna ang ID bago makapag-submit
