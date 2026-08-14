@@ -676,12 +676,13 @@ async function saveAccount() {
 
 
 
-    if (window._idConsentGiven !== undefined) {
-        updatePayload.id_verified = window._idVerified || false;
+   if (window._idConsentGiven !== undefined) {
+        // BAGO — inalis ang auto id_verified mula sa OCR match. Ang
+        // totoong pag-verify ay dapat manggaling lamang sa Admin's
+        // "Review ID" approval (setIdVerified sa admin.js), hindi dito.
         updatePayload.id_consent_given = window._idConsentGiven || false;
         updatePayload.id_consent_timestamp = window._idConsentTimestamp || null;
     }
-
 
 
 
