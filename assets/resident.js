@@ -1240,13 +1240,15 @@ async function submitRequest(type) {
     document.getElementById('category').selectedIndex = 0;
 
 
+    // BAGO — i-clear ang mga nakuhang litrato para sa susunod na
+    // bagong emergency report, at alisin ang green badge
+    capturedEmergencyPhotos = [];
+    updateEmergencyCamBadge();
 
 
     closeView();
     loadRequestHistory();
 }
-
-
 
 
 // ==========================================================================
@@ -1896,9 +1898,12 @@ function showInstantAlertToast(title, subtitle) {
 
 // ==========================================================================
 // EMERGENCY LIVE CAMERA — para lang sa Emergency Request
+// BAGO — multiple captures na, at may preview/validation step bago
+// tuluyang tanggapin ang litrato (para maka-retake kung blurred)
 // ==========================================================================
 let emergencyCameraStream = null;
-let capturedEmergencyPhoto = null; // base64 ng nakuhang litrato, hawak dito muna
+let capturedEmergencyPhotos = [];   // array ng mga na-accept na litrato (base64)
+let pendingCapturedPhoto = null;    // yung kaka-kuha lang, hindi pa na-accept/na-retake
 
 
 async function openEmergencyCamera() {
@@ -1907,6 +1912,7 @@ async function openEmergencyCamera() {
 
 
     toggleModal('cameraModal', true);
+    showCameraLiveView();
     status.textContent = 'Ino-open ang camera...';
 
 
@@ -1934,12 +1940,23 @@ function stopEmergencyCameraStream() {
 }
 
 
+function showCameraLiveView() {
+    document.getElementById('cameraLiveView').style.display = 'block';
+    document.getElementById('cameraPreviewView').style.display = 'none';
+}
+
+
 function closeCameraModal() {
     stopEmergencyCameraStream();
+    pendingCapturedPhoto = null;
+    updateEmergencyCamBadge(); // BAGO — sync rin kapag Cancel ang pinindot
+    showCameraLiveView();
     toggleModal('cameraModal', false);
 }
 
 
+// Kuha ng frame mula sa live video -> ipapakita muna bilang PREVIEW,
+// hindi na diretso ma-a-accept — dito ma-validate kung malinaw
 function capturePhoto() {
     const video = document.getElementById('cameraVideo');
     const canvas = document.getElementById('cameraCanvas');
@@ -1953,14 +1970,104 @@ function capturePhoto() {
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
 
-    capturedEmergencyPhoto = canvas.toDataURL('image/jpeg', 0.85);
+    pendingCapturedPhoto = canvas.toDataURL('image/jpeg', 0.85);
 
 
+    document.getElementById('capturedPreviewImg').src = pendingCapturedPhoto;
+    document.getElementById('cameraLiveView').style.display = 'none';
+    document.getElementById('cameraPreviewView').style.display = 'block';
+}
+
+
+// Blurred/mali ang kinuha -> balik sa live camera, i-discard ang pending
+function retakeCurrentPhoto() {
+    pendingCapturedPhoto = null;
+    showCameraLiveView();
+}
+
+
+// Malinaw ang litrato -> idagdag sa list ng accepted photos
+function acceptCurrentPhoto() {
+    if (!pendingCapturedPhoto) return;
+
+
+    capturedEmergencyPhotos.push(pendingCapturedPhoto);
+    pendingCapturedPhoto = null;
+
+
+    renderCapturedThumbs();
+    showCameraLiveView(); // balik agad sa live view kung sakaling kukuha pa ng isa
+
+
+    document.getElementById('donePhotosBtn').style.display = 'block';
+}
+
+
+function startAnotherCapture() {
+    showCameraLiveView();
+}
+
+
+function renderCapturedThumbs() {
+    const wrap = document.getElementById('capturedThumbsWrap');
+    const thumbs = document.getElementById('capturedThumbs');
+    const count = capturedEmergencyPhotos.length;
+
+
+    document.getElementById('capturedCount').textContent = count;
+    document.getElementById('doneBtnCount').textContent = count;
+
+
+    // BAGO — laging naka-sync ang green badge sa totoong bilang ng
+    // litrato, kahit saan pa nagbago (add, remove, o cancel)
+    updateEmergencyCamBadge();
+
+
+    if (count === 0) {
+        wrap.style.display = 'none';
+        thumbs.innerHTML = '';
+        return;
+    }
+
+
+    wrap.style.display = 'block';
+    thumbs.innerHTML = capturedEmergencyPhotos.map((photo, i) => `
+        <div style="position:relative; width:64px; height:64px;">
+            <img src="${photo}" style="width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid #ddd;">
+            <button type="button" onclick="removeCapturedPhoto(${i})"
+                style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:#e53935; color:white; border:2px solid white; font-size:0.65rem; cursor:pointer; line-height:1;">✕</button>
+        </div>
+    `).join('');
+}
+
+
+// Tinanggal ang isang litrato mula sa list (pinindot ang X sa thumbnail)
+function removeCapturedPhoto(index) {
+    capturedEmergencyPhotos.splice(index, 1);
+    renderCapturedThumbs(); // ito na ang bahalang mag-update ulit ng thumbnails at badge
+
+
+    // kung naubos na lahat ng litrato, itago na rin yung "Magdagdag"
+    // at "Tapos na" buttons dahil wala nang laman
+    if (capturedEmergencyPhotos.length === 0) {
+        document.getElementById('donePhotosBtn').style.display = 'none';
+    }
+}
+
+
+// BAGO — hiwalay na function para ligtas itong tawagin kahit saan
+// (add, remove, cancel, finish) — palaging based sa TOTOONG laman
+// ng capturedEmergencyPhotos, hindi sa kung "nag-capture" lang dati
+function updateEmergencyCamBadge() {
     const btn = document.getElementById('emergencyCameraBtn');
-    if (btn) btn.classList.add('has-photo');
+    if (btn) {
+        btn.classList.toggle('has-photo', capturedEmergencyPhotos.length > 0);
+    }
+}
 
 
-    // Auto-balik sa Emergency Request form pagkakuha ng litrato
+function finishEmergencyCamera() {
+    updateEmergencyCamBadge();
     closeCameraModal();
 }
 
