@@ -290,7 +290,7 @@ function renderUnitHeader(){
     const unitSelect = document.getElementById('assignedUnit');
     const statusSelect = document.getElementById('unitStatus');
     if(myFleetRow && unitSelect){
-        const vehicleMatch = myFleetRow.assigned_to ? myFleetRow.assigned_to.match(/Vehicle:\s*([^)]+)/) : null;
+      const vehicleMatch = myFleetRow.assigned_to ? myFleetRow.assigned_to.match(/Vehicle:\s*([^,)]+)/) : null;
         const label = vehicleMatch
             ? `🚑 ${vehicleMatch[1].trim()}`
             : `${myFleetRow.name} (${myFleetRow.type})`;
@@ -382,8 +382,8 @@ async function renderAssignedPersonnel() {
         return;
     }
 
-    const driverMatch = myFleetRow.assigned_to.match(/Driver:\s*([^)]+)/);
-    const responderMatch = myFleetRow.assigned_to.match(/Responder:\s*([^)]+)/);
+    const driverMatch = myFleetRow.assigned_to.match(/Driver:\s*([^,)]+)/);
+const responderMatch = myFleetRow.assigned_to.match(/Responder:\s*([^,)]+)/);
 
     if (isDriver) {
         if (driverNameEl) driverNameEl.textContent = CURRENT_RESPONDER.name;
