@@ -688,8 +688,12 @@
             <!-- DISPATCH ASSIGNMENT FORM — shown only while walang naka-assign na team pa
                  (status: Pending / Waiting List). Kapag na-dispatch na, ipapalit ito ng
                  Live Tracking View sa ibaba. -->
-            <form id="dispatchAssignForm" onsubmit="handleAssignResponder(event)">
+          <form id="dispatchAssignForm" onsubmit="handleAssignResponder(event)">
                 <label style="font-size: 0.75em;">Select Standby Driver/Unit:</label>
+                <label style="font-size:0.8em; color:#999; display:block; margin-bottom:4px;">Vehicle / Unit (optional)</label>
+                <select id="assignVehicleSelect" class="form-control">
+                    <option value="">— None —</option>
+                </select>
                 <label style="font-size:0.8em; color:#999; display:block; margin-bottom:4px;">Driver</label>
 <select id="driverSelect" class="form-control" required>
   <option value="" disabled selected>Select driver on standby</option>

@@ -884,8 +884,9 @@ async function handleQuickDispatch(e){
             if(trackingView) trackingView.style.display = 'none';
             cleanupTrackingMap();
 
-            const driverSel = document.getElementById('driverSelect');
+          const driverSel = document.getElementById('driverSelect');
             const responderSel = document.getElementById('responderSelect');
+            const vehicleSel = document.getElementById('assignVehicleSelect');   // BAGO
             const standby = fleetCache.filter(f => f.status === 'Available');
 
             if(driverSel){
@@ -898,6 +899,12 @@ async function handleQuickDispatch(e){
                 const responders = standby.filter(f => f.type === 'Medical Personnel');
                 responderSel.innerHTML = '<option value="" disabled selected>Select responder on standby</option>' +
                     responders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            }
+
+            if(vehicleSel){   // BAGO
+                const vehicles = standby.filter(f => FLEET_VEHICLE_TYPES.includes(f.type));
+                vehicleSel.innerHTML = '<option value="">— None —</option>' +
+                    vehicles.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
             }
 
             const notesEl = document.getElementById('assignNotes');
@@ -1076,10 +1083,12 @@ function printIncidentReport(){
     e.preventDefault();
     const driverId = document.getElementById('driverSelect').value;
     const responderId = document.getElementById('responderSelect').value;
+    const vehicleId = document.getElementById('assignVehicleSelect').value;   // BAGO
     const notes = document.getElementById('assignNotes').value;
     const inc = incidentsCache.find(i => i.id === activeIncidentId);
     const driver = fleetCache.find(f => String(f.id) === String(driverId));
     const responder = fleetCache.find(f => String(f.id) === String(responderId));
+    const vehicle = vehicleId ? fleetCache.find(f => String(f.id) === String(vehicleId)) : null;   // BAGO
 
     if(!inc) return;
     if(!driver || !responder){
@@ -1087,7 +1096,7 @@ function printIncidentReport(){
         return;
     }
 
-    const teamLabel = `${driver.name} + ${responder.name}`;
+    const teamLabel = [vehicle?.name, driver.name, responder.name].filter(Boolean).join(' + ');   // BAGO — kasama na ang vehicle
 
     const { error: incError } = await supabase
         .from('emergency_requests')
@@ -1103,21 +1112,43 @@ function printIncidentReport(){
 
     const assignTag = `${inc.category || inc.type}, ${inc.sender ? inc.sender.name : 'Resident'}`;
 
+    // BAGO — helper na naglalagay ng "Vehicle:", "Driver:", "Responder:" text
+    // sa assigned_to, para nababasa ito ng responder.js (regex parsing doon).
+    const buildTeamTag = (member) => {
+        const partners = [];
+        if(vehicle && String(member.id) !== String(vehicle.id)) partners.push(`Vehicle: ${vehicle.name}`);
+        if(String(member.id) !== String(driver.id)) partners.push(`Driver: ${driver.name}`);
+        if(String(member.id) !== String(responder.id)) partners.push(`Responder: ${responder.name}`);
+        return assignTag + (partners.length ? ` (${partners.join(', ')})` : '');
+    };
+
     const { data: driverUpdate, error: driverError } = await supabase
         .from('fleet')
-        .update({ status: 'On Duty', assigned_to: `${assignTag} (Responder: ${responder.name})` })
+        .update({ status: 'On Duty', assigned_to: buildTeamTag(driver) })
         .eq('id', driver.id)
         .select();
     if (driverError) { alert('Hindi na-dispatch ang driver: ' + driverError.message); return; }
 
     const { data: responderUpdate, error: responderError } = await supabase
         .from('fleet')
-        .update({ status: 'On Duty', assigned_to: `${assignTag} (Driver: ${driver.name})` })
+        .update({ status: 'On Duty', assigned_to: buildTeamTag(responder) })
         .eq('id', responder.id)
         .select();
     if (responderError) { alert('Hindi na-dispatch ang responder: ' + responderError.message); return; }
 
-    if (!driverUpdate?.length || !responderUpdate?.length) {
+    // BAGO — i-dispatch din ang vehicle kung may pinili
+    let vehicleUpdate = null;
+    if(vehicle){
+        const { data, error: vehicleError } = await supabase
+            .from('fleet')
+            .update({ status: 'On Duty', assigned_to: buildTeamTag(vehicle) })
+            .eq('id', vehicle.id)
+            .select();
+        if (vehicleError) { alert('Hindi na-dispatch ang vehicle: ' + vehicleError.message); return; }
+        vehicleUpdate = data;
+    }
+
+    if (!driverUpdate?.length || !responderUpdate?.length || (vehicle && !vehicleUpdate?.length)) {
         alert('May hindi na-update sa fleet status. Possible RLS/permissions issue — check ang UPDATE policy sa Supabase para sa "fleet" table.');
         loadIncidentsFromSupabase();
         return;
@@ -1157,8 +1188,8 @@ function printIncidentReport(){
     document.getElementById('assignModal').style.display = 'none';
     loadIncidentsFromSupabase();
     loadFleetFromSupabase();
-}
-
+   }
+   
   async function moveToWaitingList(){
     const inc = incidentsCache.find(i => i.id === activeIncidentId);
     if(!inc) return;
