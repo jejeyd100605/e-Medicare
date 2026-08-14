@@ -25,11 +25,6 @@ let responderProfilesCache = [];
    TAB UPDATE INDICATORS — red dot sa tab button kapag may
    bagong (INSERT) record habang naka-ibang tab ang admin.
    --------------------------------------------------------- */
-function isTabActive(tab){
-    const panel = document.getElementById(tab + '-tab');
-    return !!panel && panel.style.display !== 'none';
-}
-
 function setTabDot(tab, show){
     const btn = document.getElementById('btn-' + tab);
     if(!btn) return;
@@ -43,9 +38,46 @@ function setTabDot(tab, show){
     }
 }
 
-function markTabUpdated(tab){
-    if(isTabActive(tab)) return;
-    setTabDot(tab, true);
+// BAGO — hindi na basta nawawala ang dot pag binuksan lang ang tab.
+// Nananatili ito hanggang aktwal na na-review/na-click ng admin yung
+// partikular na bagong record. Bawat tab (maliban activity) may
+// sariling Set ng "unseen" record IDs.
+const unseenIds = {
+    dashboard: new Set(),
+    fleet: new Set(),
+    docs: new Set(),
+    queue: new Set(),
+    users: new Set(),
+};
+
+function refreshTabDot(tab){
+    setTabDot(tab, unseenIds[tab].size > 0);
+}
+
+function markTabUpdated(tab, id){
+    if(unseenIds[tab]){
+        if(id !== undefined && id !== null) unseenIds[tab].add(String(id));
+        refreshTabDot(tab);
+    } else {
+        setTabDot(tab, true); // fallback para sa 'activity' — walang per-item tracking
+    }
+}
+
+function markSeen(tab, id){
+    if(unseenIds[tab] && unseenIds[tab].delete(String(id))){
+        refreshTabDot(tab);
+    }
+}
+
+// inilalagay sa taas ng listahan ang mga item na "unseen" pa
+function sortUnseenFirst(list, tab){
+    const unseen = unseenIds[tab];
+    if(!unseen || unseen.size === 0) return list;
+    return [...list].sort((a,b) => {
+        const au = unseen.has(String(a.id)) ? 0 : 1;
+        const bu = unseen.has(String(b.id)) ? 0 : 1;
+        return au - bu;
+    });
 }
 
 /* BAGO — Live Response Tracking map (Dispatch modal). Ginagamit kapag
@@ -342,12 +374,11 @@ let trackingRouteLine = null;
         if(panel) panel.style.display = (t === tab) ? 'block' : 'none';
         if(btn) btn.classList.toggle('active', t === tab);
     });
-    setTabDot(tab, false);   // BAGO
-    if(tab === 'dashboard') renderDashboardCounts();
+   if(tab === 'dashboard') renderDashboardCounts();
     if(tab === 'fleet') loadFleetFromSupabase();
     if(tab === 'docs') loadTranspoFromSupabase();
 if(tab === 'queue') loadMedicalRequestsFromSupabase();
-    if(tab === 'activity') renderActivity();
+    if(tab === 'activity'){ renderActivity(); setTabDot('activity', false); }
    if(tab === 'users') loadUsersFromSupabase();
     if(tab === 'comms' && typeof renderComms === 'function') renderComms();
     if(tab === 'reports' && typeof renderReports === 'function') renderReports();
@@ -399,7 +430,7 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 }
 
    function renderIncidentFeed(){
-    const list = incidentsCache;
+    const list = sortUnseenFirst(incidentsCache, 'dashboard');   // BAGO
     const wrap = document.getElementById('reportsList');
     const empty = document.getElementById('reportsEmpty');
     const badge = document.getElementById('reportCountBadge');
@@ -458,7 +489,7 @@ function subscribeIncidentsRealtime() {
                     startSOSAlertLoop();
                     showSOSToast(inc);
                     showBrowserSOSNotification(inc);
-                    markTabUpdated('dashboard');   // BAGO
+                   markTabUpdated('dashboard', payload.new.id);   // BAGO
                     const label = inc.type === 'SOS' ? '🚨 SOS Panic Button' : '🚨 New emergency';
                     logActivity('notify', `${label} received from <b>${inc?.sender?.name || 'resident'}</b>.`);
                 });
@@ -594,7 +625,7 @@ function subscribeIncidentsRealtime() {
         supabase
             .channel('fleet-changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'fleet' }, (payload) => {
-                if(payload.eventType === 'INSERT') markTabUpdated('fleet');   // BAGO
+            if(payload.eventType === 'INSERT') markTabUpdated('fleet', payload.new.id);   // BAGO
                 loadFleetFromSupabase();
             })
             .subscribe();
@@ -672,9 +703,9 @@ function subscribeIncidentsRealtime() {
 
   // BAGO — hinati ang isang table dati na naghahalo ng sasakyan at tao
   // sa dalawang magkahiwalay na listahan, para mas malinaw.
-  function renderFleet(){
-    const vehicles = fleetCache.filter(f => FLEET_VEHICLE_TYPES.includes(f.type));
-    const personnel = fleetCache.filter(f => FLEET_PERSONNEL_TYPES.includes(f.type));
+ function renderFleet(){
+    const vehicles = sortUnseenFirst(fleetCache.filter(f => FLEET_VEHICLE_TYPES.includes(f.type)), 'fleet');   // BAGO
+    const personnel = sortUnseenFirst(fleetCache.filter(f => FLEET_PERSONNEL_TYPES.includes(f.type)), 'fleet');   // BAGO
 
     const vehicleTbody = document.getElementById('fleetVehicleList');
     if(vehicleTbody) vehicleTbody.innerHTML = vehicles.map(fleetRowHTML).join('');
@@ -686,9 +717,10 @@ function subscribeIncidentsRealtime() {
     populateDispatchSelects();
 }
 
-    async function updateFleetStatus(id, newStatus){
+   async function updateFleetStatus(id, newStatus){
      const f = fleetCache.find(x => String(x.id) === String(id));
     if(!f) return;
+    markSeen('fleet', id);   // BAGO
     const oldStatus = f.status;
 
     const updateData = { status: newStatus };
@@ -744,6 +776,7 @@ function subscribeIncidentsRealtime() {
     function editFleet(id){
    const f = fleetCache.find(x => String(x.id) === String(id));
     if(!f) return;
+    markSeen('fleet', id);   // BAGO
     document.getElementById('fleetId').value = f.id;
     document.getElementById('fleetName').value = f.name;
     document.getElementById('fleetType').value = f.type;
@@ -879,6 +912,7 @@ async function handleQuickDispatch(e){
         const inc = incidentsCache.find(i => String(i.id) === String(id));
         if(!inc){ alert('Hindi makita ang incident na ito.'); return; }
         activeIncidentId = inc.id;
+        markSeen('dashboard', inc.id);   // BAGO
 
         const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
         const contact = inc.sender && inc.sender.contact ? inc.sender.contact : '';
@@ -1573,7 +1607,7 @@ function printIncidentReport(){
         supabase
             .channel('medical-assistance-requests-changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'medical_assistance_requests' }, (payload) => {
-                if(payload.eventType === 'INSERT') markTabUpdated('queue');   // BAGO
+                if(payload.eventType === 'INSERT') markTabUpdated('queue', payload.new.id);   // BAGO
                 loadMedicalRequestsFromSupabase();
             })
             .subscribe();
@@ -1588,7 +1622,7 @@ function printIncidentReport(){
     const badge = document.getElementById('assistanceCountBadge');
     if(!wrap) return;
 
-    const openOnes = list.filter(r => r.status !== 'Disbursed' && r.status !== 'Rejected');
+  const openOnes = sortUnseenFirst(list.filter(r => r.status !== 'Disbursed' && r.status !== 'Rejected'), 'queue');   // BAGO
     badge && (badge.textContent = openOnes.length + ' Pending');
     empty && (empty.style.display = openOnes.length ? 'none' : 'block');
 
@@ -1611,6 +1645,7 @@ function printIncidentReport(){
 
    async function selectRequest(id){
     selectedRequestId = id;
+    markSeen('queue', id);   // BAGO
     const r = medicalRequestsCache.find(x => String(x.id) === String(id));
     if(!r) return;
 
@@ -1962,8 +1997,7 @@ function subscribeTranspoRealtime(){
     supabase
         .channel('transport-requests-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'transport_requests' }, (payload) => {
-            console.log('TRANSPO REALTIME EVENT:', payload.eventType, payload);   // TEMP DEBUG
-            if(payload.eventType === 'INSERT') markTabUpdated('docs');   // BAGO
+            if(payload.eventType === 'INSERT') markTabUpdated('docs', payload.new.id);   // BAGO
             loadTranspoFromSupabase();
         })
         .subscribe();
@@ -1981,7 +2015,7 @@ function renderTranspoList(){
     // na-reject na, dapat mawala na sya dito at lumipat sa "Completed
     // Transport Records" (renderTranspoHistory), na binabasa na ang
     // Approved/Completed/Rejected statuses.
-    const pending = transpoCache.filter(r => r.status === 'Pending');
+   const pending = sortUnseenFirst(transpoCache.filter(r => r.status === 'Pending'), 'docs');   // BAGO
     badge && (badge.textContent = pending.length + ' Pending');
     empty && (empty.style.display = pending.length ? 'none' : 'block');
 
@@ -2044,6 +2078,7 @@ function transpoStepperHTML(r){
 
 function selectTranspoRequest(id){
     selectedTranspoId = id;
+    markSeen('docs', id);   // BAGO
     const r = transpoCache.find(x => String(x.id) === String(id));
     if(!r) return;
 
@@ -2310,7 +2345,8 @@ async function loadUsersFromSupabase(){
 function renderUsers(){
   const tbody = document.getElementById('usersList');
   if(!tbody) return;
-  tbody.innerHTML = usersCache.map(u => `
+  const sortedUsers = sortUnseenFirst(usersCache, 'users');   // BAGO
+  tbody.innerHTML = sortedUsers.map(u => `
     <tr>
       <td>
         <div style="font-weight:600;">${u.name}</div>
@@ -2481,6 +2517,7 @@ function clearUserForm(){
 let resetTargetId = null;
 function openSecurityModal(id){
   resetTargetId = id;
+  markSeen('users', id);   // BAGO
   const u = usersCache.find(x => x.id === id);
   if(!u) return;
   document.getElementById('resetTargetName').textContent = u.name;
@@ -2513,6 +2550,7 @@ async function openIdVerificationModal(id){
   const u = usersCache.find(x => x.id === id);
   if(!u) return;
   idVerifyTargetId = id;
+  markSeen('users', id);   // BAGO
 
   document.getElementById('idVerifyName').textContent = u.name;
   document.getElementById('idVerifyMeta').textContent =
@@ -2590,6 +2628,7 @@ async function setIdVerified(verified){
 async function toggleUserActive(id){
   const u = usersCache.find(x => x.id === id);
   if(!u) return;
+  markSeen('users', id);   // BAGO
   const wasActive = u.active !== false;
   const confirmMsg = wasActive
     ? `Deactivate ${u.name}'s account? Mawawalan sila ng access sa system.`
@@ -2618,7 +2657,7 @@ function subscribeProfilesRealtime(){
   supabase
     .channel('profiles-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-      if(payload.eventType === 'INSERT') markTabUpdated('users');   // BAGO
+      if(payload.eventType === 'INSERT') markTabUpdated('users', payload.new.id);   // BAGO
       loadUsersFromSupabase();
     })
     .subscribe();
