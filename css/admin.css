@@ -376,3 +376,13 @@ textarea.form-control{ resize: vertical; }
 .report-bar-fill{ height:100%; background:#ffd700; border-radius:6px; }
 .report-bar-value{ flex:0 0 40px; text-align:right; font-size:0.78em; color:#eee; }
 .export-btn-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+/* ---------------- INCOMING EMERGENCY FEED — sariling scroll ---------------- */
+#reportsList{
+  max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
+  overflow-y: auto;
+  padding-right: 4px;  /* space para di dikit yung scrollbar sa cards */
+}
+#reportsList::-webkit-scrollbar{ width: 6px; }
+#reportsList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+#reportsList::-webkit-scrollbar-track{ background: transparent; }
