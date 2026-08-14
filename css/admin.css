@@ -451,3 +451,24 @@ textarea.form-control{ resize: vertical; }
 .table-scroll-wrap::-webkit-scrollbar{ width: 6px; }
 .table-scroll-wrap::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 .table-scroll-wrap::-webkit-scrollbar-track{ background: transparent; }
+
+/* ---------------- RESERVATION CALENDAR ---------------- */
+.reservation-day-group{ margin-bottom: 14px; }
+.reservation-day-label{
+  font-size: .75em; font-weight:700; color: var(--gold);
+  text-transform: uppercase; letter-spacing: .4px;
+  margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border-soft);
+}
+.reservation-chip{
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 8px 10px; margin-bottom: 6px; font-size: .82em;
+}
+.reservation-chip.conflict{
+  border-color: var(--red); background: rgba(255,82,82,0.08);
+}
+
+#transpoReservationCalendar{
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+}

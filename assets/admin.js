@@ -1823,9 +1823,40 @@ function printIncidentReport(){
         .order('created_at', { ascending: false });
 
     if(error){ console.error('Hindi makuha ang transpo requests:', error.message); return; }
-    transpoCache = data || [];
+   transpoCache = data || [];
     renderTranspoList();
     renderTranspoHistory();
+    renderReservationCalendar();   // BAGO
+}
+
+/* BAGO — real-time conflict check habang pumipili ng vehicle/driver sa
+   Transpo Assignment Terminal. Kinokompara sa schedule_time ng kasalukuyang
+   napiling request laban sa ibang Approved bookings sa parehong araw. */
+function checkTranspoConflict(){
+    const r = transpoCache.find(x => String(x.id) === String(selectedTranspoId));
+    const warnEl = document.getElementById('transpoConflictWarning');
+    if(!r || !r.schedule_time || !warnEl) return;
+
+    const dateKey = new Date(r.schedule_time).toDateString();
+    const vehicleId = document.getElementById('transpoVehicleSelect').value;
+    const driverId = document.getElementById('transpoDriverSelect').value;
+
+    const conflicts = transpoCache.filter(x =>
+        x.status === 'Approved' &&
+        String(x.id) !== String(r.id) &&
+        x.schedule_time &&
+        new Date(x.schedule_time).toDateString() === dateKey &&
+        ((vehicleId && String(x.assigned_vehicle) === String(vehicleId)) ||
+         (driverId && String(x.assigned_driver) === String(driverId)))
+    );
+
+    if(conflicts.length > 0){
+        const names = conflicts.map(c => c.patient_name).join(', ');
+        warnEl.textContent = `⚠️ May kasabay na booking na ang piniling unit/driver sa araw na ito (${names}). I-double check muna bago i-approve.`;
+        warnEl.style.display = 'block';
+    }else{
+        warnEl.style.display = 'none';
+    }
 }
 
 function subscribeTranspoRealtime(){
@@ -1929,7 +1960,8 @@ function selectTranspoRequest(id){
     if(r.assigned_vehicle) document.getElementById('transpoVehicleSelect').value = r.assigned_vehicle;
     if(r.assigned_driver) document.getElementById('transpoDriverSelect').value = r.assigned_driver;   // BAGO
 
-    renderTranspoList();
+   renderTranspoList();
+    checkTranspoConflict();   // BAGO
 }
 
 async function handleTranspoEvaluation(e){
@@ -2059,6 +2091,64 @@ async function handleTranspoEvaluation(e){
             ['Date Submitted', fmtTime(r.created_at)],
         ], () => printTranspoRecord(id));
     }
+
+    /* BAGO — Reservation Calendar: ipinapakita lahat ng approved/scheduled
+   transport bookings, naka-group per araw. Kapag ang parehong vehicle
+   o driver ay may 2+ bookings sa parehong araw, hini-highlight bilang
+   conflict (pula) para agad mapansin ng admin. */
+function renderReservationCalendar(){
+    const wrap = document.getElementById('transpoReservationCalendar');
+    if(!wrap) return;
+
+    const booked = transpoCache.filter(r => r.status === 'Approved' && r.schedule_time);
+    if(booked.length === 0){
+        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">Walang upcoming reservations.</div>';
+        return;
+    }
+
+    const groups = {};
+    booked.forEach(r => {
+        const dateKey = new Date(r.schedule_time).toLocaleDateString('en-PH', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+        if(!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(r);
+    });
+
+    const sortedKeys = Object.keys(groups).sort((a,b) => new Date(groups[a][0].schedule_time) - new Date(groups[b][0].schedule_time));
+
+    wrap.innerHTML = sortedKeys.map(dateKey => {
+        const entries = groups[dateKey].sort((a,b) => new Date(a.schedule_time) - new Date(b.schedule_time));
+
+        const vehicleCounts = {}, driverCounts = {};
+        entries.forEach(r => {
+            if(r.assigned_vehicle) vehicleCounts[r.assigned_vehicle] = (vehicleCounts[r.assigned_vehicle]||0)+1;
+            if(r.assigned_driver) driverCounts[r.assigned_driver] = (driverCounts[r.assigned_driver]||0)+1;
+        });
+
+        const rowsHtml = entries.map(r => {
+            const vehicle = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
+            const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
+            const isConflict = (r.assigned_vehicle && vehicleCounts[r.assigned_vehicle] > 1) || (r.assigned_driver && driverCounts[r.assigned_driver] > 1);
+            const time = new Date(r.schedule_time).toLocaleTimeString('en-PH', { hour:'2-digit', minute:'2-digit' });
+
+            return `
+                <div class="reservation-chip ${isConflict ? 'conflict' : ''}">
+                    <div><b>${time}</b> — ${r.patient_name}</div>
+                    <div style="font-size:.85em; color:#aaa; margin-top:2px;">
+                        ${vehicle ? '🚑 ' + vehicle.name : '— Walang vehicle —'}${driver ? ' · 🧑\u200d✈️ ' + driver.name : ''}
+                    </div>
+                    ${isConflict ? '<div style="font-size:.8em; color:var(--red); margin-top:3px;">⚠️ Conflict — may kasabay na booking ang unit/driver na ito sa araw na ito</div>' : ''}
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="reservation-day-group">
+                <div class="reservation-day-label">📅 ${dateKey}</div>
+                ${rowsHtml}
+            </div>
+        `;
+    }).join('');
+}
 
     function printTranspoRecord(id){
     const r = transpoCache.find(x => String(x.id) === String(id));

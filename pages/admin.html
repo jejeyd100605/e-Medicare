@@ -251,18 +251,28 @@
                 <div class="empty-state" id="transpoEmpty" style="display:block;">No submitted transport requests found.</div>
             </div>
 
-            <!-- BAGO: Completed Transport Records — approved/completed/rejected
-                 transpo requests, hiwalay sa Documentation Tracker at sa
-                 Assistance Queue history. -->
-            <div class="panel" style="border-top: 5px solid #0091ea;">
-                <div class="panel-header">
-                    <div class="panel-title">✅ Completed Transport Records</div>
-                    <span class="badge" id="transpoHistoryCountBadge">0 Records</span>
-                </div>
-                <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Approved and completed transport requests — printable history.</p>
-                <div id="transpoHistoryList"></div>
-            </div>
-        </div>
+           <!-- BAGO: Completed Transport Records — approved/completed/rejected
+     transpo requests, hiwalay sa Documentation Tracker at sa
+     Assistance Queue history. -->
+<div class="panel" style="border-top: 5px solid #0091ea;">
+    <div class="panel-header">
+        <div class="panel-title">✅ Completed Transport Records</div>
+        <span class="badge" id="transpoHistoryCountBadge">0 Records</span>
+    </div>
+    <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Approved and completed transport requests — printable history.</p>
+    <div id="transpoHistoryList"></div>
+</div>
+
+<!-- BAGO: Reservation Calendar — makikita lahat ng naka-schedule na
+     approved bookings per araw, may automatic conflict warning kapag
+     may parehong vehicle/driver na naka-book na sa parehong araw. -->
+<div class="panel" style="border-top: 5px solid #7c4dff;">
+    <div class="panel-header">
+        <div class="panel-title" style="color:#7c4dff;">📅 Vehicle/Driver Reservations</div>
+    </div>
+    <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Lahat ng naka-schedule na approved na transport bookings, naka-group per araw. Pula ang lalabas kapag may conflict.</p>
+    <div id="transpoReservationCalendar"></div>
+</div>
 
         <div class="column" style="flex: 1.4;">
             <div class="panel" style="border-top: 5px solid #0091ea;">
