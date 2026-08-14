@@ -16,7 +16,9 @@ let currentUserId = null;
 let currentUserName = 'Resident';
 let currentUserBarangay = 'Bambang'; // ginagamit para i-tag ang mga request
 let currentUserContact = ''; // BAGO — ginagamit ng medical assistance request (contact_number)
-let currentUserVerified = false; // BAGO — kailangan bago makapag-submit ng kahit anong request
+let currentUserVerified = false; // BAGO — kailangan bago makapag-submit ng kahit anong 
+let currentUserRejected = false;
+let currentUserRejectReason = '';
 
 
 
@@ -336,6 +338,8 @@ async function loadUserProfile() {
     currentUserBarangay = profile.barangay || 'Bambang';
     currentUserContact = profile.contact || ''; // BAGO
     currentUserVerified = profile.id_verified === true; // BAGO
+    currentUserRejected = profile.id_rejected === true;
+    currentUserRejectReason = profile.id_reject_reason || '';
     renderVerificationStatus(); // BAGO — i-display ang verification status sa dropdown
 
 
@@ -386,6 +390,10 @@ function renderVerificationStatus() {
         el.innerHTML = '<span style="color:#2E7D32;"><i class="fas fa-circle-check"></i> ID Verified</span>';
         el.style.cursor = 'default';
         el.onclick = null;
+    } else if (currentUserRejected) {
+        el.innerHTML = '<span style="color:#c62828; cursor:pointer;"><i class="fas fa-circle-xmark"></i> Na-reject ang ID — I-tap para malaman</span>';
+        el.style.cursor = 'pointer';
+        el.onclick = () => requireVerifiedOrWarn();
     } else {
         el.innerHTML = '<span style="color:#e65100; cursor:pointer;"><i class="fas fa-triangle-exclamation"></i> Not Verified — I-tap para malaman</span>';
         el.style.cursor = 'pointer';
@@ -399,6 +407,10 @@ function renderVerificationStatus() {
 // ng kahit anong request (Emergency, Transpo, Medical Assistance, SOS)
 // ==========================================================================
 function requireVerifiedOrWarn() {
+    if (currentUserRejected) {
+        alert('❌ Na-reject ang iyong ID verification.\n\nDahilan: ' + (currentUserRejectReason || 'Malabo o hindi malinaw.') + '\n\nMag-submit ulit ng malinaw na selfie at ID sa iyong profile.');
+        return false;
+    }
     if (!currentUserVerified) {
         alert('⚠️ Kailangan mo munang ma-verify ang iyong ID bago makapag-submit ng request.\n\nTiyakin na malinaw ang kuha ng iyong Valid ID at Selfie photo, at hintayin ang pag-verify ng Barangay Admin. Bumalik sa loob ng ilang oras o araw.');
         return false;

@@ -2617,10 +2617,33 @@ async function setIdVerified(verified){
   const u = usersCache.find(x => x.id === idVerifyTargetId);
   if(!u) return;
 
-  const { error } = await supabase.from('profiles').update({ id_verified: verified }).eq('id', idVerifyTargetId);
+  const { error } = await supabase.from('profiles').update({ id_verified: verified, id_rejected: false }).eq('id', idVerifyTargetId);
   if(error){ alert('Hindi na-update: ' + error.message); return; }
 
   logActivity('user', `ID for <b>${u.name}</b> marked as ${verified ? 'Verified ✅' : 'Not Verified'}.`);
+  closeIdVerificationModal();
+  loadUsersFromSupabase();
+}
+
+async function rejectIdVerification(){
+  if(!idVerifyTargetId) return;
+  const u = usersCache.find(x => x.id === idVerifyTargetId);
+  if(!u) return;
+
+  const reason = prompt('Bakit rineject? (hal. malabo ang picture, hindi magkatugma ang ID)') 
+                 || 'Malabo o hindi malinaw ang isinumiteng ID/selfie.';
+
+  const { error } = await supabase.from('profiles').update({
+    id_verified: false,
+    id_rejected: true,
+    id_reject_reason: reason,
+    id_image_url: null,
+    face_image_url: null
+  }).eq('id', idVerifyTargetId);
+
+  if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+  logActivity('user', `ID ni <b>${u.name}</b> na-reject: ${reason}`);
   closeIdVerificationModal();
   loadUsersFromSupabase();
 }
