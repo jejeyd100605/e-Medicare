@@ -1248,10 +1248,27 @@ async function submitRequest(type) {
 
 
 
-    const [latStr, lngStr] = location.split(',').map(s => s.trim());
+   const [latStr, lngStr] = location.split(',').map(s => s.trim());
 
+    // BAGO — i-upload muna ang mga na-capture na litrato sa Storage
+    // bago mag-insert ng request, tapos isama ang mga path sa payload
+    const uploadedPhotoPaths = [];
+    for (let i = 0; i < capturedEmergencyPhotos.length; i++) {
+        const dataUrl = capturedEmergencyPhotos[i];
+        const blob = await (await fetch(dataUrl)).blob();
+        const photoPath = `${currentUserId}/${Date.now()}_${i}.jpg`;
 
+        const { error: photoUploadError } = await supabase.storage
+            .from('emergency-photos')
+            .upload(photoPath, blob, { contentType: 'image/jpeg' });
 
+        if (photoUploadError) {
+            alert('Hindi na-upload ang litrato: ' + photoUploadError.message);
+            return;
+        }
+
+        uploadedPhotoPaths.push(photoPath);
+    }
 
     const { error } = await supabase.from('emergency_requests').insert({
         sender_id: currentUserId,
@@ -1264,7 +1281,8 @@ async function submitRequest(type) {
         status: 'Pending',
         patient_name: currentUserName,
         jurisdiction: currentUserBarangay,
-        urgency: category === 'Fire Emergency' ? 'Urgent' : 'Normal'
+        urgency: category === 'Fire Emergency' ? 'Urgent' : 'Normal',
+        photo_urls: uploadedPhotoPaths   // BAGO
     });
 
 

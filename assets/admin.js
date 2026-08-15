@@ -1262,29 +1262,49 @@ function printIncidentReport(){
     loadFleetFromSupabase();
    }
 
-  async function moveToWaitingList(){
+  async function openIncidentPhotosModal(){
     const inc = incidentsCache.find(i => i.id === activeIncidentId);
     if(!inc) return;
 
-    const { error } = await supabase
-        .from('emergency_requests')
-        .update({ status: 'Waiting List' })
-        .eq('id', inc.id);
+    const grid = document.getElementById('incidentPhotosGrid');
+    const photos = Array.isArray(inc.photo_urls) ? inc.photo_urls : [];
 
-    if (error) { alert('Hindi na-update: ' + error.message); return; }
-
-    logActivity('request', `Case for <b>${inc.sender ? inc.sender.name : 'Resident'}</b> moved to documentation tracker.`);
-
-    if(inc.sender_id){
-        await supabase.from('notifications').insert({
-            receiver_id: inc.sender_id,
-            title: 'Request Update',
-            message: `Hi ${inc.sender ? inc.sender.name : ''}, ang iyong ${inc.category || inc.type} request ay pansamantalang nasa waiting list habang naghihintay ng available na responder. Aabisuhan ka agad kapag na-assign na.`
-        });
+    if(photos.length === 0){
+        grid.innerHTML = '<div class="empty-state" style="padding:20px;">Walang naka-attach na litrato mula sa resident para sa request na ito.</div>';
+        document.getElementById('incidentPhotosModal').style.display = 'flex';
+        return;
     }
 
-    document.getElementById('assignModal').style.display = 'none';
-    loadIncidentsFromSupabase();
+    grid.innerHTML = photos.map((_, i) => `
+        <div style="width:160px; height:160px; background:#1a1c20; border:1px solid #333; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            <img id="incidentPhoto-${i}" src="" style="display:none; max-width:100%; max-height:100%; object-fit:contain;">
+            <div id="incidentPhotoEmpty-${i}" style="font-size:0.75em; color:#666;">Loading…</div>
+        </div>
+    `).join('');
+
+    document.getElementById('incidentPhotosModal').style.display = 'flex';
+
+    for(let i = 0; i < photos.length; i++){
+        const { data, error } = await supabase.storage
+            .from('emergency-photos')
+            .createSignedUrl(photos[i], 300);
+
+        const imgEl = document.getElementById(`incidentPhoto-${i}`);
+        const emptyEl = document.getElementById(`incidentPhotoEmpty-${i}`);
+
+        if(error || !data?.signedUrl){
+            emptyEl.textContent = 'Hindi ma-load ang litrato.';
+            continue;
+        }
+
+        imgEl.src = data.signedUrl;
+        imgEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+    }
+}
+
+function closeIncidentPhotosModal(){
+    document.getElementById('incidentPhotosModal').style.display = 'none';
 }
 
 

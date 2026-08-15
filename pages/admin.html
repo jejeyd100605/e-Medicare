@@ -700,10 +700,10 @@
                     <option value="" disabled selected>Select responder on standby</option>
                 </select>
                 <textarea id="assignNotes" class="form-control" rows="2" placeholder="ETA (e.g. 7 mins)..."></textarea>
-                <div class="modal-action-grid">
+               <div class="modal-action-grid">
                     <div class="action-row">
                         <button type="submit" class="primary-btn btn-confirm">🚀 Confirm Dispatch</button>
-                        <button type="button" onclick="moveToWaitingList()" class="primary-btn btn-hold">📑 Require Docs</button>
+                        <button type="button" onclick="openIncidentPhotosModal()" class="primary-btn btn-hold">📷 View Photos</button>
                     </div>
                     <div class="action-row" style="margin-top: 10px;">
                         <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
@@ -786,6 +786,34 @@
             <div class="action-row">
                 <button type="button" id="recordDetailPrintBtn" class="primary-btn" style="background:#333; color:#eee; flex:1;">🖨️ Print</button>
                 <button type="button" onclick="closeRecordDetailModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: INCIDENT PHOTOS (mga litratong kinunan ng resident gamit ang
+       in-app camera habang nagsu-submit ng Emergency request) -->
+<div class="modal" id="incidentPhotosModal" style="display: none;">
+    <div class="modal-content" style="max-width: 560px;">
+        <h4 style="font-size: 1em; color: #00b0ff; margin-bottom: 12px;">📷 Mga Litrato mula sa Resident</h4>
+        <div id="incidentPhotosGrid" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
+        <div class="modal-action-grid" style="margin-top: 16px;">
+            <div class="action-row">
+                <button type="button" onclick="closeIncidentPhotosModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: INCIDENT PHOTOS (mga litratong kinunan ng resident gamit ang
+       in-app camera habang nagsu-submit ng Emergency request) -->
+<div class="modal" id="incidentPhotosModal" style="display: none;">
+    <div class="modal-content" style="max-width: 560px;">
+        <h4 style="font-size: 1em; color: #00b0ff; margin-bottom: 12px;">📷 Mga Litrato mula sa Resident</h4>
+        <div id="incidentPhotosGrid" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
+        <div class="modal-action-grid" style="margin-top: 16px;">
+            <div class="action-row">
+                <button type="button" onclick="closeIncidentPhotosModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
             </div>
         </div>
     </div>
