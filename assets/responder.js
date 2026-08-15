@@ -132,6 +132,7 @@ function showBrowserSOSNotificationResp(incident){
     }
 }
 let selectedId = null;
+let currentIncidentPhotos = [];   // BAGO — mga litrato ng kasalukuyang napiling incident
 let lastCount = 0;
 let activeFilter = 'all';
 let locationWatchId = null;
@@ -506,7 +507,8 @@ function normalizeIncident(row) {
         etaUpdatedAt: row.eta_updated_at || null,
        assignedResponderId: row.assigned_responder_id || null,
         assignedResponderName: row.assigned_responder_name || null,
-        assignedDriverId: row.assigned_driver_id || null
+        assignedDriverId: row.assigned_driver_id || null,
+        photoUrls: row.photo_urls || []   // BAGO — mga litratong kinunan ng resident
     };
 }
 
@@ -677,6 +679,8 @@ function renderDetails(incidents) {
         detailDiv.innerHTML = '<p style="opacity:.7;">This request is no longer available.</p>';
         return;
     }
+
+    currentIncidentPhotos = incident.photoUrls || [];   // BAGO
 
     const mapsUrl = incident.lat && incident.lng
     ? `https://www.google.com/maps/dir/?api=1&destination=${incident.lat},${incident.lng}&travelmode=driving`
@@ -894,7 +898,7 @@ function buildActionButtons(incident, mapsUrl) {
         return `
             <div class="quick-sms-area">
                 <button class="sms-btn" onclick="sendSMS('On our way')">📲 On our way</button>
-                <button class="sms-btn" onclick="sendSMS('Prepare Documents')">📲 Prepare Docs</button>
+                <button class="sms-btn" onclick="openIncidentPhotosModal()">📷 View Photos</button>
                 <button class="sms-btn" onclick="promptEtaUpdate()">⏱ Update ETA</button>
             </div>
 
@@ -1162,6 +1166,57 @@ function sendSMS(message) {
     showToast(`Resident update sent: "${message}"`);
 }
 window.sendSMS = sendSMS;
+
+// BAGO — ipinapakita ang mga litratong kinunan ng resident gamit ang
+// in-app camera habang nagsu-submit ng Emergency request
+async function openIncidentPhotosModal(){
+    const grid = document.getElementById('incidentPhotosGrid');
+    const photos = currentIncidentPhotos;
+
+    if(photos.length === 0){
+        grid.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">Walang naka-attach na litrato mula sa resident para sa request na ito.</div>';
+        document.getElementById('incidentPhotosModal').classList.add('open');
+        document.getElementById('incidentPhotosModal').setAttribute('aria-hidden', 'false');
+        return;
+    }
+
+    grid.innerHTML = photos.map((_, i) => `
+        <div style="width:160px; height:160px; background:#1a1c20; border:1px solid #333; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            <img id="respIncidentPhoto-${i}" src="" style="display:none; max-width:100%; max-height:100%; object-fit:contain;">
+            <div id="respIncidentPhotoEmpty-${i}" style="font-size:0.75em; color:#666;">Loading…</div>
+        </div>
+    `).join('');
+
+    document.getElementById('incidentPhotosModal').classList.add('open');
+    document.getElementById('incidentPhotosModal').setAttribute('aria-hidden', 'false');
+
+    for(let i = 0; i < photos.length; i++){
+        const { data, error } = await supabase.storage
+            .from('emergency-photos')
+            .createSignedUrl(photos[i], 300);
+
+        const imgEl = document.getElementById(`respIncidentPhoto-${i}`);
+        const emptyEl = document.getElementById(`respIncidentPhotoEmpty-${i}`);
+
+        if(error || !data?.signedUrl){
+            if(emptyEl) emptyEl.textContent = 'Hindi ma-load ang litrato.';
+            continue;
+        }
+
+        if(imgEl){
+            imgEl.src = data.signedUrl;
+            imgEl.style.display = 'block';
+        }
+        if(emptyEl) emptyEl.style.display = 'none';
+    }
+}
+window.openIncidentPhotosModal = openIncidentPhotosModal;
+
+function closeIncidentPhotosModal(){
+    document.getElementById('incidentPhotosModal').classList.remove('open');
+    document.getElementById('incidentPhotosModal').setAttribute('aria-hidden', 'true');
+}
+window.closeIncidentPhotosModal = closeIncidentPhotosModal;
 
 function openCompletionModal() {
     document.getElementById('completionTimestamp').value = formatDateTime(new Date());

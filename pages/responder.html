@@ -314,10 +314,24 @@
                 </p>
             </form>
         </div>
+</div>
+
+    <div id="incidentPhotosModal" class="modal" aria-hidden="true">
+        <div class="modal-content" style="max-width:560px;">
+            <div class="modal-header">
+                <div>
+                    <h2><i class="fas fa-camera"></i> Mga Litrato mula sa Resident</h2>
+                </div>
+                <button type="button" class="modal-close" onclick="closeIncidentPhotosModal()" aria-label="Close">&times;</button>
+            </div>
+            <div id="incidentPhotosGrid" style="display:flex; gap:12px; flex-wrap:wrap; padding: 10px 0;"></div>
+            <div class="modal-actions">
+                <button type="button" class="status-btn btn-secondary" onclick="closeIncidentPhotosModal()">Close</button>
+            </div>
+        </div>
     </div>
 
     <div id="dashboardToast" class="dashboard-toast"></div>
-
    <script type="module" src="/assets/responder.js"></script>
    <script>
        if ('serviceWorker' in navigator) {
