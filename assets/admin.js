@@ -833,15 +833,13 @@ function subscribeIncidentsRealtime() {
     document.getElementById('formFleetTitle').textContent = '🚒 Register Ambulance / Resource Unit';
     }
 
-    function populateDispatchSelects(){
+function populateDispatchSelects(){
     const vehicleSel = document.getElementById('dispatchVehicle');
     const responderSel = document.getElementById('dispatchResponder');
-    const incidentSel = document.getElementById('dispatchIncident');
-    if(!vehicleSel || !responderSel || !incidentSel) return;
+    if(!vehicleSel || !responderSel) return;
 
     const vehicles = fleetCache.filter(f => ['Medical (Full)','Transport','Rescue/Patrol','Auxiliary'].includes(f.type));
     const responders = fleetCache.filter(f => f.type === 'Medical Personnel' || f.type === 'Driver');
-    const openIncidents = incidentsCache.filter(i => i.status !== 'Resolved' && i.status !== 'Assigned');
 
     const statusTag = (f) => f.status === 'Available' ? '🟢 Available'
         : f.status === 'On Duty' ? '🟡 On Duty'
@@ -853,12 +851,6 @@ function subscribeIncidentsRealtime() {
 
     vehicleSel.innerHTML = '<option value="">— None —</option>' + buildOptions(vehicles);
     responderSel.innerHTML = '<option value="">— None —</option>' + buildOptions(responders);
-
-    incidentSel.innerHTML = '<option value="">— No linked incident —</option>' +
-        openIncidents.map(i => {
-            const callerName = i.sender ? i.sender.name : 'Unknown Resident';
-            return `<option value="${i.id}">${i.category || i.type} — ${callerName}</option>`;
-        }).join('');
 }
 
 function buildCrewTag(member, vehicle, responder, assignmentTag){
@@ -874,7 +866,7 @@ async function handleQuickDispatch(e){
 
     const vehicleId = document.getElementById('dispatchVehicle').value;
     const responderId = document.getElementById('dispatchResponder').value;
-    const incidentId = document.getElementById('dispatchIncident').value;
+    const source = document.getElementById('dispatchSource').value;   // BAGO — Phone Call / Text Message / FB Message
     const notes = document.getElementById('dispatchNotes').value;
 
     if(!vehicleId && !responderId){
@@ -884,12 +876,13 @@ async function handleQuickDispatch(e){
 
     const vehicle = vehicleId ? fleetCache.find(f => String(f.id) === String(vehicleId)) : null;
     const responder = responderId ? fleetCache.find(f => String(f.id) === String(responderId)) : null;
-    const incident = incidentId ? incidentsCache.find(i => String(i.id) === String(incidentId)) : null;
 
     const teamLabel = [vehicle?.name, responder?.name].filter(Boolean).join(' + ');
-    const assignmentTag = incident
-        ? `${incident.category || incident.type}, ${incident.sender ? incident.sender.name : 'Resident'}`
-        : (notes || 'Standby / Patrol');
+    // BAGO — Quick Dispatch ay para sa mga emergency na hindi galing sa
+    // app (tumawag/nag-text/nag-FB message sa barangay), kaya wala nang
+    // naka-link na incident record — ang paraan ng pagtanggap na lang
+    // ang inilalagay bilang tag.
+    const assignmentTag = source ? `Report via ${source}` : (notes || 'Standby / Patrol');
 
     const membersToUpdate = [vehicle, responder].filter(Boolean);
     for(const member of membersToUpdate){
@@ -901,29 +894,10 @@ async function handleQuickDispatch(e){
         if(error){ alert(`Hindi na-update ang ${member.name}: ` + error.message); return; }
     }
 
-    // ...ibaba, walang binago pa (incident linking, notification, logActivity)
-
-    // Link sa incident, kung meron
-    if(incident){
-        const { error: incError } = await supabase.from('emergency_requests')
-            .update({ status: 'Assigned', assigned_to: teamLabel, eta: notes })
-            .eq('id', incident.id);
-        if(incError){ alert('Hindi na-update ang incident: ' + incError.message); return; }
-
-        if(incident.sender_id){
-            await supabase.from('notifications').insert({
-                receiver_id: incident.sender_id,
-                title: 'Responder Dispatched',
-                message: `Paparating na ang ${teamLabel} para sa iyong emergency request.${notes ? ' ETA: ' + notes : ''}`
-            });
-        }
-    }
-
-    logActivity('dispatch', `<b>${teamLabel}</b> dispatched${incident ? ' to ' + (incident.category || incident.type) : ' (standby/patrol)'}${notes ? ' — ' + notes : ''}`);
+    logActivity('dispatch', `<b>${teamLabel}</b> dispatched${source ? ' — reported via ' + source : ' (standby/patrol)'}${notes ? ' — ' + notes : ''}`);
 
     document.getElementById('quickDispatchForm').reset();
     loadFleetFromSupabase();
-    if(incident) loadIncidentsFromSupabase();
 }
 
     /* ---------------------------------------------------------
