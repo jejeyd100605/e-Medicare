@@ -32,28 +32,26 @@ function findDispatchTime(incident){
 }
 
 function renderResponseSummary(){
-  const incidents = load(DB.incidents, []);
-  const rows = incidents.map(i => {
-    const dispatchTime = findDispatchTime(i);
-    const minutes = dispatchTime
-      ? Math.round((dispatchTime - new Date(i.reportedAt)) / 60000)
-      : null;
-    return { ...i, minutes };
-  });
+  const rows = incidentsCache   // BAGO — totoong Supabase data
+    .filter(i => i.assigned_at)
+    .map(i => ({
+      ...i,
+      minutes: Math.round((new Date(i.assigned_at) - new Date(i.created_at)) / 60000)
+    }));
 
-  const timed = rows.filter(r => r.minutes !== null);
-  const avgAll = timed.length
-    ? Math.round(timed.reduce((s,r) => s + r.minutes, 0) / timed.length)
+  const avgAll = rows.length
+    ? Math.round(rows.reduce((s,r) => s + r.minutes, 0) / rows.length)
     : null;
 
   const avgEl = document.getElementById('repAvgResponse');
   if(avgEl) avgEl.textContent = avgAll !== null ? avgAll + ' min' : 'No data yet';
 
-  // group by incident type
+  // group by incident category/type
   const byType = {};
-  timed.forEach(r => {
-    byType[r.type] = byType[r.type] || [];
-    byType[r.type].push(r.minutes);
+  rows.forEach(r => {
+    const label = r.category || r.type;
+    byType[label] = byType[label] || [];
+    byType[label].push(r.minutes);
   });
 
   const wrap = document.getElementById('repResponseByType');
@@ -78,7 +76,7 @@ function renderResponseSummary(){
   }).join('');
 }
 
-/* ---------------------------------------------------------
+/* ------------------ ---------------------------------------
    REQUEST VOLUME (by category + status)
 --------------------------------------------------------- */
 async function renderRequestVolume(){
@@ -137,7 +135,7 @@ async function renderRequestVolume(){
    UI copy so it isn't mistaken for a historical utilization rate.
 --------------------------------------------------------- */
 function renderFleetUtilization(){
-  const fleet = load(DB.fleet, []);
+  const fleet = fleetCache;  
   const totalEl = document.getElementById('repFleetUtil');
   const wrap = document.getElementById('repFleetUtilList');
   if(!wrap) return;

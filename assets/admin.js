@@ -1168,7 +1168,7 @@ function printIncidentReport(){
 
     const teamLabel = [vehicle?.name, driver.name, responder.name].filter(Boolean).join(' + ');   // BAGO — kasama na ang vehicle
 
-   const { error: incError } = await supabase
+  const { error: incError } = await supabase
         .from('emergency_requests')
         .update({
             status: 'Assigned',
@@ -1176,7 +1176,8 @@ function printIncidentReport(){
             eta: notes,
             assigned_responder_id: responder.profileId || null,
             assigned_responder_name: responder.name,
-            assigned_driver_id: driver.profileId || null
+            assigned_driver_id: driver.profileId || null,
+            assigned_at: new Date().toISOString()   // BAGO — para sa Response Time analytics
         })
         .eq('id', inc.id);
     if (incError) { alert('Hindi na-update ang request: ' + incError.message); return; }
