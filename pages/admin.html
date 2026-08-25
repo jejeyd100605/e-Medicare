@@ -15,6 +15,9 @@
 </head>
 <body>
 
+
+
+
     <!-- HEADER SECTION -->
     <div class="header">
         <h1>e-Medicare <span>Bambang Admin</span></h1>
@@ -25,12 +28,18 @@
         </div>
     </div>
 
+
+
+
     <!-- MAIN CONTENT WRAPPER -->
     <div class="main-content">
         <div class="welcome-section">
             <h2>Barangay Bambang Emergency Response</h2>
             <p id="tabStatusMsg">Target Response Time: 5-10 Minutes | Priority: Life-Threatening Cases (Motorcycle/Stroke)</p>
         </div>
+
+
+
 
         <!-- TAB NAVIGATION -->
         <div class="tab-navigation">
@@ -43,6 +52,9 @@
             <button class="tab-btn" id="btn-comms" onclick="switchTab('comms')">📡 Communications</button>
             <button class="tab-btn" id="btn-reports" onclick="switchTab('reports')">📊 Reports & Analytics</button>
         </div>
+
+
+
 
         <!-- DASHBOARD TAB -->
         <div id="dashboard-tab">
@@ -64,6 +76,9 @@
                 </div>
             </div>
 
+
+
+
             <div class="layout">
                 <!-- Left Column: Emergency Feed -->
                 <div class="column">
@@ -79,6 +94,9 @@
                     </div>
                 </div>
 
+
+
+
                 <!-- Right Column: Quick Stats & Advisory -->
                 <div class="column">
                     <div class="panel" style="border-top: 5px solid #ff9100;">
@@ -88,6 +106,9 @@
                         <button class="primary-btn" style="background:#ff9100; width:100%;" onclick="postAdvisory()">Broadcast</button>
                     </div>
 
+
+
+
                     <div class="panel" style="border-top: 5px solid #00b0ff;">
                         <div class="panel-title" style="color:#00b0ff; display: flex; justify-content: space-between;">
                             <span>🚑 Active Fleet & Personnel</span>
@@ -95,6 +116,9 @@
                         </div>
                         <div id="quickFleetStatus"></div>
                     </div>
+
+
+
 
                     <!-- BAGO: Documentation Tracker — nakatutok na sa resolved/completed
                          SOS at Emergency incidents (galing sa incidentsCache), hindi na
@@ -111,6 +135,9 @@
             </div>
         </div>
 
+
+
+
         <!-- FLEET MANAGEMENT TAB -->
         <div id="fleet-tab" style="display: none;">
             <div class="layout">
@@ -120,8 +147,14 @@
                         <form id="fleetForm" onsubmit="handleFleetSubmit(event)">
                             <input type="hidden" id="fleetId">
 
+
+
+
                             <label style="font-size: 0.8em;">Unit Name / Personnel Name:</label>
                             <input type="text" id="fleetName" class="form-control" placeholder="e.g. Ambulance Alpha / Responder Cruz" required>
+
+
+
 
                             <label style="font-size: 0.8em;">Resource Classification:</label>
                            <select id="fleetType" class="form-control" required>
@@ -134,8 +167,14 @@
     <option value="Auxiliary">Auxiliary Unit</option>
 </select>
 
+
+
+
 <label style="font-size: 0.8em;">Plate Number (optional):</label>
                             <input type="text" id="fleetPlate" class="form-control" placeholder="e.g. ABC-1234">
+
+
+
 
                            <label style="font-size: 0.8em;">Initial Availability Status:</label>
                             <select id="fleetStatus" class="form-control" required>
@@ -144,10 +183,16 @@
                                 <option value="Unavailable">Unavailable / Maintenance</option>
                             </select>
 
+
+
+
                             <label style="font-size: 0.8em;">Link to Responder Account (optional):</label>
                             <select id="fleetLinkedProfile" class="form-control">
                                 <option value="">— No linked account —</option>
                             </select>
+
+
+
 
                             <div style="margin-top: 15px; display: flex; gap: 10px;">
                                 <button type="submit" class="primary-btn" style="background:#00b0ff; color:white; flex: 1;">Save Resource</button>
@@ -155,6 +200,9 @@
                             </div>
                         </form>
                     </div>
+
+
+
 
                  <div class="panel" style="border-top: 5px solid #00c853;">
     <div class="panel-title" style="color:#00c853;">🚀 Quick Dispatch</div>
@@ -167,10 +215,16 @@
             <option value="">— None —</option>
         </select>
 
+
+
+
         <label style="font-size: 0.8em;">Responder:</label>
         <select id="dispatchResponder" class="form-control">
             <option value="">— None —</option>
         </select>
+
+
+
 
         <label style="font-size: 0.8em;">Paraan ng Pagtanggap:</label>
         <select id="dispatchSource" class="form-control">
@@ -180,8 +234,14 @@
             <option value="FB Message">📘 Facebook Message</option>
         </select>
 
+
+
+
         <label style="font-size: 0.8em;">ETA / Notes:</label>
         <textarea id="dispatchNotes" class="form-control" rows="2" placeholder="e.g. 7 mins ETA"></textarea>
+
+
+
 
         <button type="submit" class="primary-btn" style="background:#00c853; color:#111; width:100%; margin-top:8px;">
             🚀 Dispatch Team
@@ -189,6 +249,9 @@
     </form>
 </div>
   </div>
+
+
+
 
                 <div class="column" style="flex: 2.8;">
                     <div class="panel">
@@ -210,6 +273,9 @@
                             <tbody id="fleetVehicleList"></tbody>
                         </table>
                     </div>
+
+
+
 
                     <div class="panel">
                         <div class="panel-header">
@@ -234,6 +300,9 @@
             </div>
         </div>
 
+
+
+
         <!-- DOCUMENT EVALUATION TAB -->
        <div id="docs-tab" style="display: none;">
     <div class="layout">
@@ -248,6 +317,9 @@
                 <div class="empty-state" id="transpoEmpty" style="display:block;">No submitted transport requests found.</div>
             </div>
 
+
+
+
            <!-- BAGO: Completed Transport Records — approved/completed/rejected
      transpo requests, hiwalay sa Documentation Tracker at sa
      Assistance Queue history. -->
@@ -259,6 +331,9 @@
     <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Approved and completed transport requests — printable history.</p>
     <div id="transpoHistoryList"></div>
 </div>
+
+
+
 
 <!-- BAGO: Reservation Calendar — makikita lahat ng naka-schedule na
      approved bookings per araw, may automatic conflict warning kapag
@@ -276,36 +351,66 @@
                 <div class="panel-title">🔍 Transpo Assignment Terminal</div>
                 <div id="transpoStepper"></div>
 
+
+
+
                 <form id="transpoEvalForm" onsubmit="handleTranspoEvaluation(event)">
                     <input type="hidden" id="selectedTranspoId">
+
+
+
 
                     <label style="font-size: 0.8em;">Patient / Requesting Resident:</label>
                     <input type="text" id="transpoResidentName" class="form-control" readonly placeholder="No selected request">
 
+
+
+
                     <label style="font-size: 0.8em;">Pickup Location:</label>
                     <input type="text" id="transpoPickup" class="form-control" readonly>
+
+
+
 
                     <label style="font-size: 0.8em;">Destination:</label>
                     <input type="text" id="transpoDestination" class="form-control" readonly>
 
+
+
+
                     <label style="font-size: 0.8em;">Schedule:</label>
                     <input type="text" id="transpoSchedule" class="form-control" readonly>
 
+
+
+
                     <label style="font-size: 0.8em;">Requested Vehicle Type / Condition:</label>
                     <input type="text" id="transpoType" class="form-control" readonly>
+
+
+
 
                     <label style="font-size: 0.8em;">Assign Vehicle / Unit:</label>
 <select id="transpoVehicleSelect" class="form-control" required>
     <option value="" disabled selected>Select available vehicle</option>
 </select>
 
+
+
+
 <label style="font-size: 0.8em;">Assign Driver:</label>
 <select id="transpoDriverSelect" class="form-control">
     <option value="">— None —</option>
 </select>
 
+
+
+
                     <label style="font-size: 0.8em;">Admin Notes:</label>
                     <textarea id="transpoNotes" class="form-control" rows="2" placeholder="Remarks, ETA, or reason for rejection..."></textarea>
+
+
+
 
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
                         <button type="submit" name="action" value="Approve" class="primary-btn" style="background:#28a745; color:white; flex: 1.2; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✓ Approve & Assign</button>
@@ -327,6 +432,9 @@
                 <p style="font-size:0.68em; color:#666;">Queue order is computed automatically from urgency, eligibility, budget fit, and time waiting — not manually ranked.</p>
             </div>
 
+
+
+
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">🗂️ Priority Queue — Awaiting Funds</div>
@@ -335,6 +443,9 @@
                 <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Sorted highest priority first. A request can be disbursed the moment the fund pool covers its cost.</p>
                 <div id="queueList"></div>
             </div>
+
+
+
 
             <!-- BAGO: Completed Assistance Records — disbursed/approved/rejected
                  medical & financial assistance requests, hiwalay sa
@@ -349,6 +460,9 @@
             </div>
         </div>
 
+
+
+
         <div class="column" style="flex: 1.4;">
             <div class="panel" style="border-top: 5px solid #ffd700;">
                 <div class="panel-header">
@@ -361,25 +475,43 @@
             </div>
         </div>
 
+
+
+
         <div class="column" style="flex: 1.4;">
             <div class="panel" style="border-top: 5px solid #ffd700;">
                 <div class="panel-title">🔍 Request Verification Terminal</div>
                 <p style="color:#aaa; font-size: 0.8em; margin-bottom: 10px;">Select a request from the list to load documents and routing logs.</p>
                 <div id="statusStepper"></div>
 
+
+
+
                 <form id="assistanceEvalForm" onsubmit="handleAssistanceEvaluation(event)">
                     <input type="hidden" id="selectedRequestId">
+
+
+
 
                     <label style="font-size: 0.8em;">Resident Applicant:</label>
                     <input type="text" id="evalResidentName" class="form-control" readonly placeholder="No selected request">
 
+
+
+
                     <label style="font-size: 0.8em;">Details / Medical Purpose:</label>
                     <textarea id="evalPurpose" class="form-control" rows="3" readonly placeholder="Waiting for selection..."></textarea>
+
+
+
 
                     <div style="background:#2d2d2d; padding:12px; border-radius:8px; border-left:4px solid #ffd700; margin-bottom: 15px;">
                         <h4 style="font-size: 0.85em; margin-bottom: 5px; color:#ffd700;">Attached Document Audit:</h4>
                         <div id="evalDocAttachments" style="font-size: 0.8em; color: #eee;">Select a resident's ticket to inspect medical certificates and indigency forms.</div>
                     </div>
+
+
+
 
                     <label style="font-size: 0.8em;">Categorize Request Type:</label>
                     <select id="evalCategory" class="form-control" required>
@@ -389,6 +521,9 @@
                         <option value="Financial Assistance">💰 Financial Assistance (Hospital Bills/Medicine)</option>
                     </select>
 
+
+
+
                     <label style="font-size: 0.8em;">Urgency & Priority Level:</label>
                     <select id="evalPriority" class="form-control" required>
                         <option value="Routine">🟢 Routine / Low Priority</option>
@@ -396,11 +531,20 @@
                         <option value="Critical">🔴 Critical / High Urgency</option>
                     </select>
 
+
+
+
                     <label style="font-size: 0.8em;">Estimated Cost (₱):</label>
                     <input type="number" id="evalCost" class="form-control" min="0" placeholder="0">
 
+
+
+
                     <label style="font-size: 0.8em;">Evaluator Command Notes:</label>
                     <textarea id="evalNotes" class="form-control" rows="2" placeholder="Input remarks, approval criteria, or reasons for rejection..."></textarea>
+
+
+
 
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
                         <button type="submit" name="action" value="Approve" class="primary-btn" style="background:#28a745; color:white; flex: 1.2; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✓ Approve Request</button>
@@ -408,6 +552,9 @@
                     </div>
                 </form>
             </div>
+
+
+
 
             <div class="panel" style="border-top: 5px solid #00b0ff;">
                 <div class="panel-title" style="color:#00b0ff;">🔔 Resident Notifications</div>
@@ -447,8 +594,14 @@
                        <form id="userForm" onsubmit="handleUserFormSubmit(event)">
     <input type="hidden" id="userId">
 
+
+
+
     <label style="font-size: 0.8em;">Full Name:</label>
     <input type="text" id="userFullName" class="form-control" placeholder="Juan Dela Cruz" required>
+
+
+
 
     <label style="font-size: 0.8em;">Position:</label>
     <select id="userPosition" class="form-control" required onchange="toggleLicenseField()">
@@ -456,20 +609,35 @@
         <option value="Driver">Driver</option>
     </select>
 
+
+
+
     <label style="font-size: 0.8em;">Email Address:</label>
     <input type="email" id="userEmail" class="form-control" placeholder="responder@bambang.gov.ph" required>
+
+
+
 
     <label style="font-size: 0.8em;">Temporary Password:</label>
     <input type="password" id="userPassword" class="form-control" placeholder="Min. 6 characters" required minlength="6">
 
+
+
+
     <label style="font-size: 0.8em;">Contact Number:</label>
     <input type="text" id="userContact" class="form-control" placeholder="0917XXXXXXX" required>
+
+
+
 
     <label style="font-size: 0.8em;">Barangay ID (photo/scan):</label>
     <input type="file" id="userIdImage" class="form-control" accept="image/*">
     <p style="font-size: 0.68em; color: #888; margin-top: -2px; margin-bottom: 8px;">
         I-verify muna ang pagkakakilanlan gamit ang ID bago i-submit.
     </p>
+
+
+
 
     <div id="licenseFieldWrap" style="display: none;">
         <label style="font-size: 0.8em;">Driver's License (photo/scan):</label>
@@ -479,6 +647,9 @@
         </p>
     </div>
 
+
+
+
     <div style="margin-top: 15px; display: flex; gap: 10px;">
         <button type="submit" id="userFormSubmitBtn" class="primary-btn" style="background:#e040fb; flex: 1;">Create Account</button>
         <button type="button" class="primary-btn" style="background:#555;" onclick="clearUserForm()">Cancel</button>
@@ -486,6 +657,9 @@
 </form>
                     </div>
                 </div>
+
+
+
 
                 <div class="column" style="flex: 2.8;">
                   <div class="panel">
@@ -503,6 +677,9 @@
             </div>
         </div>
 
+
+
+
         <!-- COMMUNICATIONS TAB (External Agency Coordination) -->
         <div id="comms-tab" style="display: none;">
             <div class="layout">
@@ -514,13 +691,22 @@
                         <div id="agencyDirectory"></div>
                     </div>
 
+
+
+
                     <div class="panel" style="border-top: 5px solid #00e5ff;">
                         <div class="panel-title" style="color:#00e5ff;" id="formAgencyTitle">➕ Add Agency / Contact</div>
                         <form id="agencyForm" onsubmit="handleAgencySubmit(event)">
                             <input type="hidden" id="agencyId">
 
+
+
+
                             <label style="font-size: 0.8em;">Agency / Unit Name:</label>
                             <input type="text" id="agencyName" class="form-control" placeholder="e.g. Barangay Malinis DRRMO" required>
+
+
+
 
                             <label style="font-size: 0.8em;">Category:</label>
                             <select id="agencyCategory" class="form-control" required>
@@ -533,8 +719,14 @@
                                 <option value="NGO">❤️ NGO / Red Cross</option>
                             </select>
 
+
+
+
                             <label style="font-size: 0.8em;">Hotline / Contact Number:</label>
                             <input type="text" id="agencyContact" class="form-control" placeholder="e.g. (044) 123-4567 / 0917XXXXXXX" required>
+
+
+
 
                             <label style="font-size: 0.8em;">Current Availability:</label>
                             <select id="agencyStatus" class="form-control" required>
@@ -543,6 +735,9 @@
                                 <option value="Unreachable">Unreachable</option>
                             </select>
 
+
+
+
                             <div style="margin-top: 15px; display: flex; gap: 10px;">
                                 <button type="submit" class="primary-btn" style="background:#00e5ff; color:#111; flex: 1;">Save Agency</button>
                                 <button type="button" class="primary-btn" style="background:#555;" onclick="clearAgencyForm()">Cancel</button>
@@ -550,7 +745,10 @@
                         </form>
                     </div>
                 </div>
-                
+               
+
+
+
 
                 <!-- Right Column: Send Coordination Request + Log -->
                 <div class="column" style="flex: 1.7;">
@@ -558,11 +756,17 @@
                         <div class="panel-title" style="color:#7c4dff;">📨 Request Coordination / Additional Support</div>
                         <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Send a mutual-aid or coordination request to an external agency for backup vehicles, medical teams, manpower, or patient referral.</p>
 
+
+
+
                         <form id="coordForm" onsubmit="handleSendCoordination(event)">
                             <label style="font-size: 0.8em;">Send To:</label>
                             <select id="coordAgency" class="form-control" required>
                                 <option value="" disabled selected>Select agency / unit</option>
                             </select>
+
+
+
 
                             <label style="font-size: 0.8em;">Type of Support Needed:</label>
                             <select id="coordSupportType" class="form-control" required>
@@ -574,11 +778,20 @@
                                 <option value="Patient Referral">🏥 Patient Referral / Transfer</option>
                             </select>
 
+
+
+
                             <label style="font-size: 0.8em;">Related Incident (optional):</label>
                             <input type="text" id="coordIncidentRef" class="form-control" placeholder="e.g. Motorcycle accident, Purok 3">
 
+
+
+
                             <label style="font-size: 0.8em;">Details / Message:</label>
                             <textarea id="coordDetails" class="form-control" rows="3" placeholder="Describe the situation and what is needed..." required></textarea>
+
+
+
 
                             <label style="font-size: 0.8em;">Urgency:</label>
                             <select id="coordUrgency" class="form-control" required>
@@ -587,11 +800,17 @@
                                 <option value="Critical">🔴 Critical</option>
                             </select>
 
+
+
+
                             <div style="margin-top: 15px;">
                                 <button type="submit" class="primary-btn" style="background:#7c4dff; color:white; width:100%;">🚀 Send Coordination Request</button>
                             </div>
                         </form>
                     </div>
+
+
+
 
                     <div class="panel">
                         <div class="panel-header">
@@ -607,6 +826,9 @@
                 </div>
             </div>
         </div>
+
+
+
 
     <!-- REPORTS & ANALYTICS TAB -->
     <div id="reports-tab" style="display: none;">
@@ -628,6 +850,9 @@
             </div>
         </div>
 
+
+
+
         <div class="layout">
             <!-- Left: Response Performance + Request Volume -->
             <div class="column">
@@ -637,12 +862,18 @@
                     <div id="repResponseByType"></div>
                 </div>
 
+
+
+
                 <div class="panel" style="border-top: 5px solid #ff9100;">
                     <div class="panel-title" style="color:#ff9100;">📄 Assistance Request Volume</div>
                     <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Breakdown of all submitted requests by category and current status.</p>
                     <div id="repRequestVolume"></div>
                 </div>
             </div>
+
+
+
 
             <!-- Right: Resource Utilization + Export -->
             <div class="column">
@@ -651,6 +882,9 @@
                     <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Share of tracked time each unit has spent in each status.</p>
                     <div id="repFleetUtilList"></div>
                 </div>
+
+
+
 
                 <div class="panel" style="border-top: 5px solid #7c4dff;">
                     <div class="panel-title" style="color:#7c4dff;">📤 Export System Data</div>
@@ -663,6 +897,9 @@
                     </div>
                     <p style="font-size:0.68em; color:#666; margin-top:8px;">Files download as .csv, timestamped for the current session.</p>
 
+
+
+
                     <!-- Print Full Report -->
                     <button class="primary-btn" style="background:#7c4dff; color:white; width:100%; margin-top:14px;" onclick="printFullReport()">
                         🖨️ Print Full Report
@@ -673,14 +910,23 @@
     </div>
     <!-- /reports-tab -->
 
+
+
+
     </div>
     <!-- /main-content -->
+
+
+
 
     <!-- MODAL: DISPATCH CONTROL CENTER -->
     <div class="modal" id="assignModal" style="display: none;">
         <div class="modal-content" style="max-width: 520px;">
             <h4 style="font-size: 0.9em; color: #ffd700;" id="assignModalTitle">Dispatch Control Center</h4>
             <div id="assignIncidentInfo"></div>
+
+
+
 
             <!-- DISPATCH ASSIGNMENT FORM — shown only while walang naka-assign na team pa
                  (status: Pending / Waiting List). Kapag na-dispatch na, ipapalit ito ng
@@ -711,6 +957,9 @@
                 </div>
             </form>
 
+
+
+
             <!-- LIVE TRACKING VIEW — lumalabas kapag naka-assign na ang isang team.
                  Ipinapakita ang lokasyon ng resident at ng responder sa mapa, kasama
                  ang distansya sa pagitan nila, para ma-monitor ng admin ang response. -->
@@ -727,19 +976,34 @@
         </div>
     </div>
 
+
+
+
     <!-- MODAL: SECURITY OVERRIDE -->
     <div class="modal" id="securityModal" style="display: none;">
         <div class="modal-content" style="max-width: 400px;">
             <h4 style="font-size: 1em; color: #e040fb; margin-bottom: 10px;">🔑 Account Security Override</h4>
             <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">Manually resetting credential configurations for: <strong id="resetTargetName" style="color: #fff;">-</strong></p>
 
+
+
+
             <form onsubmit="handleResetPassword(event)">
                 <input type="hidden" id="resetTargetId">
+
+
+
 
                 <label style="font-size: 0.8em; display: block; margin-bottom: 5px;">Temporary New Password:</label>
                 <input type="password" id="newTempPassword" class="form-control" placeholder="Enter temporary password" required minlength="6">
 
+
+
+
                 <p style="font-size: 0.7em; color: #ffd700; margin-top: 5px;">ℹ️ User will be forced to update this upon their next operational terminal login.</p>
+
+
+
 
                 <div class="modal-action-grid" style="margin-top: 20px;">
                     <div class="action-row">
@@ -760,8 +1024,14 @@
             <div style="font-size:0.78em; margin-top:4px; color:#ffd700;" id="idVerifyStatus">-</div>
         </div>
 
+
+
+
         <!-- Dynamic photo grid, pinupuno ng JS depende kung resident (face + government ID), driver (barangay ID + license), o responder (barangay ID lang) -->
         <div id="idVerifyPhotoGrid" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
+
+
+
 
         <div class="modal-action-grid">
             <div class="action-row">
@@ -791,19 +1061,8 @@
     </div>
 </div>
 
-<!-- MODAL: INCIDENT PHOTOS (mga litratong kinunan ng resident gamit ang
-       in-app camera habang nagsu-submit ng Emergency request) -->
-<div class="modal" id="incidentPhotosModal" style="display: none;">
-    <div class="modal-content" style="max-width: 560px;">
-        <h4 style="font-size: 1em; color: #00b0ff; margin-bottom: 12px;">📷 Mga Litrato mula sa Resident</h4>
-        <div id="incidentPhotosGrid" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
-        <div class="modal-action-grid" style="margin-top: 16px;">
-            <div class="action-row">
-                <button type="button" onclick="closeIncidentPhotosModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+
+
 
 <!-- MODAL: INCIDENT PHOTOS (mga litratong kinunan ng resident gamit ang
        in-app camera habang nagsu-submit ng Emergency request) -->
@@ -818,6 +1077,26 @@
         </div>
     </div>
 </div>
+
+
+
+
+<!-- MODAL: INCIDENT PHOTOS (mga litratong kinunan ng resident gamit ang
+       in-app camera habang nagsu-submit ng Emergency request) -->
+<div class="modal" id="incidentPhotosModal" style="display: none;">
+    <div class="modal-content" style="max-width: 560px;">
+        <h4 style="font-size: 1em; color: #00b0ff; margin-bottom: 12px;">📷 Mga Litrato mula sa Resident</h4>
+        <div id="incidentPhotosGrid" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
+        <div class="modal-action-grid" style="margin-top: 16px;">
+            <div class="action-row">
+                <button type="button" onclick="closeIncidentPhotosModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 
 <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -831,3 +1110,6 @@
     </script>
 </body>
 </html>
+
+
+

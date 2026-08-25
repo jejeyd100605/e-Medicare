@@ -14,103 +14,226 @@
     <link rel="stylesheet" href="/css/responder.css">
 </head>
 
+
+
+
 <body>
 <!-- ================= HEADER ================= -->
 <div class="header">
 
+
+
+
     <!-- Top -->
     <div class="header-top">
 
+
+
+
         <div class="header-left">
+
+
+
 
             <div class="logo-title">
 
+
+
+
                 <img src="/assets/logo.png" alt="e-Medicare Logo" class="logo-icon" onerror="this.onerror=null;this.src='/assets/logo.png';this.style.display='none';this.insertAdjacentHTML('afterend','<i class=\'fas fa-truck-medical logo-icon\'></i>');">
+
+
+
 
                 <div>
 
+
+
+
                     <h1>e-Medicare</h1>
+
+
+
 
                     <p class="dashboard-subtitle">
                         Responder Dispatch Dashboard
                     </p>
 
+
+
+
                 </div>
+
+
+
 
             </div>
 
+
+
+
         </div>
+
+
+
 
         <button id="logoutBtn" class="logout-btn">
             <i class="fas fa-right-from-bracket"></i>
             Logout
         </button>
 
+
+
+
     </div>
 
+
+
+
     <hr class="header-divider">
+
+
+
 
     <!-- Bottom -->
     <div class="header-right">
 
+
+
+
         <!-- Assigned Unit -->
         <div class="unit-label">
 
+
+
+
             <i class="fas fa-truck-medical"></i>
+
+
+
 
             <label for="assignedUnit">
                 Assigned Unit:
             </label>
 
+
+
+
             <select id="assignedUnit" class="unit-select">
+
+
+
 
                 <option value="Patrol-01">🚓 Patrol Vehicle-01</option>
 
+
+
+
                 <option value="PTV-01">🚐 Patient Transport Vehicle-01</option>
+
+
+
 
                 <option value="Tricycle-01">🛺 Emergency Tricycle-01</option>
 
+
+
+
             </select>
+
+
+
 
         </div>
 
+
+
+
         <span class="separator">|</span>
+
+
+
 
         <!-- Status -->
 
+
+
+
         <div class="status-group">
+
+
+
 
             <label for="unitStatus">
 
+
+
+
             Status
+
+
+
 
             </label>
 
+
+
+
             <select id="unitStatus" class="responder-status-select">
+
+
+
 
                 <option value="Available">
                     🟢 Available
                 </option>
 
+
+
+
                 <option value="On Duty">
                     🟡 On Duty
                 </option>
+
+
+
 
                 <option value="Unavailable">
                     🔴 Unavailable
                 </option>
 
+
+
+
             </select>
+
+
+
 
         </div>
 
+
+
+
     </div>
+
+
+
 
 </div>
 <!-- ================= END HEADER ================= -->
 
 
+
+
+
+
+
+
     <div class="main-content">
+
+
+
 
         <div class="metrics-grid">
             <div class="metric-card">
@@ -121,6 +244,9 @@
                 </div>
             </div>
 
+
+
+
             <div class="metric-card">
                 <div class="metric-icon"><i class="fas fa-ambulance"></i></div>
                 <div class="metric-info">
@@ -128,6 +254,9 @@
                     <span class="metric-value"><span id="availableVehicles">2</span> <small>Available</small></span>
                 </div>
             </div>
+
+
+
 
             <div class="metric-card">
                 <div class="metric-icon"><i class="fas fa-stopwatch"></i></div>
@@ -138,63 +267,153 @@
             </div>
         </div>
 
+
+
+
 <!-- ================= ASSIGNED PERSONNEL ================= -->
+
+
+
 
 <div class="panel personnel-panel">
 
+
+
+
     <div class="panel-title">
+
+
+
 
         Assigned Personnel
 
+
+
+
     </div>
+
+
+
 
     <div class="personnel-grid">
 
+
+
+
         <!-- Driver -->
+
+
+
 
         <div class="personnel-card">
 
+
+
+
             <h4>
+
+
+
 
                 <i class="fas fa-id-card"></i>
 
+
+
+
                 Driver
 
+
+
+
             </h4>
+
+
+
 
             <p id="driverName">
 
+
+
+
                Loading...
+
+
+
 
             </p>
 
+
+
+
         </div>
+
+
+
 
         <!-- Responder -->
 
+
+
+
         <div class="personnel-card">
+
+
+
 
             <h4>
 
+
+
+
                 <i class="fas fa-shield-alt"></i>
+
+
+
 
                 Responder
 
+
+
+
             </h4>
+
+
+
 
             <ul id="assignedResponder">
 
+
+
+
               <li>Loading...</li>
+
+
+
 
             </ul>
 
+
+
+
         </div>
+
+
+
 
     </div>
 
+
+
+
 </div>
 
+
+
+
 <!-- ================= END PERSONNEL ================= -->
+
+
+
 
         <div class="layout">
             <div class="request-list-col">
@@ -203,6 +422,9 @@
                         Active Emergency Requests
                         <span id="count" class="count-badge">0</span>
                     </div>
+
+
+
 
                     <div class="queue-toolbar">
                         <div class="status-filters" id="statusFilters">
@@ -213,15 +435,24 @@
                             <button type="button" class="filter-btn" data-filter="urgent">Urgent</button>
                         </div>
 
+
+
+
                         <label class="cross-barangay-toggle">
                             <input type="checkbox" id="crossBarangayToggle" checked>
                             <span>Cross-barangay visibility</span>
                         </label>
                     </div>
 
+
+
+
                     <div id="incidentList"></div>
                 </div>
             </div>
+
+
+
 
             <div class="response-panel-col">
                 <div id="detailPanel" class="panel">
@@ -232,6 +463,9 @@
                         </span>
                     </div>
 
+
+
+
                     <div id="incidentDetails">
                         <p style="opacity: 0.7;">Select a request from the sidebar to begin coordination.</p>
                     </div>
@@ -239,6 +473,9 @@
             </div>
         </div>
     </div>
+
+
+
 
     <div id="completionModal" class="modal" aria-hidden="true">
         <div class="modal-content">
@@ -249,6 +486,9 @@
                 </div>
                 <button type="button" class="modal-close" onclick="closeCompletionModal()" aria-label="Close">&times;</button>
             </div>
+
+
+
 
             <form id="completionForm">
                 <div class="form-grid">
@@ -265,6 +505,9 @@
                         </select>
                     </div>
 
+
+
+
                     <div class="form-group">
                         <label for="patientOutcome">Patient Outcome</label>
                         <select id="patientOutcome" class="form-control" required>
@@ -277,11 +520,17 @@
                         </select>
                     </div>
 
+
+
+
                     <div class="form-group full">
                         <label for="clinicalObservations">Clinical Observations</label>
                         <textarea id="clinicalObservations" class="form-control" rows="4" required
                             placeholder="Symptoms, vital signs, interventions, and response to treatment..."></textarea>
                     </div>
+
+
+
 
                     <div class="form-group full">
                         <label for="followUpQuote">Follow-up Notes / Patient Quote</label>
@@ -289,17 +538,26 @@
                             placeholder="Follow-up instructions or relevant quoted statement..."></textarea>
                     </div>
 
+
+
+
                     <div class="form-group">
                         <label for="receivingFacility">Receiving Facility</label>
                         <input id="receivingFacility" class="form-control" type="text"
                             placeholder="Hospital or health center">
                     </div>
 
+
+
+
                     <div class="form-group">
                         <label for="completionTimestamp">Completion Time</label>
                         <input id="completionTimestamp" class="form-control" type="text" readonly>
                     </div>
                 </div>
+
+
+
 
                 <div class="modal-actions">
                     <button type="button" class="status-btn btn-secondary" onclick="closeCompletionModal()">Cancel</button>
@@ -308,6 +566,9 @@
                     </button>
                 </div>
 
+
+
+
                 <p class="security-note">
                     <i class="fas fa-lock"></i>
                     Records are submitted through the secured server API. Browser JavaScript does not connect directly to MySQL.
@@ -315,6 +576,9 @@
             </form>
         </div>
 </div>
+
+
+
 
     <div id="incidentPhotosModal" class="modal" aria-hidden="true">
         <div class="modal-content" style="max-width:560px;">
@@ -331,6 +595,9 @@
         </div>
     </div>
 
+
+
+
     <div id="dashboardToast" class="dashboard-toast"></div>
    <script type="module" src="/assets/responder.js"></script>
    <script>
@@ -339,5 +606,9 @@
        }
    </script>
 
+
+
+
 </body>
 </html>
+

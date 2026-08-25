@@ -1,16 +1,28 @@
 'use strict';
 
+
+
+
 /*
  * e-Medicare responder dashboard — SUPABASE EDITION
  * -------------------------------------------------
  * Backend: Supabase (Postgres + Realtime + Auth).
  */
 
+
+
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+
+
 
 const SUPABASE_URL = "https://szxptfuwkmqwcipxpoym.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+
 
 let CURRENT_RESPONDER = null; // { id (profile id), name, jurisdiction }
 let myFleetRow = null;        // the row in `fleet` linked to this responder
@@ -25,12 +37,18 @@ let respOriginalTitle = document.title;
 let respTitleFlashInterval = null;
 let activeSOSId = null;
 
+
+
+
 function playSOSBeep(){
     if(!sosAudioCtx){
         try{ sosAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         catch(e){ console.warn('AudioContext not supported', e); return; }
     }
     if(sosAudioCtx.state === 'suspended') sosAudioCtx.resume();
+
+
+
 
     const now = sosAudioCtx.currentTime;
     [0, 0.3, 0.6].forEach(offset => {
@@ -46,6 +64,9 @@ function playSOSBeep(){
     });
 }
 
+
+
+
 function startSOSAlertLoop(){
     stopSOSAlertLoop();
     playSOSBeep();
@@ -53,10 +74,16 @@ function startSOSAlertLoop(){
     startRespTitleFlash();
 }
 
+
+
+
 function stopSOSAlertLoop(){
     if(sosBeepInterval){ clearInterval(sosBeepInterval); sosBeepInterval = null; }
     stopRespTitleFlash();
 }
+
+
+
 
 function startRespTitleFlash(){
     if(respTitleFlashInterval) return;
@@ -70,6 +97,9 @@ function stopRespTitleFlash(){
     if(respTitleFlashInterval){ clearInterval(respTitleFlashInterval); respTitleFlashInterval = null; }
     document.title = respOriginalTitle;
 }
+
+
+
 
 function showSOSBanner(incident){
     activeSOSId = incident.id;
@@ -88,6 +118,9 @@ function showSOSBanner(incident){
     banner.style.display = 'flex';
 }
 
+
+
+
 function acknowledgeResponderSOS(){
     stopSOSAlertLoop();
     const banner = document.getElementById('sosAlertBanner');
@@ -99,11 +132,17 @@ function acknowledgeResponderSOS(){
 }
 window.acknowledgeResponderSOS = acknowledgeResponderSOS;
 
+
+
+
 function requestRespNotifPermission(){
     if('Notification' in window && Notification.permission === 'default'){
         Notification.requestPermission();
     }
 }
+
+
+
 
 /* ---------------------------------------------------------
    ASSIGNMENT NOTIFICATION
@@ -112,7 +151,13 @@ function showAssignmentNotification(incident){
     const name = incident?.patient_name || 'Isang residente';
     const category = incident?.category || 'Emergency Request';
 
+
+
+
     showToast(`📋 Bagong assignment mula sa admin: ${name} — ${category}`);
+
+
+
 
     if('Notification' in window && Notification.permission === 'granted'){
         const n = new Notification('📋 Bagong Assignment', {
@@ -121,6 +166,9 @@ function showAssignmentNotification(incident){
         n.onclick = () => { window.focus(); n.close(); };
     }
 }
+
+
+
 
 function showBrowserSOSNotificationResp(incident){
     if('Notification' in window && Notification.permission === 'granted'){
@@ -140,23 +188,38 @@ let simulatedLocationTimer = null;
 let etaTimer = null;
 let safetyPollTimer = null;
 
+
+
+
 /* ============================================================
    SESSION CHECK
    ============================================================ */
 
+
+
+
 async function checkResponderSession() {
     const { data: { session } } = await supabase.auth.getSession();
+
+
+
 
     if (!session) {
         window.location.href ='/pages/login.html';
         return null;
     }
 
+
+
+
     const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
+
+
+
 
     if (error || !profile) {
         console.error('Hindi makuha ang responder profile:', error?.message);
@@ -166,6 +229,9 @@ async function checkResponderSession() {
         return null;
     }
 
+
+
+
     if (profile.active === false) {
         alert('Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.');
         await supabase.auth.signOut();
@@ -173,14 +239,23 @@ async function checkResponderSession() {
         return null;
     }
 
+
+
+
     if (profile.role !== 'responder') {
         alert('Ang account na ito ay hindi responder account.');
         window.location.href = '/pages/login.html';
         return null;
     }
 
+
+
+
     return profile;
 }
+
+
+
 
 const REQUEST_COLUMN_MAP = {
     serviceType: 'service_type',
@@ -203,6 +278,9 @@ const REQUEST_COLUMN_MAP = {
     responseDurationLabel: 'response_duration_label'
 };
 
+
+
+
 function toDbChanges(changes) {
     const out = {};
     for (const [key, value] of Object.entries(changes)) {
@@ -210,6 +288,9 @@ function toDbChanges(changes) {
     }
     return out;
 }
+
+
+
 
 /* ---------------------------------------------------------
    SESSION + FLEET LINKING (responder identity)
@@ -219,8 +300,17 @@ async function handleCredsSubmit(e){
   const email = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value;
 
+
+
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if(error){ showAuthError('Incorrect email or password.'); return false; }
+
+
+
+
+
+
 
 
   const { data: profile } = await supabase
@@ -229,10 +319,16 @@ async function handleCredsSubmit(e){
     .eq('id', data.user.id)
     .single();
 
+
+
+
   if(profile.role === 'admin') window.location.href = '/pages/admin.html';
 else if(profile.role === 'responder') window.location.href = '/pages/responder.html';
 else window.location.href = '/pages/resident.html';
 }
+
+
+
 
 async function loadMyFleetRow(profileId){
     const { data, error } = await supabase
@@ -243,6 +339,9 @@ async function loadMyFleetRow(profileId){
     if(error) console.error('Hindi makuha ang fleet row:', error.message);
     return data || null;
 }
+
+
+
 
 async function loadUnassignedFleetOptions(){
     const { data, error } = await supabase
@@ -256,11 +355,17 @@ async function loadUnassignedFleetOptions(){
     return data || [];
 }
 
+
+
+
 async function selfAssignFleet(fleetId, profileId){
     const { error } = await supabase.from('fleet').update({ profile_id: profileId }).eq('id', fleetId);
     if(error){ alert('Hindi na-link: ' + error.message); return false; }
     return true;
 }
+
+
+
 
 async function promptSelfAssignIfNeeded(profile){
     if(myFleetRow) return;
@@ -268,13 +373,22 @@ async function promptSelfAssignIfNeeded(profile){
     const unitSelect = document.getElementById('assignedUnit');
     if(!unitSelect) return;
 
+
+
+
    if(options.length === 0){
         unitSelect.innerHTML = '<option value="">None</option>';
         return;
     }
 
+
+
+
     unitSelect.innerHTML = '<option value="" disabled selected>Select your unit / personnel entry</option>' +
         options.map(f => `<option value="${f.id}">${f.name} (${f.type})</option>`).join('');
+
+
+
 
     unitSelect.onchange = async () => {
         const chosenId = unitSelect.value;
@@ -289,6 +403,9 @@ async function promptSelfAssignIfNeeded(profile){
         }
     };
 }
+
+
+
 
 function renderUnitHeader(){
     const unitSelect = document.getElementById('assignedUnit');
@@ -307,6 +424,9 @@ function renderUnitHeader(){
     }
 }
 
+
+
+
 function subscribeMyFleetRealtime(){
     if(!myFleetRow) return;
     supabase
@@ -322,14 +442,26 @@ function subscribeMyFleetRealtime(){
         .subscribe();
 }
 
+
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     const profile = await checkResponderSession();
     if(!profile) return;
 
+
+
+
     requestRespNotifPermission();
+
+
+
 
     CURRENT_RESPONDER = { id: profile.id, name: profile.name, jurisdiction: profile.barangay || 'Bambang' };
     myFleetRow = await loadMyFleetRow(profile.id);
+
+
+
 
     if(myFleetRow){
         renderUnitHeader();
@@ -338,12 +470,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         await promptSelfAssignIfNeeded(profile);
     }
 
+
+
+
     renderAssignedPersonnel();
     bindDashboardEvents();
     updateVehicleMetrics();
     loadData();
     startRealtimeMonitoring();
 });
+
+
+
 
 function bindDashboardEvents() {
     document.querySelectorAll('.filter-btn').forEach(button => {
@@ -355,18 +493,33 @@ function bindDashboardEvents() {
         });
     });
 
+
+
+
     document.getElementById('crossBarangayToggle')?.addEventListener('change', loadData);
+
+
+
 
     document.getElementById('unitStatus')?.addEventListener('change', event => {
         updateResponderOperationalStatus(event.target.value);
     });
 
+
+
+
     document.getElementById('completionForm')?.addEventListener('submit', saveServiceCompletion);
 }
+
+
+
 
 async function renderAssignedPersonnel() {
     const driverNameEl = document.getElementById('driverName');
     const respondersEl = document.getElementById('assignedResponder');
+
+
+
 
     if (!myFleetRow) {
         if (driverNameEl) driverNameEl.textContent = 'No unit linked yet';
@@ -374,8 +527,14 @@ async function renderAssignedPersonnel() {
         return;
     }
 
+
+
+
     const isDriver = myFleetRow.type === 'Driver';
     const notOnDuty = myFleetRow.status !== 'On Duty' || !myFleetRow.assigned_to;
+
+
+
 
     if (notOnDuty) {
         if (driverNameEl) driverNameEl.textContent = isDriver ? CURRENT_RESPONDER.name : 'No driver assigned';
@@ -387,8 +546,14 @@ async function renderAssignedPersonnel() {
         return;
     }
 
+
+
+
     const driverMatch = myFleetRow.assigned_to.match(/Driver:\s*([^,)]+)/);
 const responderMatch = myFleetRow.assigned_to.match(/Responder:\s*([^,)]+)/);
+
+
+
 
     if (isDriver) {
         if (driverNameEl) driverNameEl.textContent = CURRENT_RESPONDER.name;
@@ -405,6 +570,9 @@ const responderMatch = myFleetRow.assigned_to.match(/Responder:\s*([^,)]+)/);
     }
 }
 
+
+
+
 async function updateVehicleMetrics() {
     const { data, error } = await supabase.from('fleet').select('type, status');
     if (error) {
@@ -412,11 +580,20 @@ async function updateVehicleMetrics() {
         return;
     }
 
+
+
+
     const fleet = data || [];
     const vehicleTypes = ['Medical (Full)', 'Transport', 'Rescue/Patrol', 'Auxiliary'];
 
+
+
+
     const availableDrivers = fleet.filter(f => f.type === 'Driver' && f.status === 'Available').length;
     const availableVehicles = fleet.filter(f => vehicleTypes.includes(f.type) && f.status === 'Available').length;
+
+
+
 
     const driversEl = document.getElementById('activeDrivers');
     const vehiclesEl = document.getElementById('availableVehicles');
@@ -424,11 +601,20 @@ async function updateVehicleMetrics() {
     if (vehiclesEl) vehiclesEl.textContent = availableVehicles;
 }
 
+
+
+
 // ---------------- DATA LOADING (Supabase) ----------------
+
+
+
 
 async function loadData() {
     const incidents = await fetchRequestsFromSupabase();
     const statuses = await fetchResponderStatuses();
+
+
+
 
     const activeIncidents = incidents.filter(isActiveIncident);
     if (activeIncidents.length > lastCount && activeIncidents.some(item => item.status === 'Pending')) {
@@ -437,14 +623,26 @@ async function loadData() {
     }
     lastCount = activeIncidents.length;
 
+
+
+
     updateMetrics(incidents, statuses);
     renderList(incidents);
+
+
+
 
     if (selectedId) renderDetails(incidents);
 }
 
+
+
+
 async function fetchRequestsFromSupabase() {
     const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
+
+
+
 
     let query = supabase.from('emergency_requests').select('*')
         .neq('type', 'Medical Assistance')
@@ -454,6 +652,9 @@ async function fetchRequestsFromSupabase() {
         query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);
     }
 
+
+
+
     const { data, error } = await query;
     if (error) {
         console.error('Failed to fetch requests from Supabase:', error);
@@ -461,8 +662,14 @@ async function fetchRequestsFromSupabase() {
         return [];
     }
 
+
+
+
     return (data || []).map(normalizeIncident);
 }
+
+
+
 
 async function fetchResponderStatuses() {
     const { data, error } = await supabase
@@ -471,13 +678,22 @@ async function fetchResponderStatuses() {
         .eq('role', 'responder')
         .eq('active', true);
 
+
+
+
     if (error) {
         console.error('Failed to fetch active responders:', error);
         return [];
     }
 
+
+
+
     return (data || []).map(() => ({ status: 'Available' }));
 }
+
+
+
 
 function normalizeIncident(row) {
     return {
@@ -512,9 +728,15 @@ function normalizeIncident(row) {
     };
 }
 
+
+
+
 function isActiveIncident(incident) {
     return !['Resolved', 'Completed'].includes(incident.status);
 }
+
+
+
 
 function updateMetrics(incidents, statuses) {
     const completed = incidents.filter(item => ['Resolved', 'Completed'].includes(item.status));
@@ -522,17 +744,26 @@ function updateMetrics(incidents, statuses) {
         .map(item => calculateDurationMinutes(item.acceptedAt, item.completedAt))
         .filter(Number.isFinite);
 
+
+
+
     if (durations.length) {
         const average = Math.round(durations.reduce((sum, value) => sum + value, 0) / durations.length);
         document.getElementById('averageResponse').textContent = average;
     }
 }
 
+
+
+
 function renderList(incidents) {
     const listDiv = document.getElementById('incidentList');
     const countSpan = document.getElementById('count');
     const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
     const jurisdictionMatch = item => crossBarangay || !CURRENT_RESPONDER?.jurisdiction || item.jurisdiction === CURRENT_RESPONDER.jurisdiction;
+
+
+
 
     // BAGO — "Completed Cases" ay ibang landas, dahil dito talaga
     // ipinapakita ang mga case na TINANGGAL sa normal na listahan
@@ -554,17 +785,29 @@ function renderList(incidents) {
             .sort(compareQueuePriority);
     }
 
+
+
+
     countSpan.textContent = visible.length;
+
+
+
 
     if (!visible.length) {
         listDiv.innerHTML = '<div class="empty-queue"><i class="fas fa-circle-check"></i><br>No requests match the selected filter.</div>';
         return;
     }
 
+
+
+
    listDiv.innerHTML = visible.map(incident => {
         const urgent = isUrgent(incident);
         const statusClass = cssStatus(urgent && incident.status === 'Pending' ? 'Urgent' : incident.status);
         const assignedToMe = isAssignedToMe(incident);   // BAGO
+
+
+
 
         return `
             <div class="incident-list-item ${selectedId === incident.id ? 'active' : ''} ${urgent ? 'urgent' : ''} ${assignedToMe ? 'mine' : ''}"
@@ -576,11 +819,17 @@ function renderList(incidents) {
                     </span>
                 </div>
 
+
+
+
                 ${assignedToMe ? `
                 <div class="assigned-to-me-badge">
                     <i class="fas fa-user-check"></i> Naka-assign Sa'yo
                 </div>
                 ` : ''}
+
+
+
 
                 <div class="incident-meta">
                     <i class="fas fa-user"></i> ${escapeHtml(incident.patientName)}<br>
@@ -592,6 +841,9 @@ function renderList(incidents) {
     }).join('');
 }
 
+
+
+
 // BAGO — itago ang mga request na naka-assign na sa IBANG responder (hindi sa akin).
 // Yung mga wala pang naka-assign (Pending/Waiting List/Unattended) ay dapat
 // makita pa rin ng lahat, para may makakuha at makatugon dito.
@@ -602,6 +854,9 @@ function isVisibleToResponder(incident) {
     return isAssignedToMe(incident);
 }
 
+
+
+
 function matchesActiveFilter(incident) {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'urgent') return isUrgent(incident);
@@ -611,6 +866,9 @@ function matchesActiveFilter(incident) {
     }
     return true;
 }
+
+
+
 
 function compareQueuePriority(a, b) {
     const score = item => {
@@ -624,18 +882,30 @@ function compareQueuePriority(a, b) {
         return value;
     };
 
+
+
+
     return score(b) - score(a);
 }
+
+
+
 
 function isUrgent(incident) {
     return ['Urgent', 'Critical', 'High'].includes(String(incident.urgency));
 }
+
+
+
 
 function isAssignedToMe(incident) {
     if (!CURRENT_RESPONDER?.id) return false;
     return String(incident.assignedResponderId) === String(CURRENT_RESPONDER.id)
         || String(incident.assignedDriverId) === String(CURRENT_RESPONDER.id);
 }
+
+
+
 
 async function selectIncident(id) {
     selectedId = id;
@@ -646,6 +916,9 @@ async function selectIncident(id) {
 }
 // Expose to inline onclick handlers rendered via innerHTML.
 window.selectIncident = selectIncident;
+
+
+
 
 /* ---------------------------------------------------------
    MOBILE UX — sa mobile, ang Response Panel ay naka-order na sa
@@ -660,8 +933,14 @@ function scrollDetailPanelIntoView(){
     const isMobileLayout = window.matchMedia('(max-width: 900px)').matches;
     if(!isMobileLayout) return;
 
+
+
+
     const panel = document.getElementById('detailPanel');
     if(!panel) return;
+
+
+
 
     // Konting delay para siguraduhing na-render na ang bagong content
     // (renderIncidentMap, etc.) bago mag-scroll, para tama ang
@@ -671,24 +950,42 @@ function scrollDetailPanelIntoView(){
     });
 }
 
+
+
+
 function renderDetails(incidents) {
     const detailDiv = document.getElementById('incidentDetails');
     const incident = incidents.find(item => String(item.id) === String(selectedId));
+
+
+
 
     if (!incident) {
         detailDiv.innerHTML = '<p style="opacity:.7;">This request is no longer available.</p>';
         return;
     }
 
+
+
+
     currentIncidentPhotos = incident.photoUrls || [];   // BAGO
+
+
+
 
     const mapsUrl = incident.lat && incident.lng
     ? `https://www.google.com/maps/dir/?api=1&destination=${incident.lat},${incident.lng}&travelmode=driving`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${incident.category} ${incident.description}`)}`;
 
+
+
+
     const eta = getCurrentEta(incident);
     const actionHtml = buildActionButtons(incident, mapsUrl);
     const progress = buildProgressHtml(incident);
+
+
+
 
     // Sirain muna nang tama ang lumang Leaflet map instance BAGO burahin
     // ang HTML na naglalaman ng container nito, para maiwasan ang crash
@@ -701,13 +998,25 @@ function renderDetails(incidents) {
         incidentRouteLine = null;
     }
 
+
+
+
     detailDiv.innerHTML = `
         <div class="incident-summary">
             <h2>${escapeHtml(incident.category)}</h2>
 
+
+
+
             <div class="incident-information-grid">
-                <p><strong><i class="fas fa-user-circle"></i> Patient:</strong><br>
+                                <p><strong><i class="fas fa-user-circle"></i> Patient:</strong><br>
                     ${escapeHtml(incident.patientName)} (${escapeHtml(incident.patientAge)}, ${escapeHtml(incident.patientSex)})
+                </p>
+                <p><strong><i class="fas fa-phone"></i> Contact No.:</strong><br>
+                    ${escapeHtml(incident.patientContact)}
+                </p>
+                <p><strong><i class="fas fa-home"></i> Address:</strong><br>
+                    ${escapeHtml(incident.patientAddress)}
                 </p>
                 <p><strong><i class="fas fa-calendar-alt"></i> Date/Time:</strong><br>
                     ${escapeHtml(incident.timestamp)}
@@ -726,9 +1035,15 @@ function renderDetails(incidents) {
                 </p>
             </div>
 
+
+
+
             <div class="incident-map-wrap" style="margin:14px 0;">
                 <div id="incidentMap" style="height:240px;border-radius:12px;overflow:hidden;border:1px solid #333;"></div>
             </div>
+
+
+
 
             <div class="eta-location-grid">
                 <div class="eta-card">
@@ -736,6 +1051,9 @@ function renderDetails(incidents) {
                     <div class="eta-value">${escapeHtml(eta.label)}</div>
                     <div class="tracking-time">${escapeHtml(eta.updatedLabel)}</div>
                 </div>
+
+
+
 
                 <div class="location-card">
                     <small>Live Responder Position</small>
@@ -751,17 +1069,32 @@ function renderDetails(incidents) {
                 </div>
             </div>
 
+
+
+
             ${progress}
+
+
+
 
            <p style="font-weight:bold;margin-bottom:5px;">Report Details:</p>
             <div class="report-description">${escapeHtml(incident.description)}</div>
         </div>
 
+
+
+
         ${actionHtml}
     `;
 
+
+
+
     renderIncidentMap(incident);
 }
+
+
+
 
 /* ---------------------------------------------------------
    LIVE INCIDENT MAP
@@ -771,12 +1104,18 @@ let incidentPatientMarker = null;
 let incidentResponderMarker = null;
 let incidentRouteLine = null;
 
+
+
+
 function renderIncidentMap(incident) {
     const mapContainer = document.getElementById('incidentMap');
     if (!mapContainer) return;
 
+
+
+
     if (!incident.lat || !incident.lng) {
-        
+       
         mapContainer.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:0.85rem;text-align:center;padding:10px;">
                 <i class="fas fa-map-location-dot"></i>&nbsp; Walang GPS data na isinumite ng resident para sa request na ito.
@@ -784,12 +1123,21 @@ function renderIncidentMap(incident) {
         return;
     }
 
+
+
+
     incidentMap = L.map(mapContainer, { zoomControl: true }).setView([incident.lat, incident.lng], 16);
+
+
+
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(incidentMap);
+
+
+
 
     const patientIcon = L.divIcon({
         className: '',
@@ -797,12 +1145,21 @@ function renderIncidentMap(incident) {
         iconSize: [16, 16]
     });
 
+
+
+
     incidentPatientMarker = L.marker([incident.lat, incident.lng], { icon: patientIcon })
         .addTo(incidentMap)
         .bindPopup(`<b>${escapeHtml(incident.patientName)}</b><br>${escapeHtml(incident.category)}`)
         .openPopup();
 
+
+
+
     const bounds = [[incident.lat, incident.lng]];
+
+
+
 
     if (incident.responderLat && incident.responderLng) {
         const responderIcon = L.divIcon({
@@ -811,24 +1168,42 @@ function renderIncidentMap(incident) {
             iconSize: [16, 16]
         });
 
+
+
+
         incidentResponderMarker = L.marker([incident.responderLat, incident.responderLng], { icon: responderIcon })
             .addTo(incidentMap)
             .bindPopup('Responder (Ikaw)');
+
+
+
 
         incidentRouteLine = L.polyline(
             [[incident.responderLat, incident.responderLng], [incident.lat, incident.lng]],
             { color: '#0091ea', weight: 3, dashArray: '6,6' }
         ).addTo(incidentMap);
 
+
+
+
         bounds.push([incident.responderLat, incident.responderLng]);
     }
+
+
+
 
     if (bounds.length > 1) {
         incidentMap.fitBounds(bounds, { padding: [30, 30] });
     }
 
+
+
+
     setTimeout(() => { if (incidentMap) incidentMap.invalidateSize(); }, 200);
 }
+
+
+
 
 function buildProgressHtml(incident) {
     const order = ['Accepted', 'In Transit', 'Arrived', 'Completed'];
@@ -837,6 +1212,9 @@ function buildProgressHtml(incident) {
         incident.status === 'Arrived' ? 2 :
         ['Accepted', 'Assigned', 'In Transit'].includes(incident.status) ? 1 :
         -1;
+
+
+
 
     return `
         <div class="progress-track">
@@ -848,6 +1226,9 @@ function buildProgressHtml(incident) {
                         step === 'Accepted' ? incident.acceptedAt :
                         step === 'Arrived' ? incident.arrivedAt :
                         step === 'Completed' ? incident.completedAt : null;
+
+
+
 
                     return `
                         <div class="progress-step ${className}">
@@ -867,6 +1248,9 @@ function buildProgressHtml(incident) {
     `;
 }
 
+
+
+
 function buildActionButtons(incident, mapsUrl) {
     if (['Pending', 'Waiting List', 'Unattended'].includes(incident.status)) {
         return `
@@ -881,6 +1265,9 @@ function buildActionButtons(incident, mapsUrl) {
         `;
     }
 
+
+
+
     // ================= LOCK: may naka-assign na PERO HINDI ako =================
     const hasAssignment = Boolean(incident.assignedResponderId);
     const notAssignedIncidents = ['Pending', 'Waiting List', 'Unattended'];
@@ -894,6 +1281,9 @@ function buildActionButtons(incident, mapsUrl) {
     }
     // ================= END LOCK =================
 
+
+
+
     if (['Accepted', 'Assigned', 'In Transit'].includes(incident.status)) {
         return `
             <div class="quick-sms-area">
@@ -902,11 +1292,17 @@ function buildActionButtons(incident, mapsUrl) {
                 <button class="sms-btn" onclick="promptEtaUpdate()">⏱ Update ETA</button>
             </div>
 
+
+
+
             <div class="vitals-grid">
                 <div><small>BP</small><input type="text" id="v_bp" class="vitals-input" placeholder="120/80"></div>
                 <div><small>HR</small><input type="text" id="v_hr" class="vitals-input" placeholder="85 bpm"></div>
                 <div><small>TEMP</small><input type="text" id="v_temp" class="vitals-input" placeholder="36.5°C"></div>
             </div>
+
+
+
 
             <div class="btn-group">
                 <button class="status-btn btn-map" onclick="window.open('${mapsUrl}', '_blank')">
@@ -919,17 +1315,26 @@ function buildActionButtons(incident, mapsUrl) {
         `;
     }
 
+
+
+
     if (incident.status === 'Arrived') {
         return `
             <div class="quick-sms-area">
                 <button class="sms-btn" onclick="sendSMS('Responder has arrived')">📲 Notify Arrival</button>
             </div>
 
+
+
+
             <div class="vitals-grid">
                 <div><small>BP</small><input type="text" id="v_bp" class="vitals-input" placeholder="120/80"></div>
                 <div><small>HR</small><input type="text" id="v_hr" class="vitals-input" placeholder="85 bpm"></div>
                 <div><small>TEMP</small><input type="text" id="v_temp" class="vitals-input" placeholder="36.5°C"></div>
             </div>
+
+
+
 
             <div class="btn-group">
                 <button class="status-btn btn-success" onclick="openCompletionModal()">
@@ -939,6 +1344,9 @@ function buildActionButtons(incident, mapsUrl) {
         `;
     }
 
+
+
+
     return `
         <div style="padding:20px;text-align:center;background:#e8f5e9;border:1px solid #2e7d32;border-radius:15px;margin-top:15px;color:#2e7d32;font-weight:bold;">
             ✅ CASE COMPLETED & RECORDED
@@ -946,14 +1354,26 @@ function buildActionButtons(incident, mapsUrl) {
     `;
 }
 
+
+
+
 // ---------------- ACTIONS (write to Supabase) ----------------
+
+
+
 
 async function acceptAndDeploy() {
     const etaInput = prompt('Estimated time of arrival in minutes:', '5');
     if (etaInput === null) return;
 
+
+
+
     const etaMinutes = Math.max(1, Number.parseInt(etaInput, 10) || 5);
     const now = new Date().toISOString();
+
+
+
 
     await patchSelectedIncident({
         status: 'In Transit',
@@ -965,6 +1385,9 @@ async function acceptAndDeploy() {
         etaUpdatedAt: now
     });
 
+
+
+
     await updateResponderOperationalStatus('On Duty');
     startLocationTracking(selectedId);
     startEtaBroadcast(selectedId);
@@ -972,14 +1395,23 @@ async function acceptAndDeploy() {
 }
 window.acceptAndDeploy = acceptAndDeploy;
 
+
+
+
 async function updateStatus(newStatus) {
     await patchSelectedIncident({ status: newStatus });
     showToast(`Request moved to ${newStatus}.`);
 }
 window.updateStatus = updateStatus;
 
+
+
+
 async function markArrived() {
     const now = new Date().toISOString();
+
+
+
 
     await patchSelectedIncident({
         status: 'Arrived',
@@ -989,17 +1421,29 @@ async function markArrived() {
         etaUpdatedAt: now
     });
 
+
+
+
     stopEtaBroadcast();
     showToast('Arrival timestamp recorded and synced live to the resident.');
 }
 window.markArrived = markArrived;
 
+
+
+
 function promptEtaUpdate() {
     const minutes = prompt('New estimated arrival time in minutes:', '5');
     if (minutes === null) return;
 
+
+
+
     const value = Math.max(1, Number.parseInt(minutes, 10) || 5);
     const now = new Date().toISOString();
+
+
+
 
     patchSelectedIncident({
         etaMinutes: value,
@@ -1009,13 +1453,22 @@ function promptEtaUpdate() {
 }
 window.promptEtaUpdate = promptEtaUpdate;
 
+
+
+
 async function patchSelectedIncident(changes) {
     if (!selectedId) return;
+
+
+
 
     const { error } = await supabase
         .from('emergency_requests')
         .update(toDbChanges(changes))
         .eq('id', selectedId);
+
+
+
 
     if (error) {
         console.error('Failed to update request in Supabase:', error);
@@ -1023,11 +1476,20 @@ async function patchSelectedIncident(changes) {
         return;
     }
 
+
+
+
     loadData();
 }
 
+
+
+
 function startLocationTracking(requestId) {
     stopLocationTracking();
+
+
+
 
     if (navigator.geolocation) {
         locationWatchId = navigator.geolocation.watchPosition(
@@ -1046,14 +1508,26 @@ function startLocationTracking(requestId) {
     }
 }
 
+
+
+
 async function startSimulatedLocation(requestId) {
     if (simulatedLocationTimer) return;
+
+
+
 
     const { data } = await supabase.from('emergency_requests').select('*').eq('id', requestId).single();
     const request = data ? normalizeIncident(data) : null;
 
+
+
+
     let lat = request?.responderLat || (request?.lat ? request.lat - 0.018 : 14.5995);
     let lng = request?.responderLng || (request?.lng ? request.lng - 0.016 : 120.9842);
+
+
+
 
     simulatedLocationTimer = setInterval(() => {
         if (request?.lat && request?.lng) {
@@ -1064,12 +1538,21 @@ async function startSimulatedLocation(requestId) {
             lng += 0.0002;
         }
 
+
+
+
         sendLocationUpdate(requestId, lat, lng);
     }, 5000);
 }
 
+
+
+
 async function sendLocationUpdate(requestId, latitude, longitude) {
     const now = new Date().toISOString();
+
+
+
 
     const { error } = await supabase
         .from('emergency_requests')
@@ -1080,15 +1563,24 @@ async function sendLocationUpdate(requestId, latitude, longitude) {
         })
         .eq('id', requestId);
 
+
+
+
     if (error) {
         console.error('Failed to push location update:', error);
         return;
     }
 
+
+
+
     if (String(selectedId) === String(requestId)) {
         loadData();
     }
 }
+
+
+
 
 function stopLocationTracking() {
     if (locationWatchId !== null && navigator.geolocation) {
@@ -1096,23 +1588,38 @@ function stopLocationTracking() {
         locationWatchId = null;
     }
 
+
+
+
     if (simulatedLocationTimer) {
         clearInterval(simulatedLocationTimer);
         simulatedLocationTimer = null;
     }
 }
 
+
+
+
 function startEtaBroadcast(requestId) {
     stopEtaBroadcast();
+
+
+
 
     const broadcast = async () => {
         const { data } = await supabase.from('emergency_requests').select('*').eq('id', requestId).single();
         const request = data ? normalizeIncident(data) : null;
 
+
+
+
         if (!request || !['Accepted', 'Assigned', 'In Transit'].includes(request.status)) {
             stopEtaBroadcast();
             return;
         }
+
+
+
 
         const eta = getCurrentEta(request);
         await supabase
@@ -1125,9 +1632,15 @@ function startEtaBroadcast(requestId) {
             .eq('id', requestId);
     };
 
+
+
+
     broadcast();
     etaTimer = setInterval(broadcast, 15000);
 }
+
+
+
 
 function stopEtaBroadcast() {
     if (etaTimer) {
@@ -1136,10 +1649,16 @@ function stopEtaBroadcast() {
     }
 }
 
+
+
+
 function getCurrentEta(incident) {
     if (incident.status === 'Arrived') {
         return { minutes: 0, label: 'Arrived', updatedLabel: 'Responder is at the location' };
     }
+
+
+
 
     if (!incident.etaMinutes || !incident.acceptedAt) {
         return {
@@ -1149,8 +1668,14 @@ function getCurrentEta(incident) {
         };
     }
 
+
+
+
     const elapsedMinutes = Math.floor((Date.now() - new Date(incident.acceptedAt).getTime()) / 60000);
     const remaining = Math.max(1, incident.etaMinutes - elapsedMinutes);
+
+
+
 
     return {
         minutes: remaining,
@@ -1159,19 +1684,31 @@ function getCurrentEta(incident) {
     };
 }
 
+
+
+
 function sendSMS(message) {
     if (!selectedId) return;
+
+
+
 
     patchSelectedIncident({ message, messageSentAt: new Date().toISOString() });
     showToast(`Resident update sent: "${message}"`);
 }
 window.sendSMS = sendSMS;
 
+
+
+
 // BAGO — ipinapakita ang mga litratong kinunan ng resident gamit ang
 // in-app camera habang nagsu-submit ng Emergency request
 async function openIncidentPhotosModal(){
     const grid = document.getElementById('incidentPhotosGrid');
     const photos = currentIncidentPhotos;
+
+
+
 
     if(photos.length === 0){
         grid.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">Walang naka-attach na litrato mula sa resident para sa request na ito.</div>';
@@ -1180,6 +1717,9 @@ async function openIncidentPhotosModal(){
         return;
     }
 
+
+
+
     grid.innerHTML = photos.map((_, i) => `
         <div style="width:160px; height:160px; background:#1a1c20; border:1px solid #333; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
             <img id="respIncidentPhoto-${i}" src="" style="display:none; max-width:100%; max-height:100%; object-fit:contain;">
@@ -1187,21 +1727,36 @@ async function openIncidentPhotosModal(){
         </div>
     `).join('');
 
+
+
+
     document.getElementById('incidentPhotosModal').classList.add('open');
     document.getElementById('incidentPhotosModal').setAttribute('aria-hidden', 'false');
+
+
+
 
     for(let i = 0; i < photos.length; i++){
         const { data, error } = await supabase.storage
             .from('emergency-photos')
             .createSignedUrl(photos[i], 300);
 
+
+
+
         const imgEl = document.getElementById(`respIncidentPhoto-${i}`);
         const emptyEl = document.getElementById(`respIncidentPhotoEmpty-${i}`);
+
+
+
 
         if(error || !data?.signedUrl){
             if(emptyEl) emptyEl.textContent = 'Hindi ma-load ang litrato.';
             continue;
         }
+
+
+
 
         if(imgEl){
             imgEl.src = data.signedUrl;
@@ -1212,11 +1767,17 @@ async function openIncidentPhotosModal(){
 }
 window.openIncidentPhotosModal = openIncidentPhotosModal;
 
+
+
+
 function closeIncidentPhotosModal(){
     document.getElementById('incidentPhotosModal').classList.remove('open');
     document.getElementById('incidentPhotosModal').setAttribute('aria-hidden', 'true');
 }
 window.closeIncidentPhotosModal = closeIncidentPhotosModal;
+
+
+
 
 function openCompletionModal() {
     document.getElementById('completionTimestamp').value = formatDateTime(new Date());
@@ -1225,21 +1786,36 @@ function openCompletionModal() {
 }
 window.openCompletionModal = openCompletionModal;
 
+
+
+
 function closeCompletionModal() {
     document.getElementById('completionModal').classList.remove('open');
     document.getElementById('completionModal').setAttribute('aria-hidden', 'true');
 }
 window.closeCompletionModal = closeCompletionModal;
 
+
+
+
 async function saveServiceCompletion(event) {
     event.preventDefault();
+
+
+
 
     const { data } = await supabase.from('emergency_requests').select('*').eq('id', selectedId).single();
     const incident = data ? normalizeIncident(data) : null;
     if (!incident) return;
 
+
+
+
     const completedAt = new Date().toISOString();
     const durationSeconds = calculateDurationSeconds(incident.acceptedAt || incident.createdAt, completedAt);
+
+
+
 
     const record = {
         request_id: incident.id,
@@ -1258,12 +1834,18 @@ async function saveServiceCompletion(event) {
         response_duration_label: formatDuration(durationSeconds)
     };
 
+
+
+
     const { error: insertError } = await supabase.from('service_records').insert(record);
     if (insertError) {
         console.error('Failed to save service record:', insertError);
         showToast('Hindi na-save ang service record sa Supabase.');
         return;
     }
+
+
+
 
     await patchSelectedIncident({
         status: 'Completed',
@@ -1272,14 +1854,23 @@ async function saveServiceCompletion(event) {
         responseDurationLabel: formatDuration(durationSeconds)
     });
 
+
+
+
     stopLocationTracking();
     stopEtaBroadcast();
     await updateResponderOperationalStatus('Available');
+
+
+
 
     closeCompletionModal();
     event.target.reset();
     showToast(`Case completed. Total response duration: ${formatDuration(durationSeconds)}.`);
 }
+
+
+
 
 /* ---------------------------------------------------------
    RESPONDER OPERATIONAL STATUS
@@ -1288,19 +1879,31 @@ async function updateResponderOperationalStatus(status){
     const select = document.getElementById('unitStatus');
     if(select) select.value = status;
 
+
+
+
     if(!myFleetRow){
         showToast('Wala pang naka-link na unit sa account mo. Piliin muna sa itaas o i-register ka ng admin.');
         return;
     }
 
+
+
+
     const updateData = { status };
     if(status !== 'On Duty') updateData.assigned_to = null;
+
+
+
 
     const { data, error } = await supabase
         .from('fleet')
         .update(updateData)
         .eq('id', myFleetRow.id)
         .select();
+
+
+
 
     if(error){
         console.error('Failed to update fleet status:', error);
@@ -1312,12 +1915,21 @@ async function updateResponderOperationalStatus(status){
         return;
     }
 
+
+
+
     myFleetRow.status = status;
     localStorage.setItem('currentResponderStatus', status);
     updateVehicleMetrics();
 }
 
+
+
+
 // ---------------- REALTIME ----------------
+
+
+
 
 function startRealtimeMonitoring() {
     supabase
@@ -1329,10 +1941,16 @@ function startRealtimeMonitoring() {
                 showBrowserSOSNotificationResp(payload.new);
             }
 
+
+
+
             const newlyAssignedToMe =
                 CURRENT_RESPONDER?.id &&
                 payload.new?.assigned_responder_id === CURRENT_RESPONDER.id &&
                 payload.old?.assigned_responder_id !== CURRENT_RESPONDER.id;
+
+
+
 
             if (newlyAssignedToMe) {
                 selectedId = payload.new.id;
@@ -1340,9 +1958,15 @@ function startRealtimeMonitoring() {
                 showAssignmentNotification(payload.new);
             }
 
+
+
+
             loadData();
         })
         .subscribe();
+
+
+
 
     supabase
         .channel('fleet_changes_responder_view')
@@ -1351,6 +1975,9 @@ function startRealtimeMonitoring() {
             renderAssignedPersonnel();
         })
         .subscribe();
+
+
+
 
     if (CURRENT_RESPONDER?.id) {
         supabase
@@ -1365,10 +1992,19 @@ function startRealtimeMonitoring() {
             .subscribe();
     }
 
+
+
+
     safetyPollTimer = setInterval(loadData, 30000);
 }
 
+
+
+
 // ---------------- MISC / UTILITIES ----------------
+
+
+
 
 function playAlertSound() {
     try {
@@ -1377,9 +2013,15 @@ function playAlertSound() {
         const oscillator = audioContext.createOscillator();
         const gain = audioContext.createGain();
 
+
+
+
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
         gain.gain.setValueAtTime(0.22, audioContext.currentTime);
+
+
+
 
         oscillator.connect(gain);
         gain.connect(audioContext.destination);
@@ -1390,11 +2032,17 @@ function playAlertSound() {
     }
 }
 
+
+
+
 function playAssignmentNotificationSound(){
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioContext = new AudioContext();
         const now = audioContext.currentTime;
+
+
+
 
         const playTone = (freq, startOffset, duration) => {
             const osc = audioContext.createOscillator();
@@ -1409,12 +2057,18 @@ function playAssignmentNotificationSound(){
             osc.stop(now + startOffset + duration + 0.05);
         };
 
+
+
+
         playTone(1046.5, 0, 0.25);   // C6
         playTone(783.99, 0.18, 0.35); // G5
     } catch {
         // Browsers may block audio until the first user interaction.
     }
 }
+
+
+
 
 function showToast(message) {
     const toast = document.getElementById('dashboardToast');
@@ -1424,14 +2078,26 @@ function showToast(message) {
     window.dashboardToastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
+
+
+
 function logout() {
     console.log("Logout clicked");
+
+
+
 
     if (confirm("Logout Confirmation: Are you sure you want to log out?")) {
         stopLocationTracking();
         stopEtaBroadcast();
 
+
+
+
         if (safetyPollTimer) clearInterval(safetyPollTimer);
+
+
+
 
         supabase.auth.signOut().then(() => {
     window.location.href = "/pages/login.html";
@@ -1439,23 +2105,38 @@ function logout() {
     }
 }
 
+
+
+
 window.logout = logout;
+
+
+
 
 function calculateDurationSeconds(start, end) {
     if (!start || !end) return 0;
     return Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000));
 }
 
+
+
+
 function calculateDurationMinutes(start, end) {
     if (!start || !end) return NaN;
     return calculateDurationSeconds(start, end) / 60;
 }
+
+
+
 
 function formatDuration(totalSeconds) {
     const seconds = Math.max(0, Number(totalSeconds) || 0);
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
+
+
+
 
     return [
         hours ? `${hours}h` : '',
@@ -1464,13 +2145,22 @@ function formatDuration(totalSeconds) {
     ].filter(Boolean).join(' ');
 }
 
+
+
+
 function formatDateTime(value) {
     return new Date(value).toLocaleString();
 }
 
+
+
+
 function formatShortTime(value) {
     return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
+
+
+
 
 function toNullableNumber(value) {
     if (value === null || value === undefined || value === '') return null;
@@ -1478,9 +2168,15 @@ function toNullableNumber(value) {
     return Number.isFinite(number) ? number : null;
 }
 
+
+
+
 function cssStatus(status) {
     return String(status).toLowerCase().replace(/\s+/g, '');
 }
+
+
+
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -1491,4 +2187,18 @@ function escapeHtml(value) {
         .replaceAll("'", '&#039;');
 }
 
+
+
+
 document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+
+
+
+
+
+
+
+
+
+

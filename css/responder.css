@@ -5,6 +5,9 @@
     box-sizing: border-box;
 }
 
+
+
+
 :root{
   --bg-app:      #14161a;
   --bg-header:   #1c1f24;
@@ -14,9 +17,15 @@
   --border:      #33373f;
   --border-soft: #2a2d33;
 
+
+
+
   --text-main:   #eef0f2;
   --text-muted:  #9aa0aa;
   --text-dim:    #6c727c;
+
+
+
 
   --gold:        #ffd700;
   --blue:        #00b0ff;
@@ -26,10 +35,16 @@
   --purple:      #e040fb;
   --red:         #ff5252;
 
+
+
+
   --radius:      10px;
   --radius-sm:   6px;
   --shadow:      0 4px 14px rgba(0,0,0,0.35);
 }
+
+
+
 
 body {
     font-family: 'Segoe UI', Roboto, sans-serif;
@@ -39,6 +54,9 @@ body {
     color: var(--text-main);
     padding-bottom: 50px;
 }
+
+
+
 
 /* --- HEADER --- */
 .header{
@@ -52,11 +70,17 @@ body {
     box-shadow:0 4px 15px rgba(0,0,0,.04);
 }
 
+
+
+
 .header-top{
     display:flex;
     justify-content:space-between;
     align-items:center;
 }
+
+
+
 
 .header h1 {
     margin: 0;
@@ -65,11 +89,17 @@ body {
     color: var(--text-main);
 }
 
+
+
+
 .logo-title{
     display:flex;
     align-items:center;
     gap:15px;
 }
+
+
+
 
 .logo-icon{
     width:55px;
@@ -83,11 +113,17 @@ body {
     font-size:24px;
 }
 
+
+
+
 .dashboard-subtitle{
     margin-top:4px;
     color: var(--text-muted);
     font-size:13px;
 }
+
+
+
 
 .header-right{
     display:flex;
@@ -97,12 +133,18 @@ body {
     margin-top:20px;
 }
 
+
+
+
 .unit-label,
 .status-group{
     display:flex;
     align-items:center;
     gap:10px;
 }
+
+
+
 
 .unit-label {
     display: flex;
@@ -111,6 +153,9 @@ body {
     font-size: 0.88rem;
     color: var(--text-muted);
 }
+
+
+
 
 .logout-btn{
     background: transparent;
@@ -126,10 +171,16 @@ body {
     transition:.3s;
 }
 
+
+
+
 .logout-btn:hover{
     border-color: var(--red);
     color: var(--red);
 }
+
+
+
 
 .responder-status-select {
     min-height: 34px;
@@ -142,10 +193,16 @@ body {
     font-weight: 800;
 }
 
+
+
+
 .responder-status-select option {
     color: #141414;
     background: var(--gold);
 }
+
+
+
 
 .unit-select{
     background: var(--gold);
@@ -158,10 +215,16 @@ body {
     outline: none;
 }
 
+
+
+
 .unit-select option {
     color: #141414;
     background: var(--gold);
 }
+
+
+
 
 /* --- MAIN LAYOUT CONTAINER --- */
 .main-content {
@@ -170,11 +233,17 @@ body {
     margin: 0 auto;
 }
 
+
+
+
 .layout {
     display: grid;
     grid-template-columns: 350px 1fr;
     gap: 25px;
 }
+
+
+
 
 /* --- KPI METRICS GRID --- */
 .metrics-grid {
@@ -183,6 +252,9 @@ body {
     gap: 20px;
     margin-bottom: 25px;
 }
+
+
+
 
 .metric-card {
     background: var(--bg-panel);
@@ -196,6 +268,9 @@ body {
     box-shadow: var(--shadow);
 }
 
+
+
+
 .metric-icon {
     width: 52px;
     height: 52px;
@@ -208,20 +283,32 @@ body {
     font-size: 1.25rem;
 }
 
+
+
+
 .metric-info {
     display: grid;
     gap: 4px;
 }
+
+
+
 
 .metric-label,
 .metric-value small {
     color: var(--text-muted);
 }
 
+
+
+
 .metric-label {
     font-size: 0.8rem;
     font-weight: 700;
 }
+
+
+
 
 .metric-value {
     font-size: 1.65rem;
@@ -229,10 +316,16 @@ body {
     color: var(--text-main);
 }
 
+
+
+
 .metric-value small {
     font-size: 0.72rem;
     font-weight: 600;
 }
+
+
+
 
 /* --- DASHBOARD PANELS --- */
 .panel {
@@ -244,6 +337,9 @@ body {
     margin-bottom: 20px;
     border: 1px solid var(--border);
 }
+
+
+
 
 .panel-title {
     color: var(--text-main);
@@ -258,6 +354,9 @@ body {
     padding-bottom: 10px;
 }
 
+
+
+
 .count-badge {
     min-width: 29px;
     height: 29px;
@@ -270,6 +369,9 @@ body {
     font-size: 0.78rem;
 }
 
+
+
+
 .live-indicator {
     display: inline-flex;
     align-items: center;
@@ -280,6 +382,9 @@ body {
     color: var(--green);
 }
 
+
+
+
 .live-dot {
     width: 8px;
     height: 8px;
@@ -288,10 +393,16 @@ body {
     box-shadow: 0 0 0 5px rgba(0,200,83,0.15);
 }
 
+
+
+
 /* --- REQUEST QUEUE FILTERS --- */
 .queue-toolbar {
     margin: -4px 0 16px;
 }
+
+
+
 
 .status-filters {
     display: flex;
@@ -299,6 +410,9 @@ body {
     gap: 7px;
     margin-bottom: 12px;
 }
+
+
+
 
 .filter-btn {
     padding: 7px 10px;
@@ -311,12 +425,18 @@ body {
     font-weight: 800;
 }
 
+
+
+
 .filter-btn.active,
 .filter-btn:hover {
     color: #141414;
     border-color: var(--gold);
     background: var(--gold);
 }
+
+
+
 
 .cross-barangay-toggle {
     display: flex;
@@ -326,6 +446,9 @@ body {
     font-size: 0.74rem;
     font-weight: 700;
 }
+
+
+
 
 /* --- ACTIVE REQUESTS LIST ITEMS --- */
 .incident-list-item {
@@ -339,10 +462,16 @@ body {
     color: var(--text-main);
 }
 
+
+
+
 .incident-list-item:hover {
     background: var(--bg-input);
     border-color: var(--gold);
 }
+
+
+
 
 .incident-list-item.active {
     background: var(--gold);
@@ -350,14 +479,23 @@ body {
     border-left: 6px solid var(--red);
 }
 
+
+
+
 .incident-list-item.urgent {
     box-shadow: inset 0 0 0 2px var(--red);
 }
+
+
+
 
 /* ---------------- ASSIGNED TO ME BADGE ---------------- */
 .incident-list-item.mine {
     border-left: 4px solid var(--blue);
 }
+
+
+
 
 .assigned-to-me-badge {
     display: inline-flex;
@@ -373,15 +511,24 @@ body {
     border-radius: 20px;
 }
 
+
+
+
 .incident-list-item.active .assigned-to-me-badge {
     background: rgba(20, 20, 20, 0.15);
     border-color: #141414;
     color: #141414;
 }
 
+
+
+
 .incident-list-item strong {
     color: inherit !important;
 }
+
+
+
 
 .incident-list-item .incident-meta {
     margin-top: 8px;
@@ -390,9 +537,15 @@ body {
     line-height: 1.55;
 }
 
+
+
+
 .incident-list-item.active .incident-meta {
     color: #141414;
 }
+
+
+
 
 /* --- STATUS BADGES --- */
 .status-pill {
@@ -403,6 +556,9 @@ body {
     text-transform: uppercase;
     white-space: nowrap;
 }
+
+
+
 
 .status-pending { background: var(--gold); color: #141414; }
 .status-waitinglist,
@@ -415,17 +571,26 @@ body {
 .status-resolved { background: var(--green); color: #141414; }
 .status-urgent { background: var(--red); color: #141414; }
 
+
+
+
 /* --- DETAILS / PROGRESS --- */
 .incident-summary {
     margin-bottom: 20px;
     color: var(--text-main);
 }
 
+
+
+
 .incident-summary h2 {
     color: var(--gold);
     margin-bottom: 10px;
     font-weight: 800;
 }
+
+
+
 
 .incident-information-grid {
     display: grid;
@@ -439,6 +604,9 @@ body {
     color: var(--text-main);
 }
 
+
+
+
 .report-description {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -449,6 +617,9 @@ body {
     color: var(--text-muted);
 }
 
+
+
+
 .progress-track {
     margin: 18px 0;
     padding: 16px;
@@ -457,17 +628,26 @@ body {
     border: 1px solid var(--border);
 }
 
+
+
+
 .progress-track h3 {
     margin-bottom: 14px;
     font-size: 0.88rem;
     color: var(--text-main);
 }
 
+
+
+
 .progress-steps {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
 }
+
+
+
 
 .progress-step {
     min-height: 78px;
@@ -485,11 +665,17 @@ body {
     font-weight: 700;
 }
 
+
+
+
 .progress-step.done {
     color: #141414;
     background: var(--green);
     border-color: var(--green);
 }
+
+
+
 
 .progress-step.current {
     color: #141414;
@@ -497,12 +683,18 @@ body {
     border-color: var(--gold);
 }
 
+
+
+
 .eta-location-grid {
     display: grid;
     grid-template-columns: minmax(0, .65fr) minmax(0, 1.35fr);
     gap: 14px;
     margin: 16px 0;
 }
+
+
+
 
 .eta-card,
 .location-card {
@@ -512,6 +704,9 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--border);
 }
+
+
+
 
 .eta-card small,
 .location-card small {
@@ -523,11 +718,17 @@ body {
     font-size: 0.66rem;
 }
 
+
+
+
 .eta-value {
     color: var(--gold);
     font-size: 1.65rem;
     font-weight: 900;
 }
+
+
+
 
 .coordinate-line {
     margin: 5px 0;
@@ -536,10 +737,16 @@ body {
     word-break: break-word;
 }
 
+
+
+
 .tracking-time {
     color: var(--text-dim);
     font-size: 0.7rem;
 }
+
+
+
 
 .btn-group {
     display: grid;
@@ -547,6 +754,9 @@ body {
     gap: 10px;
     margin-top: 15px;
 }
+
+
+
 
 .status-btn {
     min-height: 43px;
@@ -559,10 +769,16 @@ body {
     transition: 0.2s;
 }
 
+
+
+
 .status-btn:hover {
     transform: translateY(-1px);
     filter: brightness(1.1);
 }
+
+
+
 
 .btn-primary { background: var(--blue); color: #141414; }
 .btn-warning { background: var(--orange); color: #141414; }
@@ -571,12 +787,18 @@ body {
 .btn-success { background: var(--green); color: #141414; }
 .btn-secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border); }
 
+
+
+
 .quick-sms-area {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 14px;
 }
+
+
+
 
 .vitals-grid {
     background: var(--bg-card);
@@ -588,6 +810,9 @@ body {
     border: 1px solid var(--border);
 }
 
+
+
+
 .vitals-input {
     background: var(--bg-input);
     color: var(--text-main);
@@ -597,6 +822,9 @@ body {
     width: 100%;
     font-weight: bold;
 }
+
+
+
 
 .sms-btn {
     background: var(--bg-card);
@@ -609,10 +837,16 @@ body {
     cursor: pointer;
 }
 
+
+
+
 .sms-btn:hover {
     background: var(--gold);
     color: #141414;
 }
+
+
+
 
 /* --- SERVICE COMPLETION MODAL --- */
 .modal {
@@ -627,9 +861,15 @@ body {
     backdrop-filter: blur(5px);
 }
 
+
+
+
 .modal.open {
     display: flex;
 }
+
+
+
 
 .modal-content {
     width: min(680px, 100%);
@@ -643,6 +883,9 @@ body {
     border: 1px solid var(--border);
 }
 
+
+
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -650,16 +893,25 @@ body {
     margin-bottom: 20px;
 }
 
+
+
+
 .modal-header h2 {
     margin-bottom: 5px;
     font-size: 1.25rem;
     color: var(--gold);
 }
 
+
+
+
 .modal-header p {
     color: var(--text-muted);
     font-size: 0.8rem;
 }
+
+
+
 
 .modal-close {
     width: 38px;
@@ -672,26 +924,41 @@ body {
     font-size: 1.4rem;
 }
 
+
+
+
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
 }
 
+
+
+
 .form-group {
     display: grid;
     gap: 7px;
 }
 
+
+
+
 .form-group.full {
     grid-column: 1 / -1;
 }
+
+
+
 
 .form-group label {
     font-size: 0.76rem;
     font-weight: 800;
     color: var(--text-muted);
 }
+
+
+
 
 .form-control {
     width: 100%;
@@ -704,13 +971,22 @@ body {
     background: var(--bg-input);
 }
 
+
+
+
 .form-control:focus{
     border-color: var(--gold);
 }
 
+
+
+
 textarea.form-control {
     resize: vertical;
 }
+
+
+
 
 .modal-actions {
     display: flex;
@@ -719,12 +995,18 @@ textarea.form-control {
     margin-top: 18px;
 }
 
+
+
+
 .security-note {
     margin-top: 14px;
     color: var(--text-dim);
     font-size: 0.72rem;
     line-height: 1.5;
 }
+
+
+
 
 .dashboard-toast {
     position: fixed;
@@ -744,10 +1026,16 @@ textarea.form-control {
     transition: 0.25s;
 }
 
+
+
+
 .dashboard-toast.show {
     opacity: 1;
     transform: translateY(0);
 }
+
+
+
 
 .empty-queue {
     padding: 24px 12px;
@@ -755,11 +1043,17 @@ textarea.form-control {
     text-align: center;
 }
 
+
+
+
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 900px) {
     .layout {
         grid-template-columns: 1fr;
     }
+
+
+
 
     /* NEW — sa mobile/single-column view, gusto ng responder na makita
        agad ang RESPONSE PANEL (detail) sa ITAAS bago ang listahan ng
@@ -773,18 +1067,30 @@ textarea.form-control {
         order: 1;
     }
 
+
+
+
     .request-list-col {
         order: 2;
     }
+
+
+
 
     .metrics-grid {
         grid-template-columns: 1fr;
     }
 
+
+
+
     .header {
         padding: 14px 18px;
         align-items: flex-start;
     }
+
+
+
 
     .incident-information-grid,
     .eta-location-grid {
@@ -792,24 +1098,39 @@ textarea.form-control {
     }
 }
 
+
+
+
 @media (max-width: 620px) {
     .main-content {
         padding: 18px 12px;
     }
 
+
+
+
     .header {
         flex-direction: column;
     }
+
+
+
 
     .header-right {
         width: 100%;
         justify-content: flex-start;
     }
 
+
+
+
     .panel {
         padding: 18px;
         border-radius: var(--radius);
     }
+
+
+
 
     .progress-steps,
     .vitals-grid,
@@ -817,20 +1138,32 @@ textarea.form-control {
         grid-template-columns: 1fr 1fr;
     }
 
+
+
+
     .btn-group {
         grid-template-columns: 1fr;
     }
+
+
+
 
     .modal {
         align-items: flex-end;
         padding: 0;
     }
 
+
+
+
     .modal-content {
         max-height: 92vh;
         border-radius: var(--radius) var(--radius) 0 0;
     }
 }
+
+
+
 
 @media (max-width: 430px) {
     .progress-steps,
@@ -839,19 +1172,31 @@ textarea.form-control {
         grid-template-columns: 1fr;
     }
 
+
+
+
     .form-group.full {
         grid-column: auto;
     }
+
+
+
 
     .modal-actions {
         flex-direction: column-reverse;
     }
 }
 
+
+
+
 /* --- ADMIN TABLES: shared dashboard visual language --- */
 .admin-table-wrap {
     overflow-x: auto;
 }
+
+
+
 
 .admin-table {
     width: 100%;
@@ -859,6 +1204,9 @@ textarea.form-control {
     border-collapse: collapse;
     color: var(--text-main);
 }
+
+
+
 
 .admin-table th,
 .admin-table td {
@@ -868,6 +1216,9 @@ textarea.form-control {
     font-size: 0.78rem;
 }
 
+
+
+
 .admin-table th {
     color: var(--gold);
     text-transform: uppercase;
@@ -875,13 +1226,22 @@ textarea.form-control {
     font-size: 0.67rem;
 }
 
+
+
+
 .admin-table tbody tr:hover {
     background: var(--bg-input);
 }
 
+
+
+
 /* ===============================
    Assigned Personnel
 ================================= */
+
+
+
 
 .personnel-panel{
     margin-bottom:25px;
@@ -891,6 +1251,9 @@ textarea.form-control {
     border: 1px solid var(--border);
 }
 
+
+
+
 .personnel-grid{
     display:flex;
     flex-wrap:wrap;
@@ -898,6 +1261,9 @@ textarea.form-control {
     align-items:stretch;
     gap:20px;
 }
+
+
+
 
 .personnel-card{
     background: var(--bg-card);
@@ -912,11 +1278,17 @@ textarea.form-control {
     transition:.25s ease;
 }
 
+
+
+
 .personnel-card:hover{
     transform:translateY(-4px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.3);
     border-color: var(--gold);
 }
+
+
+
 
 .personnel-card h4{
     display:flex;
@@ -929,12 +1301,18 @@ textarea.form-control {
     border-bottom:1px solid var(--border-soft);
 }
 
+
+
+
 .personnel-card p{
     color: var(--text-main);
     font-size:15px;
     font-weight:600;
     margin:auto 0;
 }
+
+
+
 
 .personnel-card ul{
     list-style:none;
@@ -944,14 +1322,23 @@ textarea.form-control {
     overflow-y:auto;
 }
 
+
+
+
 .personnel-card ul::-webkit-scrollbar{
     width:6px;
 }
+
+
+
 
 .personnel-card ul::-webkit-scrollbar-thumb{
     background: var(--gold);
     border-radius:20px;
 }
+
+
+
 
 .personnel-card li{
     padding:8px 0;
@@ -960,13 +1347,22 @@ textarea.form-control {
     font-size:15px;
 }
 
+
+
+
 .personnel-card li:last-child{
     border-bottom:none;
 }
 
+
+
+
 .personnel-card i{
     color: var(--gold);
 }
+
+
+
 
 @media (max-width:600px){
     .personnel-card{
@@ -974,6 +1370,9 @@ textarea.form-control {
         max-width: 100%;
     }
 }
+
+
+
 
 /* ===============================================
    MOBILE-ONLY OVERRIDES
@@ -987,6 +1386,9 @@ textarea.form-control {
         padding: 12px;
     }
 
+
+
+
     /* "menu" mo dito ay yung header controls / status filters -
        Assigned Unit at Unit Status ay magkatabi (2 columns) sa mobile
        imbes na nakapatong-patong pababa, para di sha kumakain ng
@@ -999,6 +1401,9 @@ textarea.form-control {
         margin-top: 12px;
     }
 
+
+
+
     .status-group,
     .unit-label {
         width: 100%;
@@ -1007,14 +1412,23 @@ textarea.form-control {
         gap: 5px;
     }
 
+
+
+
     .unit-label label,
     .status-group label {
         font-size: 0.72rem;
     }
 
+
+
+
     .unit-label i {
         display: none;
     }
+
+
+
 
     .unit-select,
     .responder-status-select {
@@ -1024,18 +1438,30 @@ textarea.form-control {
         font-size: 0.78rem;
     }
 
+
+
+
     .separator {
         display: none;
     }
+
+
+
 
     .status-filters {
         flex-direction: column;
         align-items: stretch;
     }
 
+
+
+
     .filter-btn {
         text-align: center;
     }
+
+
+
 
     /* "sidebar" mo dito ay yung incident list panel sa .layout -
        hindi natin itatago dahil kailangan ito sa mobile,
@@ -1044,13 +1470,22 @@ textarea.form-control {
         gap: 14px;
     }
 
+
+
+
     .panel {
         padding: 14px;
     }
 
+
+
+
     .incident-list-item {
         padding: 12px;
     }
+
+
+
 
     /* --- Thinner KPI boxes (Active Drivers / Vehicle Status / Avg.
        Response) — panatilihin ang 3 sa isang row imbes na
@@ -1063,6 +1498,9 @@ textarea.form-control {
         margin-bottom: 14px;
     }
 
+
+
+
     .metric-card {
         padding: 10px 6px;
         gap: 6px;
@@ -1072,6 +1510,9 @@ textarea.form-control {
         border-radius: 8px;
     }
 
+
+
+
     .metric-icon {
         width: 30px;
         height: 30px;
@@ -1080,16 +1521,25 @@ textarea.form-control {
         border-radius: 6px;
     }
 
+
+
+
     .metric-info {
         align-items: center;
         text-align: center;
         gap: 3px;
     }
 
+
+
+
     .metric-label {
         font-size: 0.6rem;
         line-height: 1.2;
     }
+
+
+
 
     .metric-value {
         display: flex;
@@ -1099,9 +1549,15 @@ textarea.form-control {
         font-size: 1.05rem;
     }
 
+
+
+
     .metric-value small {
         font-size: 0.56rem;
     }
+
+
+
 
     /* --- Thinner Assigned Personnel — 2 columns magkatabi (Driver /
        Responder) imbes na patong-patong pababa, mas maliit na
@@ -1111,11 +1567,17 @@ textarea.form-control {
         margin-bottom: 14px;
     }
 
+
+
+
     .personnel-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
     }
+
+
+
 
     .personnel-card {
         flex: unset;
@@ -1123,12 +1585,18 @@ textarea.form-control {
         padding: 10px 12px;
     }
 
+
+
+
     .personnel-card h4 {
         font-size: 12.5px;
         margin-bottom: 8px;
         padding-bottom: 6px;
         gap: 6px;
     }
+
+
+
 
     .personnel-card p,
     .personnel-card li {
@@ -1141,6 +1609,9 @@ textarea.form-control {
   50% { box-shadow: 0 6px 30px rgba(255,0,0,.7); }
 }
 
+
+
+
 /* ---------------- ACTIVE EMERGENCY REQUESTS — sariling scroll ---------------- */
 #incidentList{
   max-height: 600px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
@@ -1150,3 +1621,8 @@ textarea.form-control {
 #incidentList::-webkit-scrollbar{ width: 6px; }
 #incidentList::-webkit-scrollbar-thumb{ background: var(--gold); border-radius: 6px; }
 #incidentList::-webkit-scrollbar-track{ background: transparent; }
+
+
+
+
+
