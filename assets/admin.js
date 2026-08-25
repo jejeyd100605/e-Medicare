@@ -626,7 +626,7 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
     async function loadIncidentsFromSupabase() {
     const { data, error } = await supabase
         .from('emergency_requests')
-       .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact)')
+       .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
         .in('type', ['Emergency', 'SOS'])
         .order('created_at', { ascending: false });
 
@@ -1244,16 +1244,17 @@ async function handleQuickDispatch(e){
         const contact = inc.sender && inc.sender.contact ? inc.sender.contact : '';
         const infoBox = document.getElementById('assignIncidentInfo');
         if(infoBox){
+            const address = inc.sender && inc.sender.address ? inc.sender.address : '';
             infoBox.innerHTML = `
                 <div style="margin-bottom:10px; font-size:0.85em; color:#ccc; background:#222; padding:10px; border-radius:6px;">
                     <div style="font-weight:600; color:#ffd700;">🚨 ${inc.category || inc.type}</div>
                     <div>${callerName}${contact ? ' · ' + contact : ''}</div>
+                    ${address ? `<div style="color:#aaa;">🏠 ${address}</div>` : ''}
                     <div style="color:#888; margin-top:4px;">${inc.description || 'No description provided.'}</div>
                     <div style="color:#666; margin-top:4px; font-size:0.85em;">Status: ${inc.status} · ${timeAgo(inc.created_at)}</div>
                 </div>
             `;
         }
-
 
 
 
@@ -1488,7 +1489,7 @@ async function handleQuickDispatch(e){
 
 
 
-        if(infoEl){
+                if(infoEl){
             let distanceLine;
             if(inc.lat && inc.lng && inc.responder_lat && inc.responder_lng){
                 const d = haversineDistanceMeters(inc.lat, inc.lng, inc.responder_lat, inc.responder_lng);
@@ -1497,6 +1498,7 @@ async function handleQuickDispatch(e){
                 distanceLine = `<div style="color:#888;">📏 Naghihintay pa ng GPS signal ng responder...</div>`;
             }
             infoEl.innerHTML = `
+                <div>🏠 Address: <b>${inc.sender?.address || 'Not provided'}</b></div>
                 <div>👥 Assigned team: <b>${inc.assigned_to || 'Not yet on record'}</b></div>
                 <div>⏱ ETA / Notes: <b>${inc.eta || 'N/A'}</b></div>
                 ${distanceLine}
