@@ -455,7 +455,7 @@ async function handleSignup(e) {
 
 
 
-    const { data, error } = await supabase.auth.signUp({
+       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -464,7 +464,9 @@ async function handleSignup(e) {
                 middle_name: middleName || null,
                 last_name: lastName,
                 name: fullName,
-                role: "resident"
+                role: "resident",
+                contact: contactNo,
+                address: address
             }
         }
     });

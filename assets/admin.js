@@ -3234,7 +3234,7 @@ function renderReservationCalendar(){
 async function loadUsersFromSupabase(){
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, role, position, contact, active, created_at, id_verified, id_image_url, face_image_url, license_image_url')
+    .select('id, name, role, position, contact, address, active, created_at, id_verified, id_image_url, face_image_url, license_image_url')
     .order('created_at', { ascending: false });
   if(error){ console.error('Hindi makuha ang users:', error.message); return; }
   usersCache = data;
