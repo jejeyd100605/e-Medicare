@@ -643,12 +643,11 @@ async function fetchRequestsFromSupabase() {
 
 
 
-
-    let query = supabase.from('emergency_requests').select('*')
-        .neq('type', 'Medical Assistance')
-        .neq('type', 'Transpo')
-        .order('created_at', { ascending: false });
-    if (!crossBarangay && CURRENT_RESPONDER?.jurisdiction) {
+let query = supabase.from('emergency_requests')
+    .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
+    .neq('type', 'Medical Assistance')
+    .neq('type', 'Transpo')
+    .order('created_at', { ascending: false });{
         query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);
     }
 
@@ -702,10 +701,12 @@ function normalizeIncident(row) {
         serviceType: row.service_type || row.category || 'Emergency Response',
         description: row.description || 'No details supplied.',
         sender: row.sender || row.patient_name || 'Resident',
-        patientName: row.patient_name || row.sender || 'Resident',
+        patientName: row.patient_name || row.sender?.name || 'Resident',
         patientAge: row.patient_age || 'Not provided',
         patientSex: row.patient_sex || 'Not provided',
-        timestamp: formatDateTime(row.created_at),
+        patientContact: row.sender?.contact || 'Not provided',
+        patientAddress: row.sender?.address || 'Not provided',
+         timestamp: formatDateTime(row.created_at),
         createdAt: row.created_at,
         acceptedAt: row.accepted_at || null,
         arrivedAt: row.arrived_at || null,
