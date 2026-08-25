@@ -10,6 +10,30 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <link rel="stylesheet" href="../css/login.css">
     <link rel="manifest" href="/manifest.json">
     <style>
@@ -28,9 +52,45 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <div class="loading-screen" id="loadingScreen">
         <div class="logo-inner-circle"><img src="../assets/LOGO.png" alt="e-Medicare Logo"></div> <h1 class="brand-name">e-Medicare</h1> <p class="tagline">A Smart Medical Assistance Request System</p>
         <div class="yellow-line"></div> <div id="timer" class="timer-text">3</div> </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -41,6 +101,54 @@
         <button class="btn-block" onclick="verifyMpin()">Unlock Account</button> <div style="margin-top:10px;">
             <span class="text-link" onclick="forgotMpin()" style="color:#d9534f; margin-right:15px;">Forgot MPIN?</span> <span class="text-link" onclick="showForm('login')">Switch Account</span> </div>
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -71,6 +179,30 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <div id="signupForm" class="hidden">
             <h2 style="color:#621a19; margin-bottom:20px;">Sign Up</h2>
             <form onsubmit="handleSignup(event)"> <input type="text" class="input-field" id="regFirstName" placeholder="First Name" required>
@@ -80,7 +212,28 @@
 
 
 
-                <input type="email" class="input-field" id="regEmail" placeholder="Email Address" required>
+
+
+
+
+
+
+
+
+
+
+
+
+                                <input type="email" class="input-field" id="regEmail" placeholder="Email Address" required>
+
+
+                <input type="tel" class="input-field" id="regContactNo" placeholder="Contact No." required>
+
+
+                <input type="text" class="input-field" id="regAddress" placeholder="Address" required>
+
+
+                <input type="text" class="input-field" id="regRoleDisplay" value="Resident" disabled style="background:#f0f0f0; color:#666;">
 
 
 <div style="position:relative; margin-bottom:15px;">
@@ -97,15 +250,9 @@
 </div>
 
 
-<select class="input-field" id="regRole" required>
-    <option value="" disabled>Select Role</option>
-    <option value="resident" selected>Resident</option>
-</select>
                 <button type="submit" class="btn-block">Create Account</button> </form>
             <p class="text-link" onclick="showForm('login')">Back to Login</p> </div>
     </div>
-
-
 
 
 
@@ -148,6 +295,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <div id="idConsentOverlay" class="auth-card hidden" style="position: absolute; z-index: 2155; text-align:left;">
         <h2 style="color:#621a19; text-align:center;">Data Privacy Notice</h2>
         <p style="color:#666; font-size:13px; margin:15px 0; line-height:1.6; max-height:180px; overflow-y:auto; padding-right:5px;">
@@ -171,9 +330,33 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <div id="idCaptureOverlay" class="auth-card hidden" style="position: absolute; z-index: 2160;">
     <h2 style="color:#621a19;">ID Verification</h2>
     <p id="idCameraStatus" style="color:#666; font-size:14px; margin-bottom:15px;">Position your ID inside the frame</p>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -186,7 +369,31 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <button class="btn-block" id="captureIdBtn" onclick="captureIdPhoto()">Capture ID</button>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -195,6 +402,18 @@
         <p id="idMatchStatus" style="font-weight:600; margin-bottom:8px;"></p>
         <p id="idExtractedText" style="color:#666; font-size:12px; word-break:break-word;"></p>
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -208,9 +427,33 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <div id="setMpinOverlay" class="auth-card hidden" style="position: absolute; z-index: 2000;">
     <h2 style="color:#621a19;">Setup MPIN</h2>
     <p style="color:#666; font-size:14px; margin-bottom:15px;">Create your security PIN</p>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -225,8 +468,32 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <button type="button" class="btn-block" onclick="saveAccount()">Complete registration</button>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -241,6 +508,10 @@
 </script>
  </body>
 </html>
+
+
+
+
 
 
 

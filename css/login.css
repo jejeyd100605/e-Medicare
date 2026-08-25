@@ -12,6 +12,30 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* BODY - Full screen dark red gradient background (eMedicare brand color) */
 body {
     font-family: 'Segoe UI', Roboto, sans-serif; /* Modern, readable font */
@@ -20,6 +44,30 @@ body {
     display: flex; justify-content: center; align-items: center; /* Centers auth card */
     overflow: hidden; /* No scrollbars */
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -44,9 +92,45 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .loading-screen.hidden {
     opacity: 0; visibility: hidden; /* Fade effect when hidden */
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -62,11 +146,47 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .logo-inner-circle img {
     width: 100%; height: auto;
     object-fit: contain; /* Logo maintains aspect ratio */
     background-color: transparent !important;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -89,11 +209,59 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* TAGLINE - Subtitle below logo */
 .tagline {
     color: white; font-size: 1.1rem; margin-bottom: 35px;
     font-weight: 500; text-align: center; opacity: 0.9;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -115,11 +283,59 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* COUNTDOWN TIMER */
 .timer-text {
     color: white; font-size: 1.8rem; font-weight: bold;
     text-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -136,6 +352,30 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.4); /* Deep shadow */
     text-align: center;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -161,10 +401,58 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* PIN INPUT CONTAINER - 4 boxes side-by-side */
 .pin-container {
     display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -187,11 +475,59 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* REGULAR INPUT FIELDS (Email, Password, Name) */
 .input-field {
     width: 100%; padding: 12px 15px;
     border: 2px solid #ddd; border-radius: 10px; margin-bottom: 15px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -214,9 +550,57 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .btn-block:hover {
     background: #621a19; /* Darker red on hover */
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -238,8 +622,42 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* HIDE ELEMENTS (login/signup toggle) */
 .hidden { display: none !important; }
+
+
+
+
+
+
+
+
+
+
 
 
 

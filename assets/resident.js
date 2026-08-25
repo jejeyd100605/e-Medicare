@@ -7,7 +7,31 @@ const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -31,10 +55,46 @@ let reverifyIdBlob = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // NOTIFICATION BELL — nagpapakita ng mga update tungkol sa requests
 // ==========================================================================
 let notificationsCache = [];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -51,10 +111,34 @@ async function loadNotifications(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(error){ console.error('Hindi makuha ang notifications:', error.message); return; }
     notificationsCache = data || [];
     renderNotifications();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -70,10 +154,34 @@ function notifTimeAgo(iso){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function renderNotifications(){
     const list = document.getElementById('notifList');
     const badge = document.getElementById('notifBadge');
     if(!list) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -91,10 +199,34 @@ function renderNotifications(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(notificationsCache.length === 0){
         list.innerHTML = '<div class="notif-empty">Wala ka pang notifications.</div>';
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -107,6 +239,18 @@ function renderNotifications(){
         </div>
     `).join('');
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -127,12 +271,48 @@ function toggleNotifMenu(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 document.addEventListener('click', () => {
     const menu = document.getElementById('notifDropdown');
     const overlay = document.getElementById('notifOverlay');
     if (menu) menu.classList.remove('show');
     if (overlay) overlay.classList.remove('show');
 });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -144,8 +324,32 @@ async function markNotifRead(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
     if(error){ console.error('Hindi na-mark as read:', error.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -157,10 +361,34 @@ async function markNotifRead(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function markAllNotifsRead(e){
     e.preventDefault();
     e.stopPropagation();
     if(!currentUserId) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -174,7 +402,31 @@ async function markAllNotifsRead(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(error){ console.error('Hindi na-mark all as read:', error.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -182,6 +434,18 @@ async function markAllNotifsRead(e){
     notificationsCache.forEach(n => n.read = true);
     renderNotifications();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -201,10 +465,34 @@ function subscribeNotificationsRealtime(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // COMMUNITY ADVISORIES — broadcast mula sa Admin, may "unread" indicator
 // ==========================================================================
 let advisoriesCache = [];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -219,11 +507,35 @@ async function loadAdvisories(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(error){ console.error('Hindi makuha ang advisories:', error.message); return; }
     advisoriesCache = data || [];
     renderAdvisories();
     updateAdvisoryBadge();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -235,10 +547,34 @@ function renderAdvisories(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(advisoriesCache.length === 0){
         wrap.innerHTML = '<div style="text-align:center;color:#999;padding:20px;font-size:0.85rem;">Wala pang advisories na na-post.</div>';
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -255,10 +591,34 @@ function renderAdvisories(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function getLastSeenAdvisoryTime(){
     if(!currentUserId) return null;
     return localStorage.getItem('advisory_last_seen_' + currentUserId);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -274,6 +634,18 @@ function updateAdvisoryBadge(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function markAdvisoriesSeen(){
     if(!currentUserId || advisoriesCache.length === 0) return;
     localStorage.setItem('advisory_last_seen_' + currentUserId, advisoriesCache[0].created_at);
@@ -283,10 +655,34 @@ function markAdvisoriesSeen(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function openAdvisories(){
     switchView('advisories-view');
     markAdvisoriesSeen();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -308,6 +704,18 @@ async function loadUserProfile() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    if (!session) {
     window.location.href = '/pages/login.html';
     return;
@@ -316,7 +724,31 @@ async function loadUserProfile() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     currentUserId = session.user.id;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -330,10 +762,34 @@ async function loadUserProfile() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (error || !profile) {
         console.error('Hindi makuha ang profile:', error?.message);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -349,9 +805,33 @@ async function loadUserProfile() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     document.getElementById('userName').textContent = profile.name;
     document.getElementById('welcomeName').textContent = profile.name;
     document.getElementById('userSessionInfo').textContent = session.user.email;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -360,6 +840,18 @@ async function loadUserProfile() {
         const { data: signedUrlData, error: signedUrlError } = await supabase.storage
             .from('face-images')
             .createSignedUrl(profile.face_image_url, 3600);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -382,12 +874,21 @@ loadRequestHistory();
 }
 
 
+
+
+
+
+
+
 // ==========================================================================
 // VERIFICATION STATUS — makikita sa Account Session dropdown
 // ==========================================================================
 function renderVerificationStatus() {
     const el = document.getElementById('verificationStatus');
     if (!el) return;
+
+
+
 
     if (currentUserVerified) {
         el.innerHTML = '<span style="color:#2E7D32;"><i class="fas fa-circle-check"></i> ID Verified</span>';
@@ -404,6 +905,9 @@ function renderVerificationStatus() {
     }
 }
 
+
+
+
 function openVerificationHelp() {
     if (currentUserRejected) {
         alert('❌ Na-reject ang iyong ID verification.\n\nDahilan: ' + (currentUserRejectReason || 'Malabo o hindi malinaw.') + '\n\nMag-submit ulit ng malinaw na selfie at ID.');
@@ -412,6 +916,9 @@ function openVerificationHelp() {
     }
     openReVerification();
 }
+
+
+
 
 // ==========================================================================
 // ID VERIFICATION GATE — kailangan ma-verify muna ang ID bago makapag-submit
@@ -437,11 +944,35 @@ let fleetCacheResident = [];
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 const RESIDENT_STATUS_COLORS = {
     'Available': '#00c853',
     'On Duty': '#ff9100',
     'Unavailable': '#e53935'
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -458,11 +989,35 @@ const RESIDENT_TYPE_ICONS = {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function loadFleetStatusForResident() {
     const { data, error } = await supabase
         .from('fleet')
         .select('id, name, type, status')
         .order('name', { ascending: true });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -475,9 +1030,33 @@ async function loadFleetStatusForResident() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     fleetCacheResident = data || [];
     renderResidentFleetStatus();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -487,6 +1066,18 @@ function renderResidentFleetStatus() {
     const countEl = document.getElementById('responderCount');
     const statusEl = document.getElementById('ambulanceStatus');
     if (!listEl) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -501,8 +1092,32 @@ function renderResidentFleetStatus() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const activeResponders = personnel.filter(p => p.status !== 'Unavailable').length;
     if (countEl) countEl.textContent = activeResponders;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -525,10 +1140,34 @@ function renderResidentFleetStatus() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (vehicles.length === 0) {
         listEl.innerHTML = '<div style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">Walang naka-rehistrong sasakyan sa ngayon.</div>';
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -551,6 +1190,18 @@ function renderResidentFleetStatus() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function subscribeFleetRealtimeResident() {
     supabase
         .channel('resident-fleet-changes')
@@ -559,6 +1210,30 @@ function subscribeFleetRealtimeResident() {
         })
         .subscribe();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -580,6 +1255,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // PROFILE DROPDOWN NAVIGATION
 // ==========================================================================
@@ -592,10 +1291,34 @@ function toggleProfileMenu(e) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 document.addEventListener('click', () => {
     const menu = document.getElementById('profileDropdown');
     if (menu) menu.style.display = 'none';
 });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -607,12 +1330,36 @@ function openChangePasswordModal() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // MODAL CONTROL (para sa firstAidModal at changePasswordModal)
 // ==========================================================================
 function toggleModal(id, show) {
     document.getElementById(id).style.display = show ? 'flex' : 'none';
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -629,6 +1376,18 @@ function switchView(viewId) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function closeView() {
     document.getElementById('dynamic-content-panel-overlay').classList.remove('active');
     stopLocationTracking();
@@ -637,6 +1396,18 @@ function closeView() {
     stopReVerifySelfieCam();
     stopReVerifyIdCam();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -660,8 +1431,32 @@ function selectVehicle(element, type) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     checkVehicleAvailability();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -677,9 +1472,33 @@ const bookedSchedules = [
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function initTranspoForm() {
     const dateInput = document.getElementById('transpoDate');
     const timeInput = document.getElementById('transpoTime');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -694,8 +1513,32 @@ function initTranspoForm() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     dateInput.value = `${yyyy}-${mm}-${dd}`;
     timeInput.value = `${hh}:${min}`;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -705,7 +1548,31 @@ function initTranspoForm() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     checkVehicleAvailability();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -716,13 +1583,43 @@ function initTranspoForm() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     startTranspoCooldownWatcher();
+
+
+
+
+
+
 
 
     // BAGO — i-refresh ang custom draggable scrollbar ng hotline numbers,
     // dahil kaka-lantad lang ng panel na ito kaya tamang-tama na ang laki
     setTimeout(() => { if (updateHotlineScrollbar) updateHotlineScrollbar(); }, 50);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -735,6 +1632,18 @@ function checkVehicleAvailability() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (!date || !time) {
         msg.innerHTML = '<i class="fas fa-calendar-alt"></i> <strong>Availability:</strong> Pumili ng Date at Time.';
         return;
@@ -743,7 +1652,31 @@ function checkVehicleAvailability() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     let allAvailable = true;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -755,6 +1688,18 @@ function checkVehicleAvailability() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const isBooked = bookedSchedules.some(
             (b) => b.vehicle === vehicleType && b.date === date && b.time === time
         );
@@ -762,9 +1707,33 @@ function checkVehicleAvailability() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         if (isBooked) {
             dot.style.background = '#e53935';
             allAvailable = false;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -780,10 +1749,34 @@ function checkVehicleAvailability() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (allAvailable) {
         msg.innerHTML = '<i class="fas fa-calendar-check"></i> <strong>Availability:</strong> Lahat ng sasakyan ay <strong>Available</strong> sa piniling petsa at oras.';
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -807,9 +1800,33 @@ async function checkTranspoCooldown() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (!data || data.length === 0) {
         return { allowed: true };
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -818,6 +1835,18 @@ async function checkTranspoCooldown() {
     const now = new Date();
     const diffMs = now - lastRequestTime;
     const oneHourMs = 60 * 60 * 1000;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -831,13 +1860,49 @@ async function checkTranspoCooldown() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     return { allowed: true };
 }
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 let transpoCooldownInterval = null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -850,7 +1915,31 @@ async function updateTranspoCooldownUI() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (!msgBox || !submitBtn) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -872,8 +1961,32 @@ async function updateTranspoCooldownUI() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function startTranspoCooldownWatcher() {
     updateTranspoCooldownUI();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -885,12 +1998,36 @@ function startTranspoCooldownWatcher() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function stopTranspoCooldownWatcher() {
     if (transpoCooldownInterval) {
         clearInterval(transpoCooldownInterval);
         transpoCooldownInterval = null;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -907,6 +2044,18 @@ function resetTranspoForm() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     document.querySelectorAll('.vehicle-card').forEach((card, index) => {
         card.style.border = index === 0 ? '2px solid #0091ea' : '1px solid #eee';
         card.style.background = index === 0 ? '#f0f7ff' : '#fff';
@@ -914,6 +2063,18 @@ function resetTranspoForm() {
         card.querySelector('i').style.color = index === 0 ? '#0091ea' : '#666';
     });
     document.getElementById('selectedVehicleType').value = 'PTV';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -932,8 +2093,32 @@ function resetTranspoForm() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     checkVehicleAvailability();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -948,9 +2133,33 @@ let emergencyWatchId = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function getLocation() {
     const input = document.getElementById('emergencyLocation');
     const status = document.getElementById('mapStatus');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -964,8 +2173,32 @@ function getLocation() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     input.value = 'Detecting exact coordinates...';
     status.innerHTML = '<i class="fas fa-satellite-dish"></i> Kumukuha ng mabilis na estimate...';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -973,6 +2206,18 @@ function getLocation() {
     if (emergencyWatchId !== null) {
         navigator.geolocation.clearWatch(emergencyWatchId);
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -994,6 +2239,18 @@ function getLocation() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     // HAKBANG 2 — patuloy na hinahanap ang eksaktong GPS fix sa background
     emergencyWatchId = navigator.geolocation.watchPosition(
         (pos) => {
@@ -1003,8 +2260,32 @@ function getLocation() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             input.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
             status.innerHTML = `<i class="fas fa-circle-check" style="color:#2E7D32;"></i> Live location — updated ${new Date().toLocaleTimeString('en-PH')}`;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1025,9 +2306,33 @@ function getLocation() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function initOrUpdateMap(lat, lng) {
     if (!emergencyMap) {
         emergencyMap = L.map('emergencyMap').setView([lat, lng], 17);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1036,6 +2341,18 @@ function initOrUpdateMap(lat, lng) {
             attribution: '&copy; OpenStreetMap contributors',
             maxZoom: 19
         }).addTo(emergencyMap);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1049,6 +2366,18 @@ function initOrUpdateMap(lat, lng) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         emergencyMarker = L.marker([lat, lng], { icon: pulseIcon }).addTo(emergencyMap);
     } else {
         emergencyMarker.setLatLng([lat, lng]);
@@ -1056,6 +2385,18 @@ function initOrUpdateMap(lat, lng) {
         setTimeout(() => emergencyMap.invalidateSize(), 200);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1074,6 +2415,30 @@ function stopLocationTracking() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // REQUEST TRACKING MODAL — progress stepper + live ETA para sa resident
 // ==========================================================================
@@ -1082,7 +2447,31 @@ let activeTrackingRequestId = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 const RESIDENT_STEP_ORDER = ['Sent', 'Assigned', 'In Transit', 'Arrived', 'Completed'];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1094,6 +2483,18 @@ function residentStepIndex(status) {
     if (status === 'Pending') return 0;
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1113,10 +2514,34 @@ function residentGetCurrentEta(req) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function residentShortTime(value) {
     if (!value) return '';
     return new Date(value).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1126,6 +2551,18 @@ function openTrackingModal(id) {
     const req = residentRequestsCache.find(r => String(r.id) === String(id));
     const body = document.getElementById('trackingModalBody');
     if (!req || !body) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1145,10 +2582,34 @@ function openTrackingModal(id) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const eta = residentGetCurrentEta(req);
     const idx = residentStepIndex(req.status);
     const icons = ['fa-file-alt', 'fa-user-check', 'fa-truck-medical', 'fa-location-dot', 'fa-flag-checkered'];
     const timestamps = [req.created_at, req.accepted_at, req.accepted_at, req.arrived_at, req.completed_at];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1160,10 +2621,34 @@ function openTrackingModal(id) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         <div class="req-eta-box">
             <div class="req-eta-value">${eta.label}</div>
             <small>${eta.sub || 'ETA mula sa responder'}</small>
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1181,8 +2666,32 @@ function openTrackingModal(id) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         ${req.assigned_responder_name ? `<div class="req-info-line"><i class="fas fa-user-doctor"></i> Assigned: <strong>${req.assigned_responder_name}</strong></div>` : ''}
     `;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1193,10 +2702,34 @@ function openTrackingModal(id) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function closeTrackingModal() {
     activeTrackingRequestId = null;
     toggleModal('trackingModal', false);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1220,6 +2753,30 @@ function subscribeRequestsRealtimeResident() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // SUBMIT: EMERGENCY REQUEST
 // ==========================================================================
@@ -1229,9 +2786,33 @@ async function submitRequest(type) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const category = document.getElementById('category').value;
     const desc = document.getElementById('desc').value.trim();
     const location = document.getElementById('emergencyLocation').value;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1248,7 +2829,22 @@ async function submitRequest(type) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    const [latStr, lngStr] = location.split(',').map(s => s.trim());
+
+
+
 
     // BAGO — i-upload muna ang mga na-capture na litrato sa Storage
     // bago mag-insert ng request, tapos isama ang mga path sa payload
@@ -1258,17 +2854,29 @@ async function submitRequest(type) {
         const blob = await (await fetch(dataUrl)).blob();
         const photoPath = `${currentUserId}/${Date.now()}_${i}.jpg`;
 
+
+
+
         const { error: photoUploadError } = await supabase.storage
             .from('emergency-photos')
             .upload(photoPath, blob, { contentType: 'image/jpeg' });
+
+
+
 
         if (photoUploadError) {
             alert('Hindi na-upload ang litrato: ' + photoUploadError.message);
             return;
         }
 
+
+
+
         uploadedPhotoPaths.push(photoPath);
     }
+
+
+
 
     const { error } = await supabase.from('emergency_requests').insert({
         sender_id: currentUserId,
@@ -1288,10 +2896,34 @@ async function submitRequest(type) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         alert('Hindi naipadala ang request: ' + error.message);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1304,8 +2936,26 @@ async function submitRequest(type) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     document.getElementById('desc').value = '';
     document.getElementById('category').selectedIndex = 0;
+
+
+
+
+
+
 
 
     // BAGO — i-clear ang mga nakuhang litrato para sa susunod na
@@ -1314,9 +2964,21 @@ async function submitRequest(type) {
     updateEmergencyCamBadge();
 
 
+
+
+
+
+
+
     closeView();
     loadRequestHistory();
 }
+
+
+
+
+
+
 
 
 // ==========================================================================
@@ -1328,11 +2990,35 @@ async function submitTranspo() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const cooldown = await checkTranspoCooldown();
     if (!cooldown.allowed) {
         alert(`Isang Transpo request lang ang puwede kada oras. Maghintay pa ng ${cooldown.remainingMinutes} minuto bago muling magsubmit.`);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1348,10 +3034,34 @@ async function submitTranspo() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (!date || !time || !pickup || !destination) {
         alert('Kumpletuhin ang Date, Time, Pickup, at Destination.');
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1362,6 +3072,18 @@ async function submitTranspo() {
     // "Transport Queue" tab ito lumabas, na bumabasa sa hiwalay na
     // 'transport_requests' table.
     const scheduleTime = new Date(`${date}T${time}`).toISOString();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1381,10 +3103,34 @@ async function submitTranspo() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         alert('Hindi naipadala ang request: ' + error.message);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1399,6 +3145,18 @@ async function submitTranspo() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // SUBMIT: MEDICAL ASSISTANCE REQUEST
 // ==========================================================================
@@ -1408,9 +3166,33 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const type = document.getElementById('assistType').value;
     const docs = document.getElementById('assistDocs').files;
     const details = document.getElementById('assistDetails').value.trim();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1427,6 +3209,18 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    const ASSIST_TYPE_FOLDERS = {
         'Medicine Assistance': 'medicine-assistance',
         'Hospital Bill': 'hospital-bill',
@@ -1437,7 +3231,31 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const uploadedPaths = [];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1449,9 +3267,33 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const { error: uploadError } = await supabase.storage
             .from('medical-documents')
             .upload(filePath, file);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1464,8 +3306,32 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         uploadedPaths.push(filePath);
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1493,6 +3359,18 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         alert('Hindi naipadala ang request: ' + error.message);
         return;
@@ -1501,7 +3379,31 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     alert('Medical assistance request sent!');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1513,9 +3415,33 @@ async function submitMedicalRequest() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     closeView();
     loadRequestHistory();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1528,8 +3454,32 @@ let residentRequestsCache = [];
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function loadRequestHistory() {
     if (!currentUserId) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1543,10 +3493,34 @@ async function loadRequestHistory() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         console.error('Hindi makuha ang history:', error.message);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1556,8 +3530,32 @@ async function loadRequestHistory() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const tbody = document.getElementById('requestHistory');
     tbody.innerHTML = '';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1570,6 +3568,18 @@ async function loadRequestHistory() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     residentRequestsCache.forEach((req) => {
         const dateStr = new Date(req.created_at).toLocaleDateString('en-PH') + ' ' +
                          new Date(req.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
@@ -1577,7 +3587,31 @@ async function loadRequestHistory() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const statusClass = req.status.toLowerCase().replace(' ', '');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1597,9 +3631,27 @@ async function loadRequestHistory() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (activeTrackingRequestId) {
         openTrackingModal(activeTrackingRequestId);
     }
+
+
+
+
+
+
 
 
     // BAGO — i-refresh ang custom draggable scrollbars ng table (parehong
@@ -1614,6 +3666,18 @@ async function loadRequestHistory() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // FIRST AID GUIDES
 // BAGO — bawat guide ay may kompletong step-by-step na instructions na,
@@ -1621,6 +3685,18 @@ async function loadRequestHistory() {
 // emergency hotline, para hindi ito makaligtaan ng residente.
 // ==========================================================================
 const EMERGENCY_HOTLINES_TEXT = '0969-422-4180 (Punong Barangay) · 0931-006-8118 (MHO-RHU) · 0951-836-0294 / 0955-288-2055 (MDRRMO)';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1679,6 +3755,18 @@ const firstAidGuides = [
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function openGuideList() {
     const list = document.getElementById('guideList');
     list.innerHTML = '';
@@ -1690,6 +3778,18 @@ function openGuideList() {
         list.appendChild(item);
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1710,6 +3810,18 @@ function showFirstAidGuide(guide) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // LOGOUT
 // ==========================================================================
@@ -1724,6 +3836,18 @@ function logout() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // CHANGE PASSWORD
 // ==========================================================================
@@ -1731,6 +3855,18 @@ async function submitChangePassword() {
     const current = document.getElementById('currentPassword').value;
     const newPass = document.getElementById('newPassword').value;
     const confirmPass = document.getElementById('confirmPassword').value;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1751,7 +3887,31 @@ async function submitChangePassword() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const { error } = await supabase.auth.updateUser({ password: newPass });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1764,9 +3924,33 @@ async function submitChangePassword() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     alert('Password updated successfully!');
     toggleModal('changePasswordModal', false);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1781,6 +3965,18 @@ let sosHoldTimeout = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function initSOSHoldButton() {
     const btn = document.getElementById('sosFloatingBtn');
     const label = document.getElementById('sosBtnLabel');
@@ -1789,7 +3985,31 @@ function initSOSHoldButton() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     btn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1801,9 +4021,33 @@ function initSOSHoldButton() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         btn.classList.add('holding');
         if (label) label.textContent = 'Keep holding...';
         if (navigator.vibrate) navigator.vibrate(50);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1816,7 +4060,31 @@ function initSOSHoldButton() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1824,6 +4092,18 @@ function initSOSHoldButton() {
             handleSOSCall();
         }, SOS_HOLD_DURATION);
     };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1840,11 +4120,35 @@ function initSOSHoldButton() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     btn.addEventListener('pointerdown', startHold);
     btn.addEventListener('pointerup', cancelHold);
     btn.addEventListener('pointerleave', cancelHold);
     btn.addEventListener('pointercancel', cancelHold);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1856,10 +4160,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // SOS EMERGENCY CALL — instant panic button, auto-submit sa database
 // ==========================================================================
 let sosCooldownActive = false;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1879,6 +4207,18 @@ async function handleSOSCall() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const sosBtn = document.getElementById('sosFloatingBtn');
     if (sosBtn) {
         sosBtn.disabled = true;
@@ -1890,7 +4230,31 @@ async function handleSOSCall() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     let lat = null, lng = null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1916,6 +4280,18 @@ async function handleSOSCall() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const { error } = await supabase.from('emergency_requests').insert({
         sender_id: freshUserId,
         type: 'SOS',
@@ -1929,6 +4305,18 @@ async function handleSOSCall() {
         jurisdiction: currentUserBarangay,
         urgency: 'Urgent'
     });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1948,6 +4336,18 @@ async function handleSOSCall() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     setTimeout(() => {
         sosCooldownActive = false;
         if (sosBtn) {
@@ -1957,6 +4357,18 @@ async function handleSOSCall() {
         }
     }, 5000);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1973,6 +4385,24 @@ function showInstantAlertToast(title, subtitle) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // EMERGENCY LIVE CAMERA — para lang sa Emergency Request
 // BAGO — multiple captures na, at may preview/validation step bago
@@ -1983,14 +4413,32 @@ let capturedEmergencyPhotos = [];   // array ng mga na-accept na litrato (base64
 let pendingCapturedPhoto = null;    // yung kaka-kuha lang, hindi pa na-accept/na-retake
 
 
+
+
+
+
+
+
 async function openEmergencyCamera() {
     const video = document.getElementById('cameraVideo');
     const status = document.getElementById('cameraStatus');
 
 
+
+
+
+
+
+
     toggleModal('cameraModal', true);
     showCameraLiveView();
     status.textContent = 'Ino-open ang camera...';
+
+
+
+
+
+
 
 
     try {
@@ -2007,6 +4455,12 @@ async function openEmergencyCamera() {
 }
 
 
+
+
+
+
+
+
 function stopEmergencyCameraStream() {
     if (emergencyCameraStream) {
         emergencyCameraStream.getTracks().forEach(track => track.stop());
@@ -2017,10 +4471,22 @@ function stopEmergencyCameraStream() {
 }
 
 
+
+
+
+
+
+
 function showCameraLiveView() {
     document.getElementById('cameraLiveView').style.display = 'block';
     document.getElementById('cameraPreviewView').style.display = 'none';
 }
+
+
+
+
+
+
 
 
 function closeCameraModal() {
@@ -2032,6 +4498,12 @@ function closeCameraModal() {
 }
 
 
+
+
+
+
+
+
 // Kuha ng frame mula sa live video -> ipapakita muna bilang PREVIEW,
 // hindi na diretso ma-a-accept — dito ma-validate kung malinaw
 function capturePhoto() {
@@ -2039,7 +4511,19 @@ function capturePhoto() {
     const canvas = document.getElementById('cameraCanvas');
 
 
+
+
+
+
+
+
     if (!video.videoWidth) return; // hindi pa ready ang camera feed
+
+
+
+
+
+
 
 
     canvas.width = video.videoWidth;
@@ -2047,13 +4531,31 @@ function capturePhoto() {
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
 
+
+
+
+
+
+
     pendingCapturedPhoto = canvas.toDataURL('image/jpeg', 0.85);
+
+
+
+
+
+
 
 
     document.getElementById('capturedPreviewImg').src = pendingCapturedPhoto;
     document.getElementById('cameraLiveView').style.display = 'none';
     document.getElementById('cameraPreviewView').style.display = 'block';
 }
+
+
+
+
+
+
 
 
 // Blurred/mali ang kinuha -> balik sa live camera, i-discard ang pending
@@ -2063,26 +4565,62 @@ function retakeCurrentPhoto() {
 }
 
 
+
+
+
+
+
+
 // Malinaw ang litrato -> idagdag sa list ng accepted photos
 function acceptCurrentPhoto() {
     if (!pendingCapturedPhoto) return;
+
+
+
+
+
+
 
 
     capturedEmergencyPhotos.push(pendingCapturedPhoto);
     pendingCapturedPhoto = null;
 
 
+
+
+
+
+
+
     renderCapturedThumbs();
     showCameraLiveView(); // balik agad sa live view kung sakaling kukuha pa ng isa
+
+
+
+
+
+
 
 
     document.getElementById('donePhotosBtn').style.display = 'block';
 }
 
 
+
+
+
+
+
+
 function startAnotherCapture() {
     showCameraLiveView();
 }
+
+
+
+
+
+
 
 
 function renderCapturedThumbs() {
@@ -2091,8 +4629,20 @@ function renderCapturedThumbs() {
     const count = capturedEmergencyPhotos.length;
 
 
+
+
+
+
+
+
     document.getElementById('capturedCount').textContent = count;
     document.getElementById('doneBtnCount').textContent = count;
+
+
+
+
+
+
 
 
     // BAGO — laging naka-sync ang green badge sa totoong bilang ng
@@ -2100,11 +4650,23 @@ function renderCapturedThumbs() {
     updateEmergencyCamBadge();
 
 
+
+
+
+
+
+
     if (count === 0) {
         wrap.style.display = 'none';
         thumbs.innerHTML = '';
         return;
     }
+
+
+
+
+
+
 
 
     wrap.style.display = 'block';
@@ -2118,10 +4680,22 @@ function renderCapturedThumbs() {
 }
 
 
+
+
+
+
+
+
 // Tinanggal ang isang litrato mula sa list (pinindot ang X sa thumbnail)
 function removeCapturedPhoto(index) {
     capturedEmergencyPhotos.splice(index, 1);
     renderCapturedThumbs(); // ito na ang bahalang mag-update ulit ng thumbnails at badge
+
+
+
+
+
+
 
 
     // kung naubos na lahat ng litrato, itago na rin yung "Magdagdag"
@@ -2130,6 +4704,12 @@ function removeCapturedPhoto(index) {
         document.getElementById('donePhotosBtn').style.display = 'none';
     }
 }
+
+
+
+
+
+
 
 
 // BAGO — hiwalay na function para ligtas itong tawagin kahit saan
@@ -2143,10 +4723,22 @@ function updateEmergencyCamBadge() {
 }
 
 
+
+
+
+
+
+
 function finishEmergencyCamera() {
     updateEmergencyCamBadge();
     closeCameraModal();
 }
+
+
+
+
+
+
 
 
 // ==========================================================================
@@ -2164,16 +4756,34 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
     if (!wrap || !track || !thumb) return null;
 
 
+
+
+
+
+
+
     const isH = orientation !== 'vertical';
     let isDragging = false;
     let startPos = 0;
     let startScroll = 0;
 
 
+
+
+
+
+
+
     function updateThumb() {
         const trackSize = isH ? track.clientWidth : track.clientHeight;
         const scrollSize = isH ? wrap.scrollWidth : wrap.scrollHeight;
         const clientSize = isH ? wrap.clientWidth : wrap.clientHeight;
+
+
+
+
+
+
 
 
         // kung kasya naman lahat, itago na lang ang custom scrollbar
@@ -2184,12 +4794,24 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
         track.style.display = 'block';
 
 
+
+
+
+
+
+
         const thumbSize = Math.max((clientSize / scrollSize) * trackSize, 30);
         const maxThumbPos = trackSize - thumbSize;
         const maxScroll = scrollSize - clientSize;
         const scrollVal = isH ? wrap.scrollLeft : wrap.scrollTop;
         const ratio = maxScroll > 0 ? scrollVal / maxScroll : 0;
         const thumbPos = ratio * maxThumbPos;
+
+
+
+
+
+
 
 
         if (isH) {
@@ -2202,12 +4824,24 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
     }
 
 
+
+
+
+
+
+
     function onDragStart(pos) {
         isDragging = true;
         startPos = pos;
         startScroll = isH ? wrap.scrollLeft : wrap.scrollTop;
         thumb.style.cursor = 'grabbing';
     }
+
+
+
+
+
+
 
 
     function onDragMove(pos) {
@@ -2221,8 +4855,20 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
         if (maxThumbPos <= 0) return;
 
 
+
+
+
+
+
+
         const delta = pos - startPos;
         const deltaScroll = (delta / maxThumbPos) * maxScroll;
+
+
+
+
+
+
 
 
         if (isH) wrap.scrollLeft = startScroll + deltaScroll;
@@ -2230,10 +4876,22 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
     }
 
 
+
+
+
+
+
+
     function onDragEnd() {
         isDragging = false;
         thumb.style.cursor = 'grab';
     }
+
+
+
+
+
+
 
 
     // MOUSE — i-click at i-drag ang thumb (desktop)
@@ -2245,6 +4903,12 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
     document.addEventListener('mouseup', onDragEnd);
 
 
+
+
+
+
+
+
     // TOUCH — i-tap at i-drag ang thumb (mobile)
     thumb.addEventListener('touchstart', (e) => {
         onDragStart(isH ? e.touches[0].clientX : e.touches[0].clientY);
@@ -2253,6 +4917,12 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
         if (isDragging) onDragMove(isH ? e.touches[0].clientX : e.touches[0].clientY);
     }, { passive: true });
     document.addEventListener('touchend', onDragEnd);
+
+
+
+
+
+
 
 
     // I-click ang track (hindi mismo ang thumb) — jump-scroll papunta doon
@@ -2272,12 +4942,30 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
     });
 
 
+
+
+
+
+
+
     // I-sync ang custom thumb sa totoong scroll (swipe sa content, atbp)
     wrap.addEventListener('scroll', updateThumb);
     window.addEventListener('resize', updateThumb);
 
 
+
+
+
+
+
+
     updateThumb();
+
+
+
+
+
+
 
 
     // ibalik ang update function para matawag ulit kapag nagbago
@@ -2286,9 +4974,18 @@ function setupDraggableScrollbar(wrapId, trackId, thumbId, orientation) {
 }
 
 
+
+
+
+
+
+
 let updateHotlineScrollbar = null;
 let updateRequestHistoryScrollbarH = null;
 let updateRequestHistoryScrollbarV = null;
+
+
+
 
 function openReVerification(){
     reverifySelfieBlob = null;
@@ -2299,6 +4996,9 @@ function openReVerification(){
     switchView('reverify-view');
     startReVerifySelfieCam();
 }
+
+
+
 
 function startReVerifySelfieCam(){
     const video = document.getElementById('reverifySelfieVideo');
@@ -2313,9 +5013,15 @@ function startReVerifySelfieCam(){
         .catch(err => { status.innerText = 'Hindi ma-access ang camera.'; console.error(err); });
 }
 
+
+
+
 function stopReVerifySelfieCam(){
     if(reverifySelfieStream){ reverifySelfieStream.getTracks().forEach(t => t.stop()); reverifySelfieStream = null; }
 }
+
+
+
 
 function captureReVerifySelfie(){
     const video = document.getElementById('reverifySelfieVideo');
@@ -2333,6 +5039,9 @@ function captureReVerifySelfie(){
     }, 'image/png');
 }
 
+
+
+
 function startReVerifyIdCam(){
     const video = document.getElementById('reverifyIdVideo');
     const status = document.getElementById('reverifyIdStatus');
@@ -2346,9 +5055,15 @@ function startReVerifyIdCam(){
         .catch(err => { status.innerText = 'Hindi ma-access ang camera.'; console.error(err); });
 }
 
+
+
+
 function stopReVerifyIdCam(){
     if(reverifyIdStream){ reverifyIdStream.getTracks().forEach(t => t.stop()); reverifyIdStream = null; }
 }
+
+
+
 
 function captureReVerifyId(){
     const video = document.getElementById('reverifyIdVideo');
@@ -2365,9 +5080,15 @@ function captureReVerifyId(){
     }, 'image/png');
 }
 
+
+
+
 function retakeReVerification(){
     openReVerification();
 }
+
+
+
 
 async function submitReVerification(){
     if(!reverifySelfieBlob || !reverifyIdBlob){
@@ -2375,18 +5096,30 @@ async function submitReVerification(){
         return;
     }
 
+
+
+
     const facePath = `${currentUserId}/face.png`;
     const idPath = `${currentUserId}/id.png`;
+
+
+
 
     const { error: faceErr } = await supabase.storage
         .from('face-images')
         .upload(facePath, reverifySelfieBlob, { upsert: true, contentType: 'image/png' });
     if(faceErr){ alert('Hindi na-upload ang selfie: ' + faceErr.message); return; }
 
+
+
+
     const { error: idErr } = await supabase.storage
         .from('id-images')
         .upload(idPath, reverifyIdBlob, { upsert: true, contentType: 'image/png' });
     if(idErr){ alert('Hindi na-upload ang ID: ' + idErr.message); return; }
+
+
+
 
     const { error: updateErr } = await supabase.from('profiles').update({
         face_image_url: facePath,
@@ -2395,7 +5128,13 @@ async function submitReVerification(){
         id_rejected: false
     }).eq('id', currentUserId);
 
+
+
+
     if(updateErr){ alert('Hindi na-update ang profile: ' + updateErr.message); return; }
+
+
+
 
     alert('✅ Naisumite na ulit ang iyong ID at selfie. Hinihintay na ang review ng Barangay Admin.');
     currentUserRejected = false;
@@ -2405,6 +5144,12 @@ async function submitReVerification(){
 }
 
 
+
+
+
+
+
+
 function initAllCustomScrollbars() {
     updateHotlineScrollbar = setupDraggableScrollbar('hotlineScrollWrap', 'hotlineScrollTrack', 'hotlineScrollThumb', 'horizontal');
     updateRequestHistoryScrollbarH = setupDraggableScrollbar('requestHistoryScrollWrap', 'requestHistoryScrollTrack', 'requestHistoryScrollThumb', 'horizontal');
@@ -2412,7 +5157,17 @@ function initAllCustomScrollbars() {
 }
 
 
+
+
+
+
+
+
 document.addEventListener('DOMContentLoaded', initAllCustomScrollbars);
+
+
+
+
 
 
 

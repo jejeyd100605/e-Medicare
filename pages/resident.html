@@ -23,6 +23,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             <div class="user-nav">
                 <!-- 🔔 NOTIFICATION BELL -->
                 <div class="notif-container" onclick="toggleNotifMenu(event)">
@@ -33,7 +45,31 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
            <div class="notif-overlay" id="notifOverlay" onclick="toggleNotifMenu(event)"></div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -54,6 +90,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                 <div class="profile-container" onclick="toggleProfileMenu(event)">
                     <div class="header-avatar-circle">
                         <img id="userProfilePic" src="/assets/images/default-avatar.png" alt="Profile" class="profile-pic-dash">
@@ -61,6 +109,18 @@
                     <span id="userName" style="font-weight: bold; color: white;">Resident</span>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -84,6 +144,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         <div class="container">
             <div class="welcome-section">
                 <div class="mini-profile-circle">
@@ -99,11 +171,35 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             <div class="card-grid">
                 <div class="card card-red" onclick="switchView('emergency-form'); getLocation();">
                     <span class="card-icon"><i class="fas fa-truck-medical"></i></span>
                     <h3>Emergency Request</h3>
                 </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -116,10 +212,34 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                 <div class="card card-green" onclick="switchView('guide-view'); openGuideList();">
                     <span class="card-icon"><i class="fas fa-square-plus"></i></span>
                     <h3>Emergency Guide</h3>
                 </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -129,6 +249,18 @@
         <h3>Advisories</h3>
         <span id="advisoryCardBadge" style="display:none; position:absolute; top:10px; right:14px; width:12px; height:12px; background:#ff1744; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.4);"></span>
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -145,9 +277,33 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             <div id="dynamic-content-panel-overlay" class="panel-overlay">
                 <div id="dynamic-content-panel" class="panel">
                     <button onclick="closeView()" style="position: absolute; top: 14px; right: 14px; background: #e53935; color: white; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; padding: 0; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">✕</button>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -160,6 +316,18 @@
                             <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">DETECTED GPS LOCATION</label>
                             <input type="text" id="emergencyLocation" class="form-control" placeholder="Detecting exact coordinates..." readonly>
                         </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -178,20 +346,35 @@
                                 <span class="cam-check-badge"></span>
                             </button>
                         </div>
-                        <div class="form-group" style="margin-bottom: 15px;">
+                                                <div class="form-group" style="margin-bottom: 15px;">
                             <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">CATEGORY</label>
-                            <select class="form-control" id="category">
+                            <select class="form-control" id="category" onchange="document.getElementById('othersNote').style.display = (this.value === 'Others') ? 'block' : 'none';">
                                 <option value="Medical Emergency">Medical Emergency</option>
                                 <option value="Accident">Accident / Injury</option>
                                 <option value="Fire Emergency">Fire Emergency</option>
+                                <option value="Others">Others</option>
                             </select>
                         </div>
                         <div class="form-group" style="margin-bottom: 20px;">
                             <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">DETAILS / SITUATION</label>
-                            <textarea class="form-control" id="desc" rows="3" placeholder="I-type rito ang sitwasyon sa lokasyon..."></textarea>
+                            <p id="othersNote" style="display:none; font-size:0.75rem; color:#c62828; font-weight:bold; margin-bottom:8px; background:#ffebee; padding:8px 10px; border-radius:8px; border:1px solid #ffcdd2;">
+                                <i class="fas fa-exclamation-circle"></i> “Others” selected. Please provide more details about your situation below.
+                            <textarea class="form-control" id="desc" rows="3" placeholder="Ilarawan dito ang kasalukuyang sitwasyon o insidente..."></textarea>
                         </div>
                         <button class="btn-submit" style="background: #800000; color: white;" onclick="submitRequest('Emergency')">SEND EMERGENCY ALERT</button>
                     </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -201,6 +384,15 @@
                             <i class="fas fa-car-side"></i> CENTRALIZED TRANSPO REQUEST
                         </h3>
                         <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Centralized request system para sa medical transport ng Barangay.</p>
+
+
+
+
+
+
+
+
+
 
 
 
@@ -229,6 +421,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                         <div id="trackingStatus" style="background: #f0f7ff; border: 1px dashed #0091ea; padding: 15px; border-radius: 15px; margin-bottom: 20px; position: relative;">
                             <label style="font-size: 0.7rem; font-weight: bold; color: #0091ea; text-transform: uppercase;">Request Progress</label>
                             <div style="display: flex; justify-content: space-between; margin-top: 10px; position: relative;">
@@ -248,11 +452,35 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                         <div class="availability-status" style="margin-bottom: 15px; padding: 10px; border-radius: 10px; background: #fff3e0; border: 1px solid #ffe0b2;">
                             <p id="availabilityMsg" style="font-size: 0.75em; color: #e65100; margin: 0;">
                                 <i class="fas fa-calendar-alt"></i> <strong>Availability:</strong> Pumili ng Date at Time para makita ang availability.
                             </p>
                         </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -266,6 +494,18 @@
                                 <option value="Stroke/Special Case">Stroke / Special Medical Case</option>
                             </select>
                         </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -284,10 +524,34 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                         <div class="form-group" style="margin-bottom:12px;">
                             <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">PICKUP LOCATION</label>
                             <input type="text" class="form-control" id="pickupPoint" placeholder="Saan susunduin?">
                         </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -300,6 +564,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                         <div class="form-group" style="margin-bottom:15px;">
                             <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">REASON/REMARKS</label>
                             <textarea class="form-control" id="transpoReason" rows="2" placeholder="Halimbawa: Dialysis, Check-up, etc."></textarea>
@@ -308,8 +584,32 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                         <div id="transpoCooldownMsg" style="display:none; margin-bottom:12px; padding:10px; border-radius:10px; background:#ffebee; border:1px solid #ffcdd2; text-align:center; font-size:0.85rem; color:#c62828; font-weight:bold;"></div>
                         <button class="btn-submit" id="transpoSubmitBtn" style="background:#0091ea; color:white;" onclick="submitTranspo()">SUBMIT TRANSPO REQUEST</button>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -328,11 +628,35 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                     <div id="medical-form" class="resident-view" style="display: none;">
                         <h3 style="color:#ff9800; display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
                             <i class="fas fa-hand-holding-heart"></i> Medical Assistance Request
                         </h3>
                         <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Pakisiguro na kumpleto ang mga sumusunod na dokumento:</p>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -350,9 +674,33 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <p style="font-size:0.75rem; color:#c62828; font-weight:bold; margin:0 0 8px 0; background:#ffebee; padding:8px 10px; border-radius:8px; border:1px solid #ffcdd2;">
             <i class="fas fa-exclamation-circle"></i> Paki-combine po ang LAHAT ng required documents (Medical Certificate, Barangay Indigency, Letter, Valid ID) sa I-ISANG PDF FILE lamang bago i-upload.
         </p>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -369,6 +717,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                     <div class="form-group" style="margin-bottom:12px;">
         <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">UPLOAD DOCUMENTS (Image/PDF)</label>
         <input type="file" class="form-control" id="assistDocs" multiple>
@@ -378,7 +738,31 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <div id="medicalCooldownMsg" style="display:none; margin-bottom:12px; padding:10px; border-radius:10px; background:#ffebee; border:1px solid #ffcdd2; text-align:center; font-size:0.85rem; color:#c62828; font-weight:bold;"></div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -389,12 +773,24 @@
     </div>
 
 
+
+
+
+
+
+
 <button class="btn-submit" style="background:#ff9800; color: #333;" onclick="submitMedicalRequest()">SUBMIT MEDICAL REQUEST</button>
                     </div>
+
+
+
 
                     <div class="resident-view" id="reverify-view" style="display:none;">
                         <h3 style="color:#621a19;">Mag-verify Muli ng ID</h3>
                         <p style="font-size:13px; color:#666; margin-bottom:12px;">Kumuha ng malinaw na selfie, tapos malinaw na larawan ng iyong Valid ID.</p>
+
+
+
 
                         <div id="reverifySelfieStep">
                             <p style="font-size:13px; font-weight:600;">Hakbang 1: Selfie</p>
@@ -406,6 +802,9 @@
                             <button class="primary-btn" style="width:100%;" onclick="captureReVerifySelfie()">Kunin ang Selfie</button>
                         </div>
 
+
+
+
                         <div id="reverifyIdStep" style="display:none;">
                             <p style="font-size:13px; font-weight:600;">Hakbang 2: Valid ID</p>
                             <div style="width:280px; height:180px; margin:0 auto 10px; border-radius:12px; overflow:hidden; border:3px solid #621a19;">
@@ -416,19 +815,43 @@
                             <button class="primary-btn" style="width:100%;" onclick="captureReVerifyId()">Kunin ang ID</button>
                         </div>
 
+
+
+
                         <div id="reverifyConfirmStep" style="display:none; text-align:center;">
                             <p style="color:#2E7D32; font-weight:600;">✅ Kumpleto na ang dalawang litrato.</p>
                             <button class="primary-btn" style="width:100%; background:#2E7D32;" onclick="submitReVerification()">I-submit para sa Review</button>
                             <p class="text-link" onclick="retakeReVerification()">Kunin ulit</p>
                         </div>
 
+
+
+
                         <p class="text-link" onclick="closeView()">Kanselahin</p>
                     </div>
 
+
+
+
                     <div id="guide-view" class="resident-view" style="display: none;">
+
+
+
 
                         <button class="btn-submit" style="background:#ff9800; color: #333;" onclick="submitMedicalRequest()">SUBMIT MEDICAL REQUEST</button>
                     </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -437,6 +860,18 @@
                         <h3 style="color:#2E7D32;"><i class="fas fa-book-medical"></i> First Aid Guides</h3>
                         <div id="guideList" style="margin-top: 15px; max-height: 400px; overflow-y: auto;"></div>
                     </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -450,6 +885,18 @@
                     </div>
                 </div>
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -469,12 +916,24 @@
     </div>
 
 
+
+
+
+
+
+
     <div id="ambulanceList" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
         <div style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">
             <i class="fas fa-spinner fa-spin"></i> Loading fleet status...
         </div>
     </div>
 </div>
+
+
+
+
+
+
 
 
 <!-- 2nd: MY RECENT REQUESTS — pinaikli height at scrollable na -->
@@ -502,12 +961,30 @@
 </div>
 
 
+
+
+
+
+
+
         <div class="modal" id="firstAidModal">
             <div class="modal-content">
                 <div id="firstAidContent"></div>
                 <button class="btn-submit" style="background: #2E7D32; color: white; margin-top: 20px;" onclick="toggleModal('firstAidModal', false)">I UNDERSTAND</button>
             </div>
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -537,11 +1014,29 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         <div class="modal" id="cameraModal">
     <div class="modal-content" style="max-width:420px; padding:1.25rem;">
         <h3 style="color:#800000; display:flex; align-items:center; gap:10px; margin-bottom:15px;">
             <i class="fas fa-camera"></i> Capture Photo Evidence
         </h3>
+
+
+
+
+
+
 
 
         <!-- LIVE CAMERA VIEW -->
@@ -555,6 +1050,12 @@
                 <i class="fas fa-camera"></i> Capture Photo
             </button>
         </div>
+
+
+
+
+
+
 
 
         <!-- PREVIEW — dito nila mave-validate kung malinaw bago tanggapin -->
@@ -576,6 +1077,12 @@
         </div>
 
 
+
+
+
+
+
+
         <!-- THUMBNAILS ng mga na-accept na litrato -->
         <div id="capturedThumbsWrap" style="display:none; margin-top:14px; padding-top:14px; border-top:1px solid #eee;">
             <p style="font-size:0.7rem; font-weight:bold; color:#333; margin-bottom:8px;">
@@ -585,14 +1092,38 @@
         </div>
 
 
+
+
+
+
+
+
         <button class="btn-submit" id="donePhotosBtn" style="display:none; background:#800000; color:white; margin-top:10px;" onclick="finishEmergencyCamera()">
     <i class="fas fa-check-double"></i> Done (<span id="doneBtnCount">0</span>)
 </button>
 
 
+
+
+
+
+
+
         <button class="close-modal" style="background: transparent; border: none; color: #666; width: 100%; margin-top: 10px; cursor: pointer;" onclick="closeCameraModal()">CANCEL</button>
     </div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -610,6 +1141,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
       <button id="sosFloatingBtn" class="floating-emergency-btn">
     <span class="sos-progress" id="sosProgressFill"></span>
     <i class="fas fa-phone-alt"></i>
@@ -619,10 +1162,34 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         <div id="instantAlertToast" style="display:none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #d32f2f; color: white; padding: 20px; border-radius: 15px; z-index: 10000; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; border: 2px solid white;">
             🚨 EMERGENCY ALERT SENT! <br>
             <small style="font-weight: normal;">Officials have been notified. Stay calm.</small>
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -636,6 +1203,10 @@
         </script>
     </body>
     </html>
+
+
+
+
 
 
 

@@ -9,9 +9,33 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 html, body {
     overflow-x: hidden;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -21,6 +45,18 @@ body {
     color: #333;
     line-height: 1.5;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -39,10 +75,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .header h1 {
     font-size: 1.5rem;
     font-weight: bold;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -53,6 +113,18 @@ body {
     align-items: center;
     gap: 6px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -70,9 +142,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .profile-container:hover {
     background: rgba(255,255,255,0.15);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -91,11 +187,35 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .profile-pic-dash {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -116,6 +236,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .profile-dropdown a {
     display: block;
     padding: 10px 16px;
@@ -128,9 +260,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .profile-dropdown a:hover {
     background: #f5f5f5;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -139,6 +295,18 @@ body {
     margin-right: 8px;
     width: 16px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -176,6 +344,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* FIXED: dropdown is anchored to the viewport (position: fixed), not
    to the bell button, so it can never push the page wider than the
    screen and cause a horizontal swipe. width + max-width(vw-based)
@@ -193,6 +373,18 @@ body {
 .notif-overlay.show {
   display: block;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -269,12 +461,36 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* Container */
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -286,6 +502,18 @@ body {
     gap: 14px;
     margin-bottom: 2.5rem;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -307,10 +535,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .mini-profile-circle i {
     color: white;
     font-size: 18px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -324,10 +576,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .welcome-section h2 span {
     color: #800000;
     font-weight: bold;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -341,6 +617,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* Card Grid */
 .card-grid {
     display: grid;
@@ -348,6 +636,18 @@ body {
     gap: 1.5rem;
     margin-bottom: 2.5rem;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -365,10 +665,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .card:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -382,10 +706,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .card h3 {
     font-size: 1.1rem;
     font-weight: bold;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -403,11 +751,35 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .card-info p {
     font-size: 0.85rem;
     margin-top: 4px;
     opacity: 0.85;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -426,6 +798,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .form-control {
     width: 100%;
     padding: 10px 12px;
@@ -437,11 +821,35 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .form-control:focus {
     outline: none;
     border-color: #800000;
     box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.15);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -460,6 +868,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* Tables & Status */
 .tracking-section {
     background: white;
@@ -468,6 +888,18 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     margin-bottom: 1.5rem;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -481,6 +913,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .tracking-table th, .tracking-table td {
     padding: 12px;
     text-align: left;
@@ -490,9 +934,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .tracking-table thead tr {
     background: #f8f9fa;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -514,6 +982,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .modal-content {
     background: white;
     border-radius: 20px;
@@ -527,6 +1007,18 @@ body {
     max-height: 85vh;
     overflow-y: auto;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -554,9 +1046,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .floating-emergency-btn:hover {
     background: #b71c1c;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -566,6 +1082,18 @@ body {
     overflow: hidden;
     position: fixed; /* meron na ito, iniwan lang para linaw */
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -584,10 +1112,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .floating-emergency-btn.holding .sos-progress {
     transition: width 2s linear;
     width: 100%;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -601,9 +1153,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .floating-emergency-btn.holding {
     background: #b71c1c;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -625,9 +1201,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .panel-overlay.active {
     display: flex;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -643,6 +1243,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* Live Location Map (Emergency Form) */
 #emergencyMap {
     width: 100%;
@@ -651,6 +1263,18 @@ body {
     border: 1px solid #cccccc;
     z-index: 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -668,11 +1292,35 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 @keyframes pulse-marker {
     0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.6); }
     70% { box-shadow: 0 0 0 12px rgba(229, 57, 53, 0); }
     100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -691,6 +1339,18 @@ body {
 .tracking-table tbody tr td:last-child i {
     transition: transform 0.15s;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -718,6 +1378,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .req-info-line {
     font-size: 0.85rem;
     color: #444;
@@ -726,6 +1398,18 @@ body {
 .req-info-line strong {
     color: #800000;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -796,6 +1480,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .card-grid {
@@ -812,12 +1508,36 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ===============================================
    MOBILE-ONLY OVERRIDES
    (gumagana lang sa maliit na screen / phone,
    hindi ito nag-a-apply sa tablet/desktop)
 ================================================= */
 @media (max-width: 480px) {
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -831,9 +1551,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .header h1 {
         font-size: 1.15rem;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -845,10 +1589,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .profile-container {
         padding: 4px 6px;
         gap: 5px;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -866,6 +1634,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .header-avatar-circle {
         width: 28px;
         height: 28px;
@@ -874,9 +1654,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* --- Notif dropdown ngayon ay centered popup (see base .notif-dropdown
        rule above) — automatic na siyang naaangkop sa lahat ng screen
        size, kaya wala nang mobile-specific override na kailangan. --- */
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -890,10 +1694,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* --- Container / Welcome section: mas maliit ang padding at font --- */
     .container {
         padding: 0.85rem;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -906,10 +1734,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .mini-profile-circle {
         width: 40px;
         height: 40px;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -921,9 +1773,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .welcome-section p {
         font-size: 0.82rem;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -936,6 +1812,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .card-icon {
         font-size: 1.6rem;
     }
@@ -943,9 +1831,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .card h3 {
         font-size: 1rem;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -959,10 +1871,34 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .modal-content {
         padding: 1.25rem;
         width: 94%;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -978,6 +1914,18 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* --- Tracking table: horizontal scroll imbes na mag-overflow --- */
     .tracking-section {
         padding: 1rem;
@@ -987,9 +1935,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .tracking-table {
         min-width: 480px;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1004,9 +1976,33 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .req-step small {
         font-size: 0.56rem;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1018,10 +2014,40 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     .req-eta-box .req-eta-value {
         font-size: 1.4rem;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1048,6 +2074,12 @@ body {
 }
 
 
+
+
+
+
+
+
 /* ---------------- PANEL TITLE SPACING (para di matapakan ng Close button) ---------------- */
 .resident-view h3 {
     padding-right: 48px;
@@ -1058,12 +2090,24 @@ body {
 }
 
 
+
+
+
+
+
+
 @media (max-width: 480px) {
     .resident-view h3 {
         font-size: 1rem;
         padding-right: 48px;
     }
 }
+
+
+
+
+
+
 
 
 /* ---------------- MY RECENT REQUESTS — visible & smooth scroll sa mobile ---------------- */
@@ -1073,6 +2117,12 @@ body {
     scrollbar-color: #800000 #f0f0f0;
     position: relative;
 }
+
+
+
+
+
+
 
 
 /* Custom scrollbar para sa Chrome/Safari mobile — laging kita, hindi na-hide */
@@ -1089,6 +2139,12 @@ body {
 }
 
 
+
+
+
+
+
+
 /* Subtle fade shadow sa ilalim para malinaw na may laman pa sa baba */
 .tracking-section > div[style*="max-height"] {
     background:
@@ -1102,6 +2158,12 @@ body {
 }
 
 
+
+
+
+
+
+
 .custom-scroll-hide {
     scrollbar-width: none !important;       /* Firefox */
     -ms-overflow-style: none !important;     /* IE/Edge */
@@ -1111,6 +2173,12 @@ body {
     width: 0 !important;
     height: 0 !important;
 }
+
+
+
+
+
+
 
 
 /* custom scrollbar track at thumb — visible at draggable */
@@ -1137,6 +2205,12 @@ body {
 }
 
 
+
+
+
+
+
+
 /* vertical na scroll track — nakadikit sa kanang gilid ng table */
 .custom-scroll-track-v {
     position: absolute;
@@ -1160,6 +2234,14 @@ body {
 .custom-scroll-thumb-v:active {
     cursor: grabbing;
 }
+
+
+
+
+
+
+
+
 
 
 
