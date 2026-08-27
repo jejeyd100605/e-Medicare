@@ -455,7 +455,7 @@ async function handleSignup(e) {
 
 
 
-       const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -464,9 +464,7 @@ async function handleSignup(e) {
                 middle_name: middleName || null,
                 last_name: lastName,
                 name: fullName,
-                role: "resident",
-                contact: contactNo,
-                address: address
+                role: "resident"
             }
         }
     });
@@ -1894,12 +1892,118 @@ async function verifyMpin() {
 
 
 // ==========================================================================
-// FORGOT MPIN — signs the user out entirely; they log in with password again
+// FORGOT MPIN — hihingi ng password bago payagang mag-set ng bagong MPIN
 // ==========================================================================
-async function forgotMpin() {
-    if (confirm("Do you want to reset your session? You will need to log in again using your password.")) {
-        await supabase.auth.signOut();
-        location.reload();
+function forgotMpin() {
+    document.getElementById("mpinView")?.classList.add("hidden");
+    document.getElementById("resetMpinOverlay")?.classList.remove("hidden");
+}
+
+
+
+
+// ==========================================================================
+// VERIFY PASSWORD — kinukumpirma via Supabase Auth kung tama ang password
+// ==========================================================================
+async function verifyPasswordForMpinReset() {
+    const password = document.getElementById("mpinResetPassword").value;
+    if (!password) {
+        alert("Pakilagay ang iyong password.");
+        return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !user.email) {
+        alert("Session expired. Please log in again.");
+        showForm("login");
+        return;
+    }
+    const { error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: password
+    });
+    if (error) {
+        alert("Maling password: " + error.message);
+        return;
+    }
+    document.getElementById("mpinResetPassword").value = "";
+    document.getElementById("resetMpinOverlay")?.classList.add("hidden");
+    document.getElementById("newMpinOverlay")?.classList.remove("hidden");
+}
+
+
+// ==========================================================================
+// CANCEL MPIN RESET — bumalik sa MPIN unlock screen
+// ==========================================================================
+function cancelMpinReset() {
+    document.getElementById("mpinResetPassword").value = "";
+    document.getElementById("resetMpinOverlay")?.classList.add("hidden");
+    document.getElementById("mpinView")?.classList.remove("hidden");
+}
+
+
+// ==========================================================================
+// UPDATE MPIN — sine-save ang bagong MPIN hash sa profiles table
+// ==========================================================================
+async function updateMpin() {
+    const pin = Array.from(document.querySelectorAll(".new-mpin")).map(i => i.value).join("");
+    if (!/^\d{4}$/.test(pin)) {
+        alert("Please enter exactly 4 digits for your MPIN.");
+        return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        alert("Session expired. Please log in again.");
+        showForm("login");
+        return;
+    }
+    const mpinHash = await hashText(pin);
+    const { data: profile, error } = await supabase
+        .from("profiles")
+        .update({ mpin: mpinHash })
+        .eq("id", user.id)
+        .select()
+        .single();
+    if (error) {
+        alert("Hindi na-update ang MPIN: " + error.message);
+        return;
+    }
+    window._currentProfile = profile;
+    document.querySelectorAll(".new-mpin").forEach(i => (i.value = ""));
+    alert("✅ Matagumpay na na-update ang MPIN!");
+    document.getElementById("newMpinOverlay")?.classList.add("hidden");
+    if (document.getElementById("welcomeName")) {
+        document.getElementById("welcomeName").innerText = "Welcome, " + profile.name + "!";
+    }
+    document.getElementById("mpinView")?.classList.remove("hidden");
+}
+
+
+
+
+
+
+// ==========================================================================
+// FORGOT PASSWORD — nagpapadala ng password reset link gamit Supabase Auth
+// ==========================================================================
+async function forgotPassword() {
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+
+
+    if (!email) {
+        alert("Pakilagay muna ang iyong email address bago mag-reset ng password.");
+        return;
+    }
+
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/pages/login.html"
+    });
+
+
+    if (error) {
+        alert("Hindi naipadala ang reset link: " + error.message);
+    } else {
+        alert("Naipadala na ang password reset link sa iyong email.");
     }
 }
 
@@ -1908,10 +2012,53 @@ async function forgotMpin() {
 
 
 
+// ==========================================================================
+// PASSWORD RECOVERY — nade-detect kapag galing sa reset link ang user
+// ==========================================================================
+supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "PASSWORD_RECOVERY") {
+        document.getElementById("formView")?.classList.add("hidden");
+        document.getElementById("mpinView")?.classList.add("hidden");
+        document.getElementById("resetPasswordOverlay")?.classList.remove("hidden");
+    }
+});
 
 
+// ==========================================================================
+// SUBMIT NEW PASSWORD — ina-update ang password sa Supabase Auth
+// ==========================================================================
+async function submitNewPassword() {
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmNewPassword = document.getElementById("confirmNewPassword").value;
 
 
+    if (!newPassword || newPassword.length < 6) {
+        alert("Ang password ay dapat hindi bababa sa 6 na characters.");
+        return;
+    }
+
+
+    if (newPassword !== confirmNewPassword) {
+        alert("Hindi magkatugma ang bagong password at re-type password.");
+        return;
+    }
+
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+
+    if (error) {
+        alert("Hindi na-update ang password: " + error.message);
+        return;
+    }
+
+
+    alert("✅ Matagumpay na na-update ang password! Pakilog-in muli.");
+    document.getElementById("resetPasswordOverlay")?.classList.add("hidden");
+    await supabase.auth.signOut();
+    document.getElementById("formView")?.classList.remove("hidden");
+    showForm("login");
+}
 
 
 
@@ -1966,8 +2113,4 @@ function executeSecureRouting(role) {
 
 window.location.href = routes[role.toLowerCase()] || "/pages/resident.html";
 }
-
-
-
-
 

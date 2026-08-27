@@ -111,46 +111,38 @@
 
 
 
+    <div id="resetMpinOverlay" class="auth-card hidden" style="position: absolute; z-index: 2050;">
+    <h2 style="color:#621a19;">Reset MPIN</h2>
+    <p style="color:#666; font-size:14px; margin: 10px 0 20px;">Para sa seguridad, ilagay muna ang iyong password</p>
 
 
+    <div style="position:relative; margin-bottom:15px;">
+        <input type="password" class="input-field" id="mpinResetPassword" placeholder="Password" required style="margin-bottom:0; padding-right:40px;">
+        <i class="fas fa-eye" id="toggleMpinResetPass" onclick="togglePasswordVisibility('mpinResetPassword', 'toggleMpinResetPass')"
+           style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
+    </div>
 
 
+    <button class="btn-block" onclick="verifyPasswordForMpinReset()">Confirm</button>
+    <p class="text-link" onclick="cancelMpinReset()" style="margin-top:10px;">Cancel</p>
+</div>
 
 
+<div id="newMpinOverlay" class="auth-card hidden" style="position: absolute; z-index: 2060;">
+    <h2 style="color:#621a19;">Set New MPIN</h2>
+    <p style="color:#666; font-size:14px; margin-bottom:15px;">Ilagay ang bago mong 4-digit MPIN</p>
 
 
+    <div class="pin-container">
+        <input type="password" maxlength="1" class="pin-input new-mpin" onkeyup="moveFocus(this)">
+        <input type="password" maxlength="1" class="pin-input new-mpin" onkeyup="moveFocus(this)">
+        <input type="password" maxlength="1" class="pin-input new-mpin" onkeyup="moveFocus(this)">
+        <input type="password" maxlength="1" class="pin-input new-mpin" onkeyup="moveFocus(this)">
+    </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    <button type="button" class="btn-block" onclick="updateMpin()">Save New MPIN</button>
+</div>
 
 
 
@@ -167,10 +159,11 @@
 
     <div class="auth-card hidden" id="formView" style="position:relative;">
         <div id="loginForm">
-            <h2 style="color:#621a19; margin-bottom:20px;">Login</h2>
-            <form onsubmit="handleLogin(event)"> <input type="email" class="input-field" id="loginEmail" placeholder="Email Address" required> <input type="password" class="input-field" id="loginPass" placeholder="Password" required> <button type="submit" class="btn-block">Continue</button> </form>
-            <p class="text-link" onclick="showForm('signup')">Create an Account</p>
-        </div>
+    <h2 style="color:#621a19; margin-bottom:20px;">Login</h2>
+    <form onsubmit="handleLogin(event)"> <input type="email" class="input-field" id="loginEmail" placeholder="Email Address" required> <input type="password" class="input-field" id="loginPass" placeholder="Password" required> <button type="submit" class="btn-block">Continue</button> </form>
+    <p class="text-link" onclick="forgotPassword()" style="color:#d9534f; display:block; margin:10px 0 0 0;">Forgot Password?</p>
+    <p class="text-link" onclick="showForm('signup')" style="margin:0;">Create an Account</p>
+</div>
 
 
 
@@ -274,6 +267,35 @@
     <input type="text" maxlength="1" class="pin-input otp-box" onkeyup="moveFocus(this)">
 </div>
         <button class="btn-block" onclick="verifyOtp()">Verify OTP</button> <p class="text-link" onclick="showForm('login')">Cancel</p> </div>
+
+
+
+
+
+
+
+
+        <div id="resetPasswordOverlay" class="auth-card hidden" style="position: absolute; z-index: 2050;">
+    <h2 style="color:#621a19;">Set New Password</h2>
+    <p style="color:#666; font-size:14px; margin: 10px 0 20px;">Ilagay ang iyong bagong password</p>
+
+
+    <div style="position:relative; margin-bottom:15px;">
+        <input type="password" class="input-field" id="newPassword" placeholder="New Password" required style="margin-bottom:0; padding-right:40px;">
+        <i class="fas fa-eye" id="toggleNewPass" onclick="togglePasswordVisibility('newPassword', 'toggleNewPass')"
+           style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
+    </div>
+
+
+    <div style="position:relative; margin-bottom:15px;">
+        <input type="password" class="input-field" id="confirmNewPassword" placeholder="Re-type New Password" required style="margin-bottom:0; padding-right:40px;">
+        <i class="fas fa-eye" id="toggleConfirmNewPass" onclick="togglePasswordVisibility('confirmNewPassword', 'toggleConfirmNewPass')"
+           style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
+    </div>
+
+
+    <button class="btn-block" onclick="submitNewPassword()">Update Password</button>
+</div>
 
 
 
