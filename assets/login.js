@@ -2025,6 +2025,26 @@ supabase.auth.onAuthStateChange((event, session) => {
 
 
 // ==========================================================================
+// LIVE PASSWORD MATCH CHECK — nagpapalit ng border color habang nagta-type
+// ==========================================================================
+function checkPasswordMatch() {
+    const newPass = document.getElementById("newPassword").value;
+    const confirmPass = document.getElementById("confirmNewPassword").value;
+    const confirmField = document.getElementById("confirmNewPassword");
+
+    if (confirmPass.length === 0) {
+        confirmField.style.borderColor = "";
+        return;
+    }
+
+    if (newPass === confirmPass) {
+        confirmField.style.borderColor = "#4cae4c"; // green
+    } else {
+        confirmField.style.borderColor = "#d9534f"; // red
+    }
+}
+
+// ==========================================================================
 // SUBMIT NEW PASSWORD — ina-update ang password sa Supabase Auth
 // ==========================================================================
 async function submitNewPassword() {
