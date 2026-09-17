@@ -187,6 +187,7 @@ let locationWatchId = null;
 let simulatedLocationTimer = null;
 let etaTimer = null;
 let safetyPollTimer = null;
+const notifiedAssignments = new Set();   // BAGO — para isang beses lang mag-notify kada tunay na bagong assignment
 
 
 
@@ -1374,10 +1375,9 @@ async function acceptAndDeploy() {
     const etaMinutes = Math.max(1, Number.parseInt(etaInput, 10) || 5);
     const now = new Date().toISOString();
 
+    notifiedAssignments.add(selectedId);   // BAGO — sarili mismo ang tumanggap, huwag nang i-notify pa
 
-
-
-        await patchSelectedIncident({
+    await patchSelectedIncident({
         status: 'In Transit',
         assignedTo: `Self-accepted: ${CURRENT_RESPONDER.name}`,
         assignedResponderId: CURRENT_RESPONDER.id,
@@ -1947,15 +1947,13 @@ function startRealtimeMonitoring() {
 
 
 
-            const newlyAssignedToMe =
+             const newlyAssignedToMe =
                 CURRENT_RESPONDER?.id &&
                 payload.new?.assigned_responder_id === CURRENT_RESPONDER.id &&
-                payload.old?.assigned_responder_id !== CURRENT_RESPONDER.id;
-
-
-
+                !notifiedAssignments.has(payload.new.id);
 
             if (newlyAssignedToMe) {
+                notifiedAssignments.add(payload.new.id);
                 selectedId = payload.new.id;
                 playAssignmentNotificationSound();
                 showAssignmentNotification(payload.new);
