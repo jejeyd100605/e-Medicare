@@ -258,6 +258,7 @@ async function checkResponderSession() {
 
 
 const REQUEST_COLUMN_MAP = {
+    assignedTo: 'assigned_to',
     serviceType: 'service_type',
     patientName: 'patient_name',
     patientAge: 'patient_age',
@@ -1376,8 +1377,9 @@ async function acceptAndDeploy() {
 
 
 
-    await patchSelectedIncident({
+        await patchSelectedIncident({
         status: 'In Transit',
+        assignedTo: `Self-accepted: ${CURRENT_RESPONDER.name}`,
         assignedResponderId: CURRENT_RESPONDER.id,
         assignedResponderName: CURRENT_RESPONDER.name,
         acceptedAt: now,
