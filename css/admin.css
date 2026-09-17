@@ -5,6 +5,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 :root{
   --bg-app:      #14161a;
   --bg-header:   #1c1f24;
@@ -17,9 +29,33 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   --text-main:   #eef0f2;
   --text-muted:  #9aa0aa;
   --text-dim:    #6c727c;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -35,6 +71,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   --radius:      10px;
   --radius-sm:   6px;
   --shadow:      0 4px 14px rgba(0,0,0,0.35);
@@ -43,7 +91,31 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 *{ box-sizing: border-box; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -55,6 +127,18 @@ body{
   color: var(--text-main);
   font-size: 14px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -99,6 +183,18 @@ body{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- LAYOUT ---------------- */
 .main-content{
     padding:4px 18px 20px;
@@ -114,6 +210,18 @@ body{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .tab-navigation{
   display:flex; flex-wrap: wrap; gap: 6px;
   border-bottom: 1px solid var(--border);
@@ -121,12 +229,25 @@ body{
 }
 .tab-btn{
   background: transparent; border: none; color: var(--text-muted);
-  padding: 10px 16px; font-size: .88em; cursor:pointer;
+  padding: 8px 10px; font-size: .78em; cursor:pointer;
   border-bottom: 2px solid transparent; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  position: relative;   /* BAGO — reference point para sa tab-dot */
+  position: relative;
+  white-space: nowrap;
 }
 .tab-btn:hover{ color: var(--text-main); background: rgba(255,255,255,0.03); }
 .tab-btn.active{ color: var(--gold); border-bottom-color: var(--gold); font-weight:600; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -149,6 +270,18 @@ body{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .panel{
     background:var(--bg-panel);
     border:1px solid var(--border);
@@ -163,10 +296,34 @@ body{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .badge{
   background: var(--bg-card); border: 1px solid var(--border);
   color: var(--text-muted); font-size: .72em; padding: 3px 10px; border-radius: 20px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -179,6 +336,18 @@ body{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- SUMMARY CARDS ---------------- */
 .summary-grid{
     display:grid;
@@ -186,6 +355,18 @@ body{
     gap:10px;
     margin-bottom:14px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -202,10 +383,34 @@ body{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .summary-label{
     font-size:.70em;
     margin-bottom:4px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -218,6 +423,18 @@ body{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .summary-tag{
     margin-top:5px;
     font-size:.62em;
@@ -226,6 +443,18 @@ body{
 .tag-warning{ background: rgba(255,145,0,0.15); color: var(--orange); }
 .tag-ok{ background: rgba(0,200,83,0.15); color: var(--green); }
 .tag-info{ background: rgba(0,176,255,0.15); color: var(--blue); }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -244,6 +473,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .primary-btn{
   border:none; border-radius: var(--radius-sm); padding: 10px 16px;
   color:#111; font-weight:600; cursor:pointer; font-size:.85em;
@@ -251,6 +492,18 @@ textarea.form-control{ resize: vertical; }
 }
 .primary-btn:hover{ filter: brightness(1.08); }
 .primary-btn:disabled{ opacity:.45; cursor:not-allowed; filter:none; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -263,6 +516,18 @@ textarea.form-control{ resize: vertical; }
 }
 .fleet-table td{ padding: 10px; border-bottom: 1px solid var(--border-soft); font-size:.85em; vertical-align: middle; }
 .fleet-table tr:hover td{ background: rgba(255,255,255,0.02); }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -283,6 +548,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .status-Pending{ background: rgba(255,215,0,0.14); color: var(--gold); }
 .status-UnderReview{ background: rgba(0,176,255,0.14); color: var(--blue); }
 .status-Queued{ background: rgba(255,145,0,0.14); color: var(--orange); }
@@ -293,10 +570,34 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .status-Assigned{ background: rgba(0,176,255,0.14); color: var(--blue); }
 .status-Assigned .status-dot{ background: var(--blue); box-shadow: 0 0 6px var(--blue); }
 .status-WaitingList{ background: rgba(255,215,0,0.14); color: var(--gold); }
 .status-Resolved{ background: rgba(0,200,83,0.14); color: var(--green); }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -311,11 +612,35 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- SOS ALERT TOAST ---------------- */
 @keyframes sosPulse {
   0%, 100% { box-shadow: 0 6px 20px rgba(255,0,0,.3); }
   50% { box-shadow: 0 6px 30px rgba(255,0,0,.7); }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -329,6 +654,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- QUICK FLEET STATUS (dashboard) ---------------- */
 .fleet-quick-row{
   display:flex; align-items:center; justify-content:space-between;
@@ -337,6 +674,18 @@ textarea.form-control{ resize: vertical; }
 .fleet-quick-row:last-child{ border-bottom:none; }
 .fleet-quick-name{ font-size:.85em; font-weight:600; }
 .fleet-quick-type{ font-size:.72em; color: var(--text-dim); }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -354,6 +703,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- REPORT / REQUEST CARDS ---------------- */
 .report-card, .request-card{
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -365,6 +726,18 @@ textarea.form-control{ resize: vertical; }
 .report-card-name, .request-card-name{ font-weight:600; font-size:.9em; }
 .report-card-detail, .request-card-detail{ color: var(--text-muted); font-size:.78em; margin-top:4px; }
 .request-card-meta{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -393,6 +766,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- BUDGET WIDGET ---------------- */
 .budget-box{
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -406,6 +791,18 @@ textarea.form-control{ resize: vertical; }
 .budget-actions{ display:flex; gap:8px; margin-top: 8px; }
 .budget-actions input{ flex:1; }
 .budget-actions button{ white-space:nowrap; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -429,6 +826,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- ACTIVITY LOG ---------------- */
 .activity-filters{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom: 12px; }
 .activity-filters button{
@@ -436,6 +845,18 @@ textarea.form-control{ resize: vertical; }
   font-size:.72em; padding: 5px 10px; border-radius: 20px; cursor:pointer;
 }
 .activity-filters button.active{ background: var(--gold); color:#111; border-color: var(--gold); font-weight:600; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -455,6 +876,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- NOTIFICATIONS ---------------- */
 .notif-item{
   background: var(--bg-card); border:1px solid var(--border); border-left: 3px solid var(--blue);
@@ -468,9 +901,33 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- LIVE INDICATOR ---------------- */
 .live-indicator{ display:inline-flex; align-items:center; gap:6px; font-size:.72em; color: var(--green); }
 .live-indicator .status-dot{ background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -493,6 +950,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- RESPONSIVE ---------------- */
 @media (max-width: 860px){
   .layout{ flex-direction: column; }
@@ -503,12 +972,36 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 .report-bar-row{ display:flex; align-items:center; gap:9px; margin-bottom:10px; }
 .report-bar-label{ flex:0 0 120px; font-size:0.78em; color:#ccc; }
 .report-bar-track{ flex:1; height:8px; background:#2d2d2d; border-radius:6px; overflow:hidden; }
 .report-bar-fill{ height:100%; background:#ffd700; border-radius:6px; }
 .report-bar-value{ flex:0 0 40px; text-align:right; font-size:0.78em; color:#eee; }
 .export-btn-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -526,6 +1019,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- DOCUMENTATION TRACKER — sariling scroll ---------------- */
 #incidentHistoryList{
   max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
@@ -535,6 +1040,18 @@ textarea.form-control{ resize: vertical; }
 #incidentHistoryList::-webkit-scrollbar{ width: 6px; }
 #incidentHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #incidentHistoryList::-webkit-scrollbar-track{ background: transparent; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -552,6 +1069,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- COMPLETED TRANSPORT RECORDS — sariling scroll ---------------- */
 #transpoHistoryList{
   max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
@@ -561,6 +1090,18 @@ textarea.form-control{ resize: vertical; }
 #transpoHistoryList::-webkit-scrollbar{ width: 6px; }
 #transpoHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #transpoHistoryList::-webkit-scrollbar-track{ background: transparent; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -578,6 +1119,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- COMPLETED ASSISTANCE RECORDS — sariling scroll ---------------- */
 #requestHistoryList{
   max-height: 520px;   /* i-adjust mo kung gusto mo mas mataas/mababa */
@@ -587,6 +1140,18 @@ textarea.form-control{ resize: vertical; }
 #requestHistoryList::-webkit-scrollbar{ width: 6px; }
 #requestHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #requestHistoryList::-webkit-scrollbar-track{ background: transparent; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -609,6 +1174,18 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------- RESERVATION CALENDAR ---------------- */
 .reservation-day-group{ margin-bottom: 14px; }
 .reservation-day-label{
@@ -627,11 +1204,47 @@ textarea.form-control{ resize: vertical; }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 #transpoReservationCalendar{
   max-height: 420px;
   overflow-y: auto;
   padding-right: 4px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

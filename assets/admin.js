@@ -9,12 +9,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     SUPABASE SETUP
     --------------------------------------------------------- */
     const SUPABASE_URL = "https://szxptfuwkmqwcipxpoym.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -26,6 +50,18 @@ let medicalRequestsCache = [];
 let serviceRecordsCache = []; // BAGO — mula sa 'service_records' table (Responder's Service Completion Record)
 let activeIncidentId = null;
 let responderProfilesCache = [];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -50,6 +86,18 @@ function setTabDot(tab, show){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // BAGO — hindi na basta nawawala ang dot pag binuksan lang ang tab.
 // Nananatili ito hanggang aktwal na na-review/na-click ng admin yung
 // partikular na bagong record. Bawat tab (maliban activity) may
@@ -65,9 +113,33 @@ const unseenIds = {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function refreshTabDot(tab){
     setTabDot(tab, unseenIds[tab].size > 0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -84,11 +156,35 @@ function markTabUpdated(tab, id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function markSeen(tab, id){
     if(unseenIds[tab] && unseenIds[tab].delete(String(id))){
         refreshTabDot(tab);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -107,6 +203,18 @@ function sortUnseenFirst(list, tab){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* BAGO — Live Response Tracking map (Dispatch modal). Ginagamit kapag
    naka-assign na ang isang team sa isang incident, para makita ng admin
    ang lokasyon ng resident at ng responder nang magkatabi sa isang mapa. */
@@ -114,6 +222,18 @@ let trackingMap = null;
 let trackingResidentMarker = null;
 let trackingResponderMarker = null;
 let trackingRouteLine = null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -135,6 +255,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     STORAGE KEYS + STATE
     --------------------------------------------------------- */
@@ -148,6 +280,18 @@ let trackingRouteLine = null;
     users:         'bmb_users',
     session:       'bmb_session'
     };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -176,6 +320,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     SOS ALERT — beep + visual/browser notification for new emergencies
     --------------------------------------------------------- */
@@ -187,12 +343,36 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function playSOSBeep(){
         if(!sosAudioCtx){
             try{ sosAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
             catch(e){ console.warn('AudioContext not supported', e); return; }
         }
         if(sosAudioCtx.state === 'suspended') sosAudioCtx.resume();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -214,6 +394,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function startSOSAlertLoop(){
         stopSOSAlertLoop();
         playSOSBeep();
@@ -224,10 +416,34 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function stopSOSAlertLoop(){
         if(sosBeepInterval){ clearInterval(sosBeepInterval); sosBeepInterval = null; }
         stopTitleFlash();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -248,6 +464,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function showSOSToast(incident){
         const callerName = incident?.sender?.name || 'A resident';
         const container = document.getElementById('sosToastContainer') || (() => {
@@ -257,6 +485,18 @@ let trackingRouteLine = null;
             document.body.appendChild(c);
             return c;
         })();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -276,6 +516,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function acknowledgeSOS(incidentId, btnEl){
         stopSOSAlertLoop();
         const toast = btnEl.closest('div[style*="animation"]');
@@ -283,6 +535,18 @@ let trackingRouteLine = null;
         switchTab('dashboard');
         openAssignModal(incidentId);
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -296,6 +560,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function showBrowserSOSNotification(incident){
         if('Notification' in window && Notification.permission === 'granted'){
             const n = new Notification('🚨 New SOS Alert', {
@@ -305,6 +581,18 @@ let trackingRouteLine = null;
             n.onclick = () => { window.focus(); n.close(); };
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -364,6 +652,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     ACTIVITY LOG + NOTIFICATIONS (core cross-cutting features)
     --------------------------------------------------------- */
@@ -379,10 +679,34 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const ACTIVITY_ICONS = {
     dispatch: '🚑', fleet: '🚒', request: '📄', budget: '💰',
     user: '👤', advisory: '📢', notify: '🔔', comms: '📡'
     };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -393,6 +717,18 @@ let trackingRouteLine = null;
     const filter = wrap.dataset.filter || 'all';
     const list = load(DB.activity, []).filter(a => filter === 'all' || a.type === filter);
     document.getElementById('activityCountBadge') && (document.getElementById('activityCountBadge').textContent = list.length + ' Events');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -415,6 +751,18 @@ let trackingRouteLine = null;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function filterActivity(type, btn){
     const wrap = document.getElementById('activityList');
     wrap.dataset.filter = type;
@@ -422,6 +770,18 @@ let trackingRouteLine = null;
     btn.classList.add('active');
     renderActivity();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -435,6 +795,18 @@ let trackingRouteLine = null;
     });
     if (error) console.error('Hindi na-send ang notification:', error.message);
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -455,6 +827,18 @@ let trackingRouteLine = null;
         </div>
     `).join('');
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -483,6 +867,18 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     ROLE / SESSION BADGE
     --------------------------------------------------------- */
@@ -500,6 +896,18 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    function logout(){
     if(confirm('Log out of the Barangay Bambang control center?')){
         supabase.auth.signOut().then(() => {
@@ -507,6 +915,18 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
         });
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -521,9 +941,33 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const open = incidents.filter(i => i.status === 'Pending').length;
     const assigned = incidents.filter(i => i.status === 'Assigned').length;
     const resolved = incidents.filter(i => i.status === 'Resolved').length;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -534,6 +978,18 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
     if(openCountEl) openCountEl.textContent = open;
     if(assignedCountEl) assignedCountEl.textContent = assigned;
     if(resolvedCountEl) resolvedCountEl.textContent = resolved;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -563,11 +1019,35 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    function renderIncidentFeed(){
     const wrap = document.getElementById('reportsList');
     const empty = document.getElementById('reportsEmpty');
     const badge = document.getElementById('reportCountBadge');
     if(!wrap) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -582,10 +1062,34 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             const unseen = unseenIds.dashboard;
             const aUnseen = unseen.has(String(a.id)) ? 0 : 1;
             const bUnseen = unseen.has(String(b.id)) ? 0 : 1;
             if(aUnseen !== bUnseen) return aUnseen - bUnseen;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -596,8 +1100,32 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     badge && (badge.textContent = open.length + ' Reports');
     empty && (empty.style.display = open.length ? 'none' : 'block');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -623,12 +1151,36 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     async function loadIncidentsFromSupabase() {
     const { data, error } = await supabase
         .from('emergency_requests')
        .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
         .in('type', ['Emergency', 'SOS'])
         .order('created_at', { ascending: false });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -641,10 +1193,34 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     incidentsCache = data;
     renderDashboardCounts();
     refreshTrackingModalIfOpen();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -655,6 +1231,18 @@ function subscribeIncidentsRealtime() {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'emergency_requests' }, (payload) => {
             const isSOSorEmergency = ['Emergency', 'SOS'].includes(payload.new?.type || payload.old?.type);
             if (!isSOSorEmergency) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -681,6 +1269,18 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     SERVICE COMPLETION RECORDS — sinasagot ng responder gamit ang
     "Service Completion Record" form sa responder.html. Naka-save ito
@@ -698,6 +1298,18 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         if (error) {
             console.error('Hindi makuha ang service records:', error.message);
             return;
@@ -706,9 +1318,33 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         serviceRecordsCache = data || [];
         renderDocumentationHistory();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -725,9 +1361,45 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function findServiceRecordForIncident(incidentId){
         return serviceRecordsCache.find(sr => String(sr.request_id) === String(incidentId)) || null;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -748,10 +1420,34 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         if (error) {
             console.error('Hindi makuha ang fleet:', error.message);
             return;
         }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -770,11 +1466,35 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         await loadResponderProfilesForFleet();
         await syncMissingPersonnelToFleet();   // BAGO
         renderFleet();
         renderQuickFleetStatus();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -790,12 +1510,36 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const rows = missing.map(p => ({
             name: p.name,
           type: (p.position || '').toLowerCase() === 'driver' ? 'Driver' : 'Medical Personnel',
             status: 'Available',
             profile_id: p.id
         }));
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -809,7 +1553,31 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         logActivity('fleet', `${missing.length} personnel account(s) auto-synced sa fleet roster.`);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -828,6 +1596,18 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
  async function loadResponderProfilesForFleet(){
         const { data, error } = await supabase
             .from('profiles')
@@ -840,6 +1620,18 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const sel = document.getElementById('fleetLinkedProfile');
         if(sel){
             const current = sel.value;
@@ -848,6 +1640,30 @@ function subscribeIncidentsRealtime() {
             if(current) sel.value = current;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -869,6 +1685,18 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function fleetSummary(list){
     return {
         available: list.filter(f => f.status === 'Available').length,
@@ -880,7 +1708,31 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function statusClass(status){ return 'status-' + status.replace(/\s+/g,''); }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -918,8 +1770,32 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const FLEET_VEHICLE_TYPES = ['Medical (Full)', 'Transport', 'Rescue/Patrol', 'Auxiliary'];
   const FLEET_PERSONNEL_TYPES = ['Driver', 'Medical Personnel'];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -954,11 +1830,35 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   // BAGO — hinati ang isang table dati na naghahalo ng sasakyan at tao
   // sa dalawang magkahiwalay na listahan, para mas malinaw.
  function renderFleet(){
     const vehicles = sortUnseenFirst(fleetCache.filter(f => FLEET_VEHICLE_TYPES.includes(f.type)), 'fleet');   // BAGO
     const personnel = sortUnseenFirst(fleetCache.filter(f => FLEET_PERSONNEL_TYPES.includes(f.type)), 'fleet');   // BAGO
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -969,8 +1869,32 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const personnelTbody = document.getElementById('fleetPersonnelList');
     if(personnelTbody) personnelTbody.innerHTML = personnel.map(fleetRowHTML).join('');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -978,6 +1902,18 @@ function subscribeIncidentsRealtime() {
     renderQuickFleetStatus();
     populateDispatchSelects();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -991,8 +1927,32 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const updateData = { status: newStatus };
     if (newStatus !== 'On Duty') updateData.assigned_to = null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1006,11 +1966,35 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         alert('Hindi na-update ang status: ' + error.message);
         loadFleetFromSupabase();
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1024,9 +2008,33 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     logActivity('fleet', `<b>${f.name}</b> status changed: ${oldStatus} → ${newStatus}`);
     loadFleetFromSupabase();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1045,6 +2053,18 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(id){
         const { error } = await supabase.from('fleet').update(data).eq('id', id);
         if (error) { alert('Hindi na-update: ' + error.message); return; }
@@ -1058,9 +2078,33 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     clearFleetForm();
     loadFleetFromSupabase();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1081,8 +2125,32 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     async function removeFleet(id){
     if(!confirm('Remove this resource from the fleet roster?')) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1093,9 +2161,33 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     logActivity('fleet', 'A resource unit was removed from the roster.');
     loadFleetFromSupabase();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1109,6 +2201,18 @@ function subscribeIncidentsRealtime() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function populateDispatchSelects(){
     const vehicleSel = document.getElementById('dispatchVehicle');
     const responderSel = document.getElementById('dispatchResponder');
@@ -1117,8 +2221,32 @@ function populateDispatchSelects(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const vehicles = fleetCache.filter(f => ['Medical (Full)','Transport','Rescue/Patrol','Auxiliary'].includes(f.type));
     const responders = fleetCache.filter(f => f.type === 'Medical Personnel' || f.type === 'Driver');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1130,6 +2258,18 @@ function populateDispatchSelects(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const buildOptions = (list) => list.map(f =>
         `<option value="${f.id}" ${f.status !== 'Available' ? 'disabled' : ''}>${f.name} — ${statusTag(f)}</option>`
     ).join('');
@@ -1137,9 +2277,33 @@ function populateDispatchSelects(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     vehicleSel.innerHTML = '<option value="">— None —</option>' + buildOptions(vehicles);
     responderSel.innerHTML = '<option value="">— None —</option>' + buildOptions(responders);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1155,8 +2319,32 @@ function buildCrewTag(member, vehicle, responder, assignmentTag){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function handleQuickDispatch(e){
     e.preventDefault();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1169,10 +2357,34 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(!vehicleId && !responderId){
         alert('Pumili ng kahit isang vehicle o responder bago mag-dispatch.');
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1183,12 +2395,36 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const teamLabel = [vehicle?.name, responder?.name].filter(Boolean).join(' + ');
     // BAGO — Quick Dispatch ay para sa mga emergency na hindi galing sa
     // app (tumawag/nag-text/nag-FB message sa barangay), kaya wala nang
     // naka-link na incident record — ang paraan ng pagtanggap na lang
     // ang inilalagay bilang tag.
     const assignmentTag = source ? `Report via ${source}` : (notes || 'Standby / Patrol');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1206,7 +2442,31 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     logActivity('dispatch', `<b>${teamLabel}</b> dispatched${source ? ' — reported via ' + source : ' (standby/patrol)'}${notes ? ' — ' + notes : ''}`);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1214,6 +2474,18 @@ async function handleQuickDispatch(e){
     document.getElementById('quickDispatchForm').reset();
     loadFleetFromSupabase();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1240,6 +2512,18 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
         const contact = inc.sender && inc.sender.contact ? inc.sender.contact : '';
         const infoBox = document.getElementById('assignIncidentInfo');
@@ -1258,9 +2542,30 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
         const dispatchForm = document.getElementById('dispatchAssignForm');
         const trackingView = document.getElementById('trackingView');
         const titleEl = document.getElementById('assignModalTitle');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1270,6 +2575,18 @@ async function handleQuickDispatch(e){
         // kung meron pang GPS na naitala, kasama ang lumang Pending case
         // na wala pang team gamit ang dispatch form.
         const isTracking = ['Assigned', 'In Transit', 'Arrived'].includes(inc.status);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1288,10 +2605,34 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
           const driverSel = document.getElementById('driverSelect');
             const responderSel = document.getElementById('responderSelect');
             const vehicleSel = document.getElementById('assignVehicleSelect');   // BAGO
             const standby = fleetCache.filter(f => f.status === 'Available');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1305,11 +2646,35 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
            if(responderSel){
                 const responders = standby.filter(f => f.type === 'Medical Personnel');
                 responderSel.innerHTML = '<option value="" disabled selected>Select responder on standby</option>' +
                     responders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
             }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1323,6 +2688,18 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             const notesEl = document.getElementById('assignNotes');
             if(notesEl) notesEl.value = '';
         }
@@ -1330,8 +2707,32 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         document.getElementById('assignModal').style.display = 'flex';
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1349,8 +2750,32 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const inc = incidentsCache.find(i => String(i.id) === String(activeIncidentId));
         if(!inc) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1366,6 +2791,18 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function cleanupTrackingMap(){
         if(trackingMap){
             trackingMap.remove();
@@ -1375,6 +2812,18 @@ async function handleQuickDispatch(e){
             trackingRouteLine = null;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1393,11 +2842,35 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function formatDistance(meters){
         if(meters === null || meters === undefined || Number.isNaN(meters)) return null;
         if(meters < 1000) return Math.round(meters) + ' m';
         return (meters / 1000).toFixed(1) + ' km';
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1408,9 +2881,33 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const mapEl = document.getElementById('trackingMap');
         const infoEl = document.getElementById('trackingInfo');
         if(!mapEl) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1427,10 +2924,34 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(trackingMap);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1448,7 +2969,31 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             const bounds = [[inc.lat, inc.lng]];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1466,10 +3011,34 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                 trackingRouteLine = L.polyline(
                     [[inc.responder_lat, inc.responder_lng], [inc.lat, inc.lng]],
                     { color: '#00b0ff', weight: 3, dashArray: '6,6' }
                 ).addTo(trackingMap);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1480,11 +3049,35 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             if(bounds.length > 1){
                 trackingMap.fitBounds(bounds, { padding: [30, 30] });
             }
             setTimeout(() => { if(trackingMap) trackingMap.invalidateSize(); }, 200);
         }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1514,6 +3107,30 @@ async function handleQuickDispatch(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function printIncidentReport(){
     const inc = incidentsCache.find(i => i.id === activeIncidentId);
     if(!inc){ alert('Walang napiling incident na i-print.'); return; }
@@ -1521,8 +3138,32 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
     const contact = inc.sender ? inc.sender.contact : 'N/A';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1565,6 +3206,18 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    async function handleAssignResponder(e){
     e.preventDefault();
     const driverId = document.getElementById('driverSelect').value;
@@ -1579,6 +3232,18 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(!inc) return;
     if(!driver || !responder){
         alert('Kailangan piliin ang parehong Driver at Responder bago mag-dispatch.');
@@ -1588,7 +3253,31 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const teamLabel = [vehicle?.name, driver.name, responder.name].filter(Boolean).join(' + ');   // BAGO — kasama na ang vehicle
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1610,7 +3299,31 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const assignTag = `${inc.category || inc.type}, ${inc.sender ? inc.sender.name : 'Resident'}`;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1628,6 +3341,18 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const { data: driverUpdate, error: driverError } = await supabase
         .from('fleet')
         .update({ status: 'On Duty', assigned_to: buildTeamTag(driver) })
@@ -1638,12 +3363,36 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const { data: responderUpdate, error: responderError } = await supabase
         .from('fleet')
         .update({ status: 'On Duty', assigned_to: buildTeamTag(responder) })
         .eq('id', responder.id)
         .select();
     if (responderError) { alert('Hindi na-dispatch ang responder: ' + responderError.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1663,11 +3412,35 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (!driverUpdate?.length || !responderUpdate?.length || (vehicle && !vehicleUpdate?.length)) {
         alert('May hindi na-update sa fleet status. Possible RLS/permissions issue — check ang UPDATE policy sa Supabase para sa "fleet" table.');
         loadIncidentsFromSupabase();
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1680,6 +3453,18 @@ function printIncidentReport(){
             message: `Paparating na sina ${teamLabel} para sa iyong emergency request.${notes ? ' ETA: ' + notes : ''}`
         });
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1708,11 +3493,35 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     logActivity('dispatch', `<b>${teamLabel}</b> dispatched to ${inc.category || inc.type} (${inc.sender ? inc.sender.name : 'Resident'})${notes ? ' — ETA: ' + notes : ''}`);
     document.getElementById('assignModal').style.display = 'none';
     loadIncidentsFromSupabase();
     loadFleetFromSupabase();
    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1724,8 +3533,32 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const grid = document.getElementById('incidentPhotosGrid');
     const photos = Array.isArray(inc.photo_urls) ? inc.photo_urls : [];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1735,6 +3568,18 @@ function printIncidentReport(){
         document.getElementById('incidentPhotosModal').style.display = 'flex';
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1749,7 +3594,31 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     document.getElementById('incidentPhotosModal').style.display = 'flex';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1762,8 +3631,32 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const imgEl = document.getElementById(`incidentPhoto-${i}`);
         const emptyEl = document.getElementById(`incidentPhotoEmpty-${i}`);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1776,11 +3669,35 @@ function printIncidentReport(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         imgEl.src = data.signedUrl;
         imgEl.style.display = 'block';
         emptyEl.style.display = 'none';
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1796,7 +3713,43 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    const TERMINAL_INCIDENT_STATUSES = ['Resolved','Completed','Rejected'];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1811,8 +3764,32 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const badge = document.getElementById('historyCountBadge');
     badge && (badge.textContent = resolved.length + ' Records');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1840,6 +3817,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* BAGO — shared "Record Details" modal, ginagamit ng lahat ng
        history list (incident, assistance, transpo) para makita muna
        ng admin ang buong detalye ng isang record bago i-print. */
@@ -1848,6 +3837,18 @@ function closeIncidentPhotosModal(){
         const bodyEl = document.getElementById('recordDetailBody');
         const printBtn = document.getElementById('recordDetailPrintBtn');
         if(!titleEl || !bodyEl || !printBtn) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1864,8 +3865,32 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         document.getElementById('recordDetailModal').style.display = 'flex';
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1873,6 +3898,18 @@ function closeIncidentPhotosModal(){
     function closeRecordDetailModal(){
         document.getElementById('recordDetailModal').style.display = 'none';
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1887,6 +3924,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const rows = [
             ['Reported By', `${callerName} (${contact})`],
             ['Description', inc.description || 'N/A'],
@@ -1896,6 +3945,18 @@ function closeIncidentPhotosModal(){
             ['Date Reported', fmtTime(inc.created_at)],
             ['Location (GPS)', inc.lat && inc.lng ? `${inc.lat}, ${inc.lng}` : 'No GPS data'],
         ];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1916,8 +3977,32 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         showRecordDetailModal(`🚨 ${inc.category || inc.type}`, rows, () => printIncidentRecordFromHistory(id));
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1928,6 +4013,18 @@ function closeIncidentPhotosModal(){
     const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
     const contact = inc.sender ? inc.sender.contact : 'N/A';
     const svc = findServiceRecordForIncident(id);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1943,6 +4040,18 @@ function closeIncidentPhotosModal(){
                 <tr><th>Response Duration</th><td>${svc.response_duration_label || 'N/A'}</td></tr>
                 <tr><th>Completion Time</th><td>${svc.completed_at ? fmtTime(svc.completed_at) : 'N/A'}</td></tr>
     ` : '';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1986,10 +4095,34 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    function printFullReport(){
     const avgResponse = document.getElementById('repAvgResponse')?.textContent || '—';
     const totalRequests = document.getElementById('repTotalRequests')?.textContent || '0';
     const fleetUtil = document.getElementById('repFleetUtil')?.textContent || '0%';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2020,11 +4153,35 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             <div class="summary-row">
                 <div class="summary-box"><div class="n">${avgResponse}</div><div class="l">Avg. Response Time</div></div>
                 <div class="summary-box"><div class="n">${totalRequests}</div><div class="l">Total Requests (All-time)</div></div>
                 <div class="summary-box"><div class="n">${fleetUtil}</div><div class="l">Fleet Utilization</div></div>
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2046,6 +4203,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             <h2>🚑 Fleet Roster</h2>
             <table>
                 <tr><th>Unit / Personnel</th><th>Type</th><th>Plate</th><th>Status</th><th>Assigned To</th></tr>
@@ -2063,6 +4232,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
             <h2>📄 Assistance Requests</h2>
             <table>
                 <tr><th>Resident</th><th>Category</th><th>Priority</th><th>Status</th><th>Cost</th></tr>
@@ -2076,6 +4257,18 @@ function closeIncidentPhotosModal(){
                     </tr>
                 `).join('')}
             </table>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2100,6 +4293,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function requestMutualAid(){
     logActivity('fleet', 'Mutual aid vehicle borrow request sent to neighboring barangay dispatch.');
     alert('Mutual aid request broadcast to neighboring barangays.');
@@ -2108,10 +4313,34 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     async function postAdvisory(){
     const title = document.getElementById('advTitle').value.trim();
     const msg = document.getElementById('advMsg').value.trim();
     if(!title || !msg){ alert('Please fill in both the subject and message.'); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2126,10 +4355,34 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         alert('Hindi na-post ang advisory: ' + error.message);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2143,11 +4396,35 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     BUDGET (funds available for financial medical assistance)
     --------------------------------------------------------- */
     function getBudget(){ return load(DB.budget, { total: 0, allocated: 0, quarter:'' }); }
     function remainingBudget(){ const b = getBudget(); return b.total - b.allocated; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2174,6 +4451,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function topUpBudget(){
     const input = document.getElementById('topUpAmount');
     const amount = Number(input.value);
@@ -2190,9 +4479,33 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     ASSISTANCE REQUESTS — PIPELINE (Pending -> Completed)
     --------------------------------------------------------- */
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2206,12 +4519,36 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         if(error){ console.error('Hindi makuha ang medical assistance requests:', error.message); return; }
         medicalRequestsCache = data || [];
         renderRequests();
         renderQueue();
         renderRequestHistory();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2229,7 +4566,31 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const STATUS_STEPS = ['Pending','Under Review','Queued','Approved','Disbursed'];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2244,9 +4605,33 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const openOnes = sortUnseenFirst(list.filter(r => r.status !== 'Disbursed' && r.status !== 'Rejected'), 'queue');   // BAGO
     badge && (badge.textContent = openOnes.length + ' Pending');
     empty && (empty.style.display = openOnes.length ? 'none' : 'block');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2269,7 +4654,31 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     let selectedRequestId = null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2279,6 +4688,18 @@ function closeIncidentPhotosModal(){
     markSeen('queue', id);   // BAGO
     const r = medicalRequestsCache.find(x => String(x.id) === String(id));
     if(!r) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2294,7 +4715,31 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     await renderDocAttachments(r);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2305,8 +4750,32 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     document.getElementById('evalDocAttachments').scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2322,7 +4791,31 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     wrap.innerHTML = docs.map((d, i) => `📎 <a href="#" id="doc-link-${i}" style="color:#00b0ff; text-decoration:underline;">${d}</a>`).join('<br>');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2335,9 +4828,33 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const { data, error } = await supabase.storage
             .from('medical-documents')
             .createSignedUrl(path, 300); // 5 minutes validity
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2353,11 +4870,35 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         linkEl.href = data.signedUrl;
         linkEl.target = '_blank';
         linkEl.rel = 'noopener noreferrer';
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2387,6 +4928,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* Priority score: urgency + eligibility + budget fit — used both for
     manual triage and for auto-sorting the financial assistance queue */
    function computePriorityScore(r){
@@ -2399,11 +4952,35 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function pushHistory(r, status, note){
     const history = Array.isArray(r.history) ? r.history : [];
     history.push({ status, at: nowISO(), note: note || '' });
     return history;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2419,11 +4996,35 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const category = document.getElementById('evalCategory').value;
     const priority = document.getElementById('evalPriority').value;
     const notes = document.getElementById('evalNotes').value;
     const costInput = document.getElementById('evalCost');
     const cost = Number(costInput?.value || r.estimated_cost || 0);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2438,11 +5039,35 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         logActivity('request', `Request from <b>${r.resident_name}</b> was rejected.`);
         await notifyResident(r, `Hi ${r.resident_name}, your request (${r.purpose}) was not approved. Reason: ${notes || 'Did not meet program criteria.'} Visit the barangay office for details.`);
         loadMedicalRequestsFromSupabase();
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2454,6 +5079,18 @@ function closeIncidentPhotosModal(){
             .update({ status: 'Queued', category, priority, estimated_cost: cost, admin_notes: notes, history })
             .eq('id', r.id);
         if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2473,6 +5110,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         logActivity('budget', `₱${cost.toLocaleString()} disbursed to <b>${r.resident_name}</b>. Remaining fund pool: ₱${remainingBudget().toLocaleString()}.`);
         await notifyResident(r, `Hi ${r.resident_name}, your financial assistance request has been approved and funds (₱${cost.toLocaleString()}) are ready for release at the barangay office.${notes ? ' Note: ' + notes : ''}`);
         }
@@ -2486,6 +5135,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         logActivity('request', `Request from <b>${r.resident_name}</b> approved (${category}).`);
         await notifyResident(r, `Hi ${r.resident_name}, your request (${r.purpose}) has been approved. Please proceed to the barangay health desk.${notes ? ' Note: ' + notes : ''}`);
     }
@@ -2493,8 +5154,32 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     loadMedicalRequestsFromSupabase();
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2514,8 +5199,32 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const badge = document.getElementById('queueCountBadge');
     badge && (badge.textContent = queued.length + ' Queued');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2524,6 +5233,18 @@ function closeIncidentPhotosModal(){
         wrap.innerHTML = '<div class="empty-state">No requests currently queued — all eligible claims are within budget.</div>';
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2551,7 +5272,31 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const TERMINAL_REQUEST_STATUSES = ['Disbursed','Approved','Rejected'];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2566,8 +5311,32 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const badge = document.getElementById('requestHistoryCountBadge');
     badge && (badge.textContent = completed.length + ' Records');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2593,9 +5362,33 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function viewRequestHistoryDetail(id){
         const r = medicalRequestsCache.find(x => String(x.id) === String(id));
         if(!r){ alert('Record not found.'); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2615,9 +5408,33 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function printRequestRecord(id){
     const r = medicalRequestsCache.find(x => String(x.id) === String(id));
     if(!r){ alert('Record not found.'); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2661,6 +5478,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     async function disburseQueued(id){
     const r = medicalRequestsCache.find(x => String(x.id) === String(id));
     if(!r) return;
@@ -2669,9 +5498,33 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const b = getBudget();
     b.allocated += r.estimated_cost;
     save(DB.budget, b);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2685,6 +5538,18 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     logActivity('budget', `Queued request for <b>${r.resident_name}</b> disbursed (₱${Number(r.estimated_cost).toLocaleString()}). Remaining: ₱${remainingBudget().toLocaleString()}.`);
     await notifyResident(r, `Hi ${r.resident_name}, good news — funds are now available. Your ₱${Number(r.estimated_cost).toLocaleString()} assistance is ready for release at the barangay office.`);
     loadMedicalRequestsFromSupabase();
@@ -2693,10 +5558,34 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function selectRequestFromQueue(id){
     switchTab('docs');
     selectRequest(id);
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2710,12 +5599,36 @@ function closeIncidentPhotosModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(error){ console.error('Hindi makuha ang transpo requests:', error.message); return; }
    transpoCache = data || [];
     renderTranspoList();
     renderTranspoHistory();
     renderReservationCalendar();   // BAGO
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2731,9 +5644,33 @@ function checkTranspoConflict(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const dateKey = new Date(r.schedule_time).toDateString();
     const vehicleId = document.getElementById('transpoVehicleSelect').value;
     const driverId = document.getElementById('transpoDriverSelect').value;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2750,6 +5687,18 @@ function checkTranspoConflict(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(conflicts.length > 0){
         const names = conflicts.map(c => c.patient_name).join(', ');
         warnEl.textContent = `⚠️ May kasabay na booking na ang piniling unit/driver sa araw na ito (${names}). I-double check muna bago i-approve.`;
@@ -2758,6 +5707,18 @@ function checkTranspoConflict(){
         warnEl.style.display = 'none';
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2775,7 +5736,31 @@ function subscribeTranspoRealtime(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 let selectedTranspoId = null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2785,6 +5770,18 @@ function renderTranspoList(){
     const empty = document.getElementById('transpoEmpty');
     const badge = document.getElementById('transpoCountBadge');
     if(!wrap) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2800,10 +5797,34 @@ function renderTranspoList(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(pending.length === 0){
         wrap.innerHTML = '';
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2829,6 +5850,18 @@ function renderTranspoList(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function populateTranspoVehicleSelect(){
     const sel = document.getElementById('transpoVehicleSelect');
     if(!sel) return;
@@ -2840,6 +5873,18 @@ function populateTranspoVehicleSelect(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function populateTranspoDriverSelect(){
     const sel = document.getElementById('transpoDriverSelect');
     if(!sel) return;
@@ -2847,6 +5892,18 @@ function populateTranspoDriverSelect(){
     sel.innerHTML = '<option value="">— None —</option>' +
         availableDrivers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2872,11 +5929,35 @@ function transpoStepperHTML(r){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function selectTranspoRequest(id){
     selectedTranspoId = id;
     markSeen('docs', id);   // BAGO
     const r = transpoCache.find(x => String(x.id) === String(id));
     if(!r) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2893,6 +5974,18 @@ function selectTranspoRequest(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     populateTranspoVehicleSelect();
     populateTranspoDriverSelect();               // BAGO
     if(r.assigned_vehicle) document.getElementById('transpoVehicleSelect').value = r.assigned_vehicle;
@@ -2901,9 +5994,33 @@ function selectTranspoRequest(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    renderTranspoList();
     checkTranspoConflict();   // BAGO
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2918,7 +6035,31 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    const notes = document.getElementById('transpoNotes').value;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2933,7 +6074,31 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         logActivity('request', `Transpo request ni <b>${r.patient_name}</b> na-reject.`);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2949,10 +6114,34 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         document.getElementById('transpoNotes').value = '';
         loadTranspoFromSupabase();
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2966,8 +6155,32 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const crewTag = `Transpo, ${r.patient_name}` + (driver ? ` (Driver: ${driver.name})` : '');   // BAGO
     const vehicleTag = `Transpo, ${r.patient_name}` + (driver ? ` (Driver: ${driver.name})` : '');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2981,12 +6194,36 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const { error: fleetError } = await supabase
         .from('fleet')
         .update({ status: 'On Duty', assigned_to: vehicleTag })
         .eq('id', vehicle.id)
         .select();
     if(fleetError){ alert('Hindi na-dispatch ang vehicle: ' + fleetError.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3005,7 +6242,31 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     logActivity('dispatch', `<b>${vehicle.name}</b>${driver ? ' (Driver: ' + driver.name + ')' : ''} assigned to transpo request of ${r.patient_name} (${r.pickup_location} → ${r.destination}).`);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3021,6 +6282,18 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     loadTranspoFromSupabase();
     loadFleetFromSupabase();
 }
@@ -3028,7 +6301,31 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const TERMINAL_TRANSPO_STATUSES = ['Approved','Completed','Rejected'];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3043,8 +6340,32 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const badge = document.getElementById('transpoHistoryCountBadge');
     badge && (badge.textContent = completed.length + ' Records');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3072,11 +6393,35 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function viewTranspoHistoryDetail(id){
         const r = transpoCache.find(x => String(x.id) === String(id));
         if(!r){ alert('Record not found.'); return; }
         const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
         const vehicle = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3096,6 +6441,18 @@ async function handleTranspoEvaluation(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* BAGO — Reservation Calendar: ipinapakita lahat ng approved/scheduled
    transport bookings, naka-group per araw. Kapag ang parehong vehicle
    o driver ay may 2+ bookings sa parehong araw, hini-highlight bilang
@@ -3107,11 +6464,35 @@ function renderReservationCalendar(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const booked = transpoCache.filter(r => r.status === 'Approved' && r.schedule_time);
     if(booked.length === 0){
         wrap.innerHTML = '<div class="empty-state" style="padding:12px;">Walang upcoming reservations.</div>';
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3126,13 +6507,49 @@ function renderReservationCalendar(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const sortedKeys = Object.keys(groups).sort((a,b) => new Date(groups[a][0].schedule_time) - new Date(groups[b][0].schedule_time));
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
     wrap.innerHTML = sortedKeys.map(dateKey => {
         const entries = groups[dateKey].sort((a,b) => new Date(a.schedule_time) - new Date(b.schedule_time));
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3146,11 +6563,35 @@ function renderReservationCalendar(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         const rowsHtml = entries.map(r => {
             const vehicle = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
             const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
             const isConflict = (r.assigned_vehicle && vehicleCounts[r.assigned_vehicle] > 1) || (r.assigned_driver && driverCounts[r.assigned_driver] > 1);
             const time = new Date(r.schedule_time).toLocaleTimeString('en-PH', { hour:'2-digit', minute:'2-digit' });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3169,6 +6610,18 @@ function renderReservationCalendar(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         return `
             <div class="reservation-day-group">
                 <div class="reservation-day-label">📅 ${dateKey}</div>
@@ -3181,11 +6634,35 @@ function renderReservationCalendar(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     function printTranspoRecord(id){
     const r = transpoCache.find(x => String(x.id) === String(id));
     if(!r){ alert('Record not found.'); return; }
     const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
     const vehicle = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3233,6 +6710,18 @@ function renderReservationCalendar(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function loadUsersFromSupabase(){
   const { data, error } = await supabase
     .from('profiles')
@@ -3242,6 +6731,18 @@ async function loadUsersFromSupabase(){
   usersCache = data;
   renderUsers();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3270,6 +6771,18 @@ function renderUsers(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    function fileToBase64(file){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -3278,6 +6791,18 @@ function renderUsers(){
     reader.readAsDataURL(file);
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3301,8 +6826,32 @@ function toggleLicenseField(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function handleUserFormSubmit(e){
   e.preventDefault();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3319,10 +6868,34 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   if(!name || !email || !password || !contact){
     alert('Punan lahat ng required fields.');
     return;
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3336,6 +6909,18 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   // BAGO — mandatory ang Driver's License kapag Driver ang position
   if(position === 'Driver' && !licenseFile){
     alert("Kailangan mag-upload ng Driver's License para sa Driver position.");
@@ -3345,8 +6930,32 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   submitBtn.disabled = true;
   submitBtn.textContent = 'Creating account…';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3358,14 +6967,50 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     let idImageBase64 = null;
     if(idFile) idImageBase64 = await fileToBase64(idFile);
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     let licenseImageBase64 = null; // BAGO
     if(licenseFile) licenseImageBase64 = await fileToBase64(licenseFile);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3395,7 +7040,31 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const result = await response.json();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3408,12 +7077,36 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
    if(response.status === 207){
       alert('Warning: ' + result.warning + '\n' + result.error);
     } else {
       alert(`✅ ${position} account created: ${name}`);
       logActivity('user', `New ${position.toLowerCase()} account created: <b>${name}</b> (${email}).`);
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3432,7 +7125,31 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const newProfileId = newProfileRows && newProfileRows[0] ? newProfileRows[0].id : null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3455,9 +7172,33 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     clearUserForm();
     loadUsersFromSupabase();
     loadFleetFromSupabase();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3474,12 +7215,36 @@ async function handleUserFormSubmit(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function clearUserForm(){
   document.getElementById('userForm').reset();
   document.getElementById('userId').value = '';
   const licenseWrap = document.getElementById('licenseFieldWrap'); // BAGO
   if(licenseWrap) licenseWrap.style.display = 'none';              // BAGO
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3499,6 +7264,18 @@ function closeSecurityModal(){ document.getElementById('securityModal').style.di
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------------------------------------------------
    BAGO — ID VERIFICATION MODAL
    Nagpapakita ng barangay ID at face/selfie photo na
@@ -3506,6 +7283,18 @@ function closeSecurityModal(){ document.getElementById('securityModal').style.di
    tugma ang nakalagay na impormasyon bago i-mark verified.
    --------------------------------------------------------- */
 let idVerifyTargetId = null;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3525,11 +7314,35 @@ function idPhotoBoxHTML(label, boxId){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function openIdVerificationModal(id){
   const u = usersCache.find(x => x.id === id);
   if(!u) return;
   idVerifyTargetId = id;
   markSeen('users', id);   // BAGO
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3540,6 +7353,18 @@ async function openIdVerificationModal(id){
   document.getElementById('idVerifyStatus').textContent = u.id_verified
     ? '✅ Currently marked as Verified'
     : '⏳ Not yet verified';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3568,13 +7393,49 @@ async function openIdVerificationModal(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const grid = document.getElementById('idVerifyPhotoGrid');
   grid.innerHTML = slots.map(s => idPhotoBoxHTML(s.label, s.boxId)).join('');
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   document.getElementById('idVerificationModal').style.display = 'flex';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3588,10 +7449,34 @@ async function openIdVerificationModal(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     if(!path){
       emptyEl.textContent = 'No photo submitted.';
       continue;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3610,10 +7495,34 @@ async function openIdVerificationModal(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function closeIdVerificationModal(){
   document.getElementById('idVerificationModal').style.display = 'none';
   idVerifyTargetId = null;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3626,8 +7535,32 @@ async function setIdVerified(verified){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const { error } = await supabase.from('profiles').update({ id_verified: verified, id_rejected: false }).eq('id', idVerifyTargetId);
   if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3640,6 +7573,18 @@ async function setIdVerified(verified){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function rejectIdVerification(){
   if(!idVerifyTargetId) return;
   const u = usersCache.find(x => x.id === idVerifyTargetId);
@@ -3648,8 +7593,32 @@ async function rejectIdVerification(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const reason = prompt('Bakit rineject? (hal. malabo ang picture, hindi magkatugma ang ID)') 
                  || 'Malabo o hindi malinaw ang isinumiteng ID/selfie.';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3665,7 +7634,31 @@ async function rejectIdVerification(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3674,6 +7667,18 @@ async function rejectIdVerification(){
   closeIdVerificationModal();
   loadUsersFromSupabase();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3691,8 +7696,32 @@ async function toggleUserActive(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const { error } = await supabase.from('profiles').update({ active: !wasActive }).eq('id', id);
   if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3704,10 +7733,34 @@ async function toggleUserActive(id){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 async function handleResetPassword(e){
   e.preventDefault();
   const { error } = await supabase.from('profiles').update({ force_password_reset: true }).eq('id', resetTargetId);
   if(error){ alert('Hindi na-flag: ' + error.message); return; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3721,6 +7774,18 @@ async function handleResetPassword(e){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function subscribeProfilesRealtime(){
   supabase
     .channel('profiles-changes')
@@ -3730,6 +7795,18 @@ function subscribeProfilesRealtime(){
     })
     .subscribe();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3748,12 +7825,36 @@ function subscribeProfilesRealtime(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* ---------------------------------------------------------
     INIT
     --------------------------------------------------------- */
    document.addEventListener('DOMContentLoaded', async () => {
     const profile = await checkAdminSession();
     if (!profile) return;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3774,6 +7875,17 @@ function subscribeProfilesRealtime(){
     subscribeTranspoRealtime();
     switchTab('dashboard');
 });
+
+
+
+
+
+
+
+
+
+
+
 
 
 
