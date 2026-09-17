@@ -5866,6 +5866,12 @@ function populateTranspoVehicleSelect(){
     const sel = document.getElementById('transpoVehicleSelect');
     if(!sel) return;
     const available = fleetCache.filter(f => f.status === 'Available' && FLEET_VEHICLE_TYPES.includes(f.type));
+
+    if(available.length === 0){
+        sel.innerHTML = '<option value="" disabled selected>⚠️ No available vehicle</option>';
+        return;
+    }
+
     sel.innerHTML = '<option value="" disabled selected>Select available vehicle</option>' +
         available.map(f => `<option value="${f.id}">${f.name} (${f.type})</option>`).join('');
 }
@@ -5889,6 +5895,12 @@ function populateTranspoDriverSelect(){
     const sel = document.getElementById('transpoDriverSelect');
     if(!sel) return;
     const availableDrivers = fleetCache.filter(f => f.type === 'Driver' && f.status === 'Available');
+
+    if(availableDrivers.length === 0){
+        sel.innerHTML = '<option value="" disabled selected>⚠️ No available driver</option>';
+        return;
+    }
+
     sel.innerHTML = '<option value="">— None —</option>' +
         availableDrivers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
 }
