@@ -7840,7 +7840,7 @@ function subscribeProfilesRealtime(){
     /* ---------------------------------------------------------
     INIT
     --------------------------------------------------------- */
-   document.addEventListener('DOMContentLoaded', async () => {
+      document.addEventListener('DOMContentLoaded', async () => {
     const profile = await checkAdminSession();
     if (!profile) return;
 
@@ -7860,6 +7860,14 @@ function subscribeProfilesRealtime(){
 
 
    initRoleBadge(profile);
+
+    // BAGO — i-log lang minsan kada tunay na bagong session, hindi
+    // kada refresh/reload ng page
+    if (!sessionStorage.getItem('adminLoginLogged')) {
+        logActivity('user', `<b>${profile.name}</b> logged in to the admin control center.`);
+        sessionStorage.setItem('adminLoginLogged', 'true');
+    }
+
     requestNotifPermission();
     await loadFleetFromSupabase();
     subscribeFleetRealtime();
