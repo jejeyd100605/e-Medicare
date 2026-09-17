@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>e-Medicare — Admin Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/adminlogin.css">
-    <link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" href="/assets/LOGO.png">
-<link rel="apple-touch-icon" href="/assets/LOGO.png">
-<meta name="theme-color" content="#800000">
+    <link rel="stylesheet" href="../css/adminlogin.css">
 </head>
 <body>
 
-    <div class="admin-auth-card">
+    <div id="adminSessionCheck" class="session-check-overlay">
+    <div class="session-check-spinner"></div>
+</div>
+
+    <div class="admin-auth-card" id="adminLoginCard">
         <div class="admin-shield"><i class="fas fa-shield-halved"></i></div>
         <h1 class="admin-title">Barangay Bambang</h1>
         <p class="admin-subtitle">Admin Control Center Access</p>
@@ -21,12 +21,16 @@
         <div id="adminAuthError" class="admin-error hidden"></div>
 
         <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
-            <label class="admin-label">Email Address</label>
-            <input type="email" id="adminEmail" class="admin-input" placeholder="you@bambang.gov.ph" required autocomplete="username">
+            <<label class="admin-label" for="adminEmail">Email Address</label>
+<input type="email" id="adminEmail" class="admin-input" placeholder="you@bambang.gov.ph" required autocomplete="username" aria-label="Email Address">
 
-            <label class="admin-label">Password</label>
-            <input type="password" id="adminPassword" class="admin-input" placeholder="••••••••" required autocomplete="current-password">
-
+            <label class="admin-label" for="adminPassword">Password</label>
+<div class="admin-input-wrap">
+    <input type="password" id="adminPassword" class="admin-input" placeholder="••••••••" required autocomplete="current-password" aria-label="Password">
+    <button type="button" id="togglePasswordBtn" class="toggle-password-btn" onclick="togglePasswordVisibility()" aria-label="Show password">
+        <i class="fas fa-eye" id="togglePasswordIcon"></i>
+    </button>
+</div>
             <button type="submit" id="adminLoginBtn" class="admin-btn">Sign In</button>
         </form>
 
@@ -36,13 +40,39 @@
             Resident and responder accounts cannot sign in here.
         </p>
     </div>
+    <div class="admin-auth-card hidden" id="adminOtpCard">
+    <div class="admin-shield"><i class="fas fa-key"></i></div>
+    <h1 class="admin-title">Verify Your Identity</h1>
+    <p class="admin-subtitle">Enter the 6-digit code sent to your email</p>
+
+    <div id="adminOtpError" class="admin-error hidden"></div>
+
+    <form id="adminOtpForm" onsubmit="handleOtpVerify(event)">
+        <label class="admin-label" for="adminOtpCode">6-Digit Code</label>
+        <input type="text" id="adminOtpCode" class="admin-input admin-otp-input"
+               placeholder="••••••" required inputmode="numeric" pattern="[0-9]*"
+               maxlength="6" autocomplete="one-time-code">
+
+        <button type="submit" id="adminOtpBtn" class="admin-btn">Verify Code</button>
+    </form>
+
+    <p class="admin-note" id="adminOtpResendWrap">
+        Didn't get a code?
+        <a href="#" id="resendOtpLink" onclick="handleResendOtp(event)">Resend code</a>
+    </p>
+
+    <button type="button" class="admin-back-btn" onclick="backToLoginForm()">
+        <i class="fas fa-arrow-left"></i> Back to login
+    </button>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/assets/admin-login.js"></script>
+    <script src="../assets/admin-login.js"></script>
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
     }
 </script>
+
 </body>
 </html>
