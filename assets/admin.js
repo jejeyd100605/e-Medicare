@@ -5865,7 +5865,7 @@ function renderTranspoList(){
 function populateTranspoVehicleSelect(){
     const sel = document.getElementById('transpoVehicleSelect');
     if(!sel) return;
-    const available = fleetCache.filter(f => f.status === 'Available');
+    const available = fleetCache.filter(f => f.status === 'Available' && FLEET_VEHICLE_TYPES.includes(f.type));
     sel.innerHTML = '<option value="" disabled selected>Select available vehicle</option>' +
         available.map(f => `<option value="${f.id}">${f.name} (${f.type})</option>`).join('');
 }
