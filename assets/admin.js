@@ -511,7 +511,42 @@ let trackingRouteLine = null;
         container.appendChild(toast);
     }
 
+    // BAGO — normal na toast para sa ordinaryong Emergency (hindi SOS).
+    // Walang pulsing animation, walang paulit-ulit na alarm — mahinahon lang
+    // ang itsura kumpara sa SOS toast, pero kitang-kita pa rin sa taas.
+    function showEmergencyToast(incident){
+        const callerName = incident?.sender?.name || 'A resident';
+        const container = document.getElementById('sosToastContainer') || (() => {
+            const c = document.createElement('div');
+            c.id = 'sosToastContainer';
+            c.style.cssText = 'position:fixed; top:16px; right:16px; z-index:9999; display:flex; flex-direction:column; gap:10px;';
+            document.body.appendChild(c);
+            return c;
+        })();
 
+        const toast = document.createElement('div');
+        toast.style.cssText = 'background:#1c2a3a; border:1px solid #00b0ff; color:#fff; padding:14px 16px; border-radius:10px; width:300px; box-shadow:0 6px 20px rgba(0,0,0,.4);';
+        toast.innerHTML = `
+            <div style="font-weight:700; color:#7ecbff; margin-bottom:4px;">🚨 New Emergency Report</div>
+            <div style="font-size:.85em; margin-bottom:8px;">${callerName} — ${incident.category || incident.type || 'Emergency'}</div>
+            <div style="display:flex; gap:8px;">
+                <button class="primary-btn" style="background:#00b0ff;color:#111;flex:1;font-size:.78em;" onclick="acknowledgeEmergencyToast('${incident.id}', this)">View</button>
+                <button class="primary-btn" style="background:#333;color:#eee;font-size:.78em;padding:6px 10px;" onclick="this.closest('div[style*=\\'border:1px solid #00b0ff\\']').remove()">Dismiss</button>
+            </div>
+        `;
+        container.appendChild(toast);
+
+        // BAGO — auto-remove after 20s kung hindi pinansin, para di
+        // mag-stack ang mga toast kung maraming papasok na emergency.
+        setTimeout(() => { if(toast.isConnected) toast.remove(); }, 20000);
+    }
+
+    function acknowledgeEmergencyToast(incidentId, btnEl){
+        const toast = btnEl.closest('div[style*="border:1px solid #00b0ff"]');
+        if(toast) toast.remove();
+        switchTab('dashboard');
+        openAssignModal(incidentId);
+    }
 
 
 
@@ -1258,9 +1293,10 @@ function subscribeIncidentsRealtime() {
                         startSOSAlertLoop();
                         showSOSToast(inc);
                         showBrowserSOSNotification(inc);
-                       } else {
-                        // Ordinaryong Emergency report — dalawang beep lang, walang loop
+                      } else {
+                        // Ordinaryong Emergency report — dalawang beep + normal toast, walang loop
                         playEmergencyBeepTwice();
+                        showEmergencyToast(inc);
                         showBrowserSOSNotification(inc);
                     }
                     
