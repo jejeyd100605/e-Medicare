@@ -1247,16 +1247,24 @@ function subscribeIncidentsRealtime() {
 
 
 
-            if(payload.eventType === 'INSERT'){
-                // Bagong SOS mula sa resident — i-refresh ang cache muna
-                // para makuha yung sender info, tapos i-trigger ang alerts.
+                        if(payload.eventType === 'INSERT'){
                 loadIncidentsFromSupabase().then(() => {
                     const inc = incidentsCache.find(i => String(i.id) === String(payload.new.id)) || payload.new;
-                    startSOSAlertLoop();
-                    showSOSToast(inc);
-                    showBrowserSOSNotification(inc);
-                   markTabUpdated('dashboard', payload.new.id);   // BAGO
-                    const label = inc.type === 'SOS' ? '🚨 SOS Panic Button' : '🚨 New emergency';
+                    markTabUpdated('dashboard', payload.new.id);
+
+                    const isTrueSOS = inc.type === 'SOS';
+                    const label = isTrueSOS ? '🚨 SOS Panic Button' : '🚨 New emergency';
+
+                    if(isTrueSOS){
+                        // Tunay na Panic Button lang ang nagpapatunog ng paulit-ulit na alarm
+                        startSOSAlertLoop();
+                        showSOSToast(inc);
+                        showBrowserSOSNotification(inc);
+                    } else {
+                        // Ordinaryong Emergency report — mas mahinahon na notification lang
+                        showBrowserSOSNotification(inc);
+                    }
+
                     logActivity('notify', `${label} received from <b>${inc?.sender?.name || 'resident'}</b>.`);
                 });
             } else {
