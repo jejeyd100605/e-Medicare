@@ -392,14 +392,12 @@ let trackingRouteLine = null;
     }
 
 
-
-
-
-
-
-
-
-
+    // BAGO — dalawang beep lang para sa ordinaryong Emergency (hindi SOS).
+    // Hindi ito naka-loop — kailangan lang marinig ng admin na may bago.
+    function playEmergencyBeepTwice(){
+        playSOSBeep();
+        setTimeout(playSOSBeep, 700);
+    }
 
 
 
@@ -1260,10 +1258,12 @@ function subscribeIncidentsRealtime() {
                         startSOSAlertLoop();
                         showSOSToast(inc);
                         showBrowserSOSNotification(inc);
-                    } else {
-                        // Ordinaryong Emergency report — mas mahinahon na notification lang
+                       } else {
+                        // Ordinaryong Emergency report — dalawang beep lang, walang loop
+                        playEmergencyBeepTwice();
                         showBrowserSOSNotification(inc);
                     }
+                    
 
                     logActivity('notify', `${label} received from <b>${inc?.sender?.name || 'resident'}</b>.`);
                 });
