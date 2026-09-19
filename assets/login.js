@@ -1693,12 +1693,11 @@ async function handleLogin(e) {
 
 
 
-    if (profile.role === "admin" || profile.role === "official") {
-        await supabase.auth.signOut();
-        alert("Ang mga admin/official account ay dapat mag-login sa Admin Portal, hindi dito.");
-        return;
-    }
-
+   if (profile.role === "admin" || profile.role === "official") {
+    await supabase.auth.signOut();
+    alert("Incorrect email or password. Please try again.");
+    return;
+}
 
 
 
