@@ -1693,30 +1693,16 @@ async function handleLogin(e) {
 
 
 
-
-
-
-
-
-
-
-
-
+    if (profile.role === "admin" || profile.role === "official") {
+        await supabase.auth.signOut();
+        alert("Ang mga admin/official account ay dapat mag-login sa Admin Portal, hindi dito.");
+        return;
+    }
 
 
 
 
     window._currentProfile = profile;
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1732,29 +1718,8 @@ async function handleLogin(e) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     executeSecureRouting(profile.role);
 }
-
-
-
-
-
-
-
-
-
 
 
 
