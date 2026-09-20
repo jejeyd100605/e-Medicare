@@ -1256,6 +1256,16 @@ function buildProgressHtml(incident) {
 
 function buildActionButtons(incident, mapsUrl) {
     if (['Pending', 'Waiting List', 'Unattended'].includes(incident.status)) {
+        const responderBusy = myFleetRow && myFleetRow.status === 'On Duty';
+        if (responderBusy) {
+            return `
+                <div style="padding:20px;text-align:center;background:#fff3e0;border:1px solid #ef6c00;border-radius:15px;margin-top:15px;color:#ef6c00;font-weight:bold;">
+                    <i class="fas fa-triangle-exclamation"></i> Kasalukuyan kang "On Duty" sa ibang request.
+                    <br><small style="font-weight:normal;">Kumpletuhin muna ang kasalukuyang inaasikaso bago tumanggap ng panibago.</small>
+                </div>
+            `;
+        }
+
         return `
             <div class="btn-group">
                 <button class="status-btn btn-primary" onclick="acceptAndDeploy()">
@@ -1366,9 +1376,13 @@ function buildActionButtons(incident, mapsUrl) {
 
 
 async function acceptAndDeploy() {
+    if (myFleetRow && myFleetRow.status === 'On Duty') {
+        alert('Hindi ka pwedeng tumanggap ng bagong request habang "On Duty" ka pa sa ibang kaso.');
+        return;
+    }
+
     const etaInput = prompt('Estimated time of arrival in minutes:', '5');
     if (etaInput === null) return;
-
 
 
 
