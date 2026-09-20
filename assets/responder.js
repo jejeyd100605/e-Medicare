@@ -648,7 +648,6 @@ async function fetchRequestsFromSupabase() {
 let query = supabase.from('emergency_requests')
     .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
     .neq('type', 'Medical Assistance')
-    .neq('type', 'Transpo')
     .order('created_at', { ascending: false });{
         query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);
     }
@@ -699,6 +698,7 @@ async function fetchResponderStatuses() {
 function normalizeIncident(row) {
     return {
         id: row.id,
+        type: row.type || null,
         category: row.category || 'Medical Assistance',
         serviceType: row.service_type || row.category || 'Emergency Response',
         description: row.description || 'No details supplied.',
@@ -812,25 +812,27 @@ function renderList(incidents) {
 
 
 
+                const isTransport = incident.type === 'Transpo';
+
         return `
             <div class="incident-list-item ${selectedId === incident.id ? 'active' : ''} ${urgent ? 'urgent' : ''} ${assignedToMe ? 'mine' : ''}"
                  onclick="selectIncident(${JSON.stringify(incident.id)})">
                 <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
-                    <strong>${escapeHtml(incident.category)}</strong>
+                    <strong>${isTransport ? '🚐 Transport Request' : escapeHtml(incident.category)}</strong>
                     <span class="status-pill status-${statusClass}">
                         ${urgent && incident.status === 'Pending' ? 'Urgent' : escapeHtml(incident.status)}
                     </span>
                 </div>
 
-
-
-
-                ${assignedToMe ? `
+                ${isTransport ? `
+                <div class="assigned-to-me-badge" style="background:#e3f2fd;color:#0d47a1;">
+                    <i class="fas fa-user-shield"></i> Assigned by Admin — Transport Request
+                </div>
+                ` : assignedToMe ? `
                 <div class="assigned-to-me-badge">
                     <i class="fas fa-user-check"></i> Naka-assign Sa'yo
                 </div>
                 ` : ''}
-
 
 
 
@@ -851,6 +853,13 @@ function renderList(incidents) {
 // Yung mga wala pang naka-assign (Pending/Waiting List/Unattended) ay dapat
 // makita pa rin ng lahat, para may makakuha at makatugon dito.
 function isVisibleToResponder(incident) {
+    // BAGO — Transport requests ay hindi dapat makita ng lahat ng
+    // responder habang unassigned pa. Lalabas lang ito sa responder
+    // na mismong ni-assign ni admin dito.
+    if (incident.type === 'Transpo') {
+        return isAssignedToMe(incident);
+    }
+
     const notYetAssignedStatuses = ['Pending', 'Waiting List', 'Unattended'];
     if (notYetAssignedStatuses.includes(incident.status)) return true;
     if (!incident.assignedResponderId) return true;
@@ -1004,10 +1013,17 @@ function renderDetails(incidents) {
 
 
 
+        const isTransportRequest = incident.type === 'Transpo';
+
     detailDiv.innerHTML = `
         <div class="incident-summary">
-            <h2>${escapeHtml(incident.category)}</h2>
+            <h2>${isTransportRequest ? '🚐 Transport Request' : escapeHtml(incident.category)}</h2>
 
+            ${isTransportRequest ? `
+            <div style="background:#e3f2fd;border:1px solid #0d47a1;color:#0d47a1;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-weight:600;">
+                <i class="fas fa-user-shield"></i> Ito ay isang Transport Request na direktang in-assign sa iyo ng admin — hindi ito emergency medical request.
+            </div>
+            ` : ''}
 
 
 
