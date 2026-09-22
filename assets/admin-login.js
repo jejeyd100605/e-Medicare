@@ -104,9 +104,9 @@ if(error){
                 return;
             }
 
-            if(profile.role !== 'admin'){
+                        if(profile.role !== 'admin'){
                 await supabase.auth.signOut();
-                showAdminError('Access denied. This portal is for authorized administrators only. (role: ' + profile.role + ')');
+                showAdminError('Incorrect email or password. Please try again.');
                 return;
             }
 

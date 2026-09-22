@@ -2841,64 +2841,11 @@ async function handleLogin(e) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (profileError || !profile) {
         alert("Hindi makuha ang account profile mo. Makipag-ugnayan sa admin.");
         await supabase.auth.signOut();
         return;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2916,62 +2863,52 @@ async function handleLogin(e) {
 
 
 
+async function handleLogin(e) {
+    e.preventDefault();
 
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    const password = document.getElementById("loginPass").value;
 
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
+    if (error) {
+        alert("Login failed: " + error.message);
+        return;
+    }
 
+    const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
 
+    if (profileError || !profile) {
+        alert("Hindi makuha ang account profile mo. Makipag-ugnayan sa admin.");
+        await supabase.auth.signOut();
+        return;
+    }
 
+    if (profile.active === false) {
+        alert("Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.");
+        await supabase.auth.signOut();
+        return;
+    }
 
+    window._currentProfile = profile;    // ← DITO ilalagay bago ito
 
+    if (!profile.mpin) {
+        document.getElementById("formView").classList.add("hidden");
+        document.getElementById("setMpinOverlay").classList.remove("hidden");
+        return;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    executeSecureRouting(profile.role);
+}
 
 
 
 
     window._currentProfile = profile;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2983,65 +2920,8 @@ async function handleLogin(e) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     executeSecureRouting(profile.role);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3059,68 +2939,12 @@ async function handleMagicLink(email) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (error) {
         alert("Could not send magic link: " + error.message);
     } else {
         alert("Magic link sent! Check your email.");
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3134,33 +2958,6 @@ async function verifyMpin() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (!/^\d{4}$/.test(pin)) {
         alert("Please enter your 4-digit MPIN.");
         return;
@@ -3169,64 +2966,8 @@ async function verifyMpin() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const profile = window._currentProfile;
     const enteredHash = await hashText(pin);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3239,33 +2980,6 @@ async function verifyMpin() {
         document.querySelectorAll(".mpin-box")[0].focus();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
