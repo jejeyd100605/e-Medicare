@@ -20,6 +20,22 @@ const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ==========================================================================
 // GLOBAL VARIABLES
@@ -29,6 +45,22 @@ let capturedImageBlob = null; // Photo bilang blob (para i-upload sa Storage)
 let videoStream = null;
 let capturedIdBlob = null;    // ID photo bilang blob (para i-upload sa Storage)
 let idVideoStream = null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -67,6 +99,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function startLoadingScreen() {
     const timerEl = document.getElementById("timer");
     const loadingScreen = document.getElementById("loadingScreen");
@@ -87,9 +135,41 @@ function startLoadingScreen() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const interval = setInterval(() => {
         countdown--;
         if (timerEl) timerEl.textContent = countdown;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -129,11 +209,43 @@ function startLoadingScreen() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // INIT APP — tinitingnan kung may existing Supabase session na
 // ==========================================================================
 async function initApp() {
     const { data: { session } } = await supabase.auth.getSession();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -156,6 +268,22 @@ async function initApp() {
             .select("*")
             .eq("id", session.user.id)
             .single();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -199,7 +327,39 @@ async function initApp() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             window._currentProfile = profile;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -236,6 +396,22 @@ async function initApp() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             if (document.getElementById("welcomeName")) {
                 document.getElementById("welcomeName").innerText = "Welcome, " + profile.name + "!";
             }
@@ -244,6 +420,22 @@ async function initApp() {
             return;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -287,10 +479,42 @@ function showForm(type) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (document.getElementById("facialCaptureOverlay")) {
         document.getElementById("facialCaptureOverlay").classList.add("hidden");
         stopCamera();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -327,10 +551,42 @@ function showForm(type) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     document.getElementById("formView")?.classList.remove("hidden");
     document.getElementById("loginForm")?.classList.toggle("hidden", type !== "login");
     document.getElementById("signupForm")?.classList.toggle("hidden", type !== "signup");
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -371,6 +627,14 @@ function moveFocus(el) {
 
 
 
+
+
+
+
+
+
+
+
 // ==========================================================================
 // SHOW/HIDE PASSWORD TOGGLE
 // ==========================================================================
@@ -378,6 +642,14 @@ function togglePasswordVisibility(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
     if (!input || !icon) return;
+
+
+
+
+
+
+
+
 
 
 
@@ -412,11 +684,35 @@ function togglePasswordVisibility(inputId, iconId) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // SIGNUP — gumagawa muna ng Supabase Auth account, sends real 6-digit OTP
 // ==========================================================================
 async function handleSignup(e) {
     e.preventDefault();
+
+
+
+
+
+
+
+
 
 
 
@@ -442,11 +738,27 @@ async function handleSignup(e) {
 
 
 
+
+
+
+
+
+
+
+
     // BAGO — i-check muna kung magkatugma bago tumawag ng supabase.auth.signUp
     if (password !== confirmPassword) {
         alert("Hindi magkatugma ang password at re-type password. Pakisuri ulit.");
         return;
     }
+
+
+
+
+
+
+
+
 
 
 
@@ -477,10 +789,26 @@ async function handleSignup(e) {
 
 
 
+
+
+
+
+
+
+
+
     if (error) {
         alert("Registration Failed: " + error.message);
         return;
     }
+
+
+
+
+
+
+
+
 
 
 
@@ -498,10 +826,26 @@ async function handleSignup(e) {
 
 
 
+
+
+
+
+
+
+
+
     document.getElementById("formView").classList.add("hidden");
     document.getElementById("otpOverlay").classList.remove("hidden");
     alert("A 6-digit verification code was sent to your email.");
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -531,10 +875,42 @@ async function verifyOtp() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (!/^\d{6}$/.test(otp)) {
         alert("Please enter the full 6-digit code.");
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -572,6 +948,22 @@ async function verifyOtp() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         alert("Incorrect or expired OTP: " + error.message);
         return;
@@ -592,8 +984,40 @@ async function verifyOtp() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     startFacialCapture();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -632,10 +1056,42 @@ function startFacialCapture() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const video = document.getElementById("webcam");
     const statusText = document.getElementById("cameraStatus");
     statusText.style.color = "";
     statusText.innerText = "Initializing camera...";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -684,11 +1140,43 @@ function startFacialCapture() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function captureLivePhoto() {
     const video = document.getElementById("webcam");
     const canvas = document.getElementById("photoCanvas");
     const context = canvas.getContext("2d");
     const statusText = document.getElementById("cameraStatus");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -726,9 +1214,41 @@ function captureLivePhoto() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -768,6 +1288,22 @@ function captureLivePhoto() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function proceedToNextStep() {
     stopCamera();
     setTimeout(() => {
@@ -775,6 +1311,22 @@ function proceedToNextStep() {
         document.getElementById("idConsentOverlay")?.classList.remove("hidden");
     }, 800);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -813,6 +1365,22 @@ function stopCamera() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // ID SCAN CONSENT — Data Privacy Act (RA 10173) compliance
 // ==========================================================================
@@ -835,10 +1403,42 @@ function toggleConsentButton() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     btn.disabled = !checkbox.checked;
     btn.style.opacity = checkbox.checked ? "1" : "0.5";
     btn.style.cursor = checkbox.checked ? "pointer" : "not-allowed";
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -877,8 +1477,40 @@ function proceedToIdCapture() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     window._idConsentGiven = true;
     window._idConsentTimestamp = new Date().toISOString();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -915,6 +1547,22 @@ function proceedToIdCapture() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // ID CAPTURE + OCR MATCHING
 // ==========================================================================
@@ -923,6 +1571,22 @@ function startIdCapture() {
     const statusText = document.getElementById("idCameraStatus");
     statusText.style.color = "";
     statusText.innerText = "Initializing camera...";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -971,12 +1635,44 @@ function startIdCapture() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function stopIdCamera() {
     if (idVideoStream) {
         idVideoStream.getTracks().forEach((track) => track.stop());
         idVideoStream = null;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1014,11 +1710,43 @@ async function captureIdPhoto() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const video = document.getElementById("idWebcam");
     const canvas = document.getElementById("idPhotoCanvas");
     const context = canvas.getContext("2d");
     const statusText = document.getElementById("idCameraStatus");
     const captureBtn = document.getElementById("captureIdBtn");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1056,9 +1784,41 @@ async function captureIdPhoto() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1080,6 +1840,22 @@ async function captureIdPhoto() {
         stopIdCamera();
         captureBtn.classList.add("hidden");
         statusText.innerText = "Reading ID... please wait.";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1123,9 +1899,41 @@ async function captureIdPhoto() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function normalizeText(str) {
     return str.toUpperCase().replace(/[^A-Z\s]/g, " ").replace(/\s+/g, " ").trim();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1164,9 +1972,41 @@ function handleOcrResult(rawText) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const normalizedOcr = normalizeText(rawText);
     const firstName = normalizeText(tempUser?.firstName || "");
     const lastName = normalizeText(tempUser?.lastName || "");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1202,9 +2042,41 @@ function handleOcrResult(rawText) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     statusText.innerText = "";
     resultBox.classList.remove("hidden");
     actionButtons.classList.remove("hidden");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1247,9 +2119,41 @@ function handleOcrResult(rawText) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     extractedTextEl.innerText = "Detected text: " + (rawText.trim() || "(none)");
     window._idVerified = isMatch;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1289,10 +2193,42 @@ function retakeIdPhoto() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function confirmIdAndProceed() {
     document.getElementById("idCaptureOverlay").classList.add("hidden");
     document.getElementById("setMpinOverlay").classList.remove("hidden");
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1334,6 +2270,22 @@ async function hashText(text) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // SAVE ACCOUNT — i-upload ang face image at ID image, i-save ang MPIN hash
 // at consent record sa profile
@@ -1356,10 +2308,42 @@ async function saveAccount() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (!/^\d{4}$/.test(pin)) {
         alert("Please enter exactly 4 digits for your MPIN.");
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1398,8 +2382,40 @@ async function saveAccount() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const mpinHash = await hashText(pin);
     const updatePayload = { mpin: mpinHash };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1440,6 +2456,22 @@ async function saveAccount() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (capturedIdBlob) {
         const idFilePath = `${user.id}/id.png`;
         const { error: idUploadError } = await supabase.storage
@@ -1448,6 +2480,22 @@ async function saveAccount() {
         if (idUploadError) alert("ID image upload failed: " + idUploadError.message);
         else updatePayload.id_image_url = idFilePath;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1483,6 +2531,18 @@ async function saveAccount() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     const { data: profile, error: updateError } = await supabase
         .from("profiles")
         .update(updatePayload)
@@ -1505,10 +2565,42 @@ async function saveAccount() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (updateError) {
         alert("Could not finish setting up your account: " + updateError.message);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1549,8 +2641,40 @@ async function saveAccount() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     executeSecureRouting(roleToForward);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1588,8 +2712,40 @@ async function handleLogin(e) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const email = document.getElementById("loginEmail").value.trim().toLowerCase();
     const password = document.getElementById("loginPass").value;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1623,10 +2779,42 @@ async function handleLogin(e) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (error) {
         alert("Login failed: " + error.message);
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1664,11 +2852,43 @@ async function handleLogin(e) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (profileError || !profile) {
         alert("Hindi makuha ang account profile mo. Makipag-ugnayan sa admin.");
         await supabase.auth.signOut();
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1693,15 +2913,62 @@ async function handleLogin(e) {
 
 
 
-   if (profile.role === "admin" || profile.role === "official") {
-    await supabase.auth.signOut();
-    alert("Incorrect email or password. Please try again.");
-    return;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
     window._currentProfile = profile;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1717,8 +2984,61 @@ async function handleLogin(e) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     executeSecureRouting(profile.role);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1734,6 +3054,22 @@ async function handleMagicLink(email) {
         email,
        options: { emailRedirectTo: window.location.origin + "/pages/login.html" }
     });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1772,11 +3108,43 @@ async function handleMagicLink(email) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // MPIN VALIDATION — compares against the hash stored in profiles
 // ==========================================================================
 async function verifyMpin() {
     const pin = Array.from(document.querySelectorAll(".mpin-box")).map(i => i.value).join("");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1813,8 +3181,40 @@ async function verifyMpin() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const profile = window._currentProfile;
     const enteredHash = await hashText(pin);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1855,6 +3255,22 @@ async function verifyMpin() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================================
 // FORGOT MPIN — hihingi ng password bago payagang mag-set ng bagong MPIN
 // ==========================================================================
@@ -1862,6 +3278,10 @@ function forgotMpin() {
     document.getElementById("mpinView")?.classList.add("hidden");
     document.getElementById("resetMpinOverlay")?.classList.remove("hidden");
 }
+
+
+
+
 
 
 
@@ -1895,6 +3315,8 @@ async function verifyPasswordForMpinReset() {
 }
 
 
+
+
 // ==========================================================================
 // CANCEL MPIN RESET — bumalik sa MPIN unlock screen
 // ==========================================================================
@@ -1903,6 +3325,8 @@ function cancelMpinReset() {
     document.getElementById("resetMpinOverlay")?.classList.add("hidden");
     document.getElementById("mpinView")?.classList.remove("hidden");
 }
+
+
 
 
 // ==========================================================================
@@ -1946,11 +3370,19 @@ async function updateMpin() {
 
 
 
+
+
+
+
+
+
 // ==========================================================================
 // FORGOT PASSWORD — nagpapadala ng password reset link gamit Supabase Auth
 // ==========================================================================
 async function forgotPassword() {
     const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+
+
 
 
     if (!email) {
@@ -1959,9 +3391,13 @@ async function forgotPassword() {
     }
 
 
+
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + "/pages/login.html"
     });
+
+
 
 
     if (error) {
@@ -1970,6 +3406,12 @@ async function forgotPassword() {
         alert("Naipadala na ang password reset link sa iyong email.");
     }
 }
+
+
+
+
+
+
 
 
 
@@ -1988,25 +3430,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 
-// ==========================================================================
-// LIVE PASSWORD MATCH CHECK — nagpapalit ng border color habang nagta-type
-// ==========================================================================
-function checkPasswordMatch() {
-    const newPass = document.getElementById("newPassword").value;
-    const confirmPass = document.getElementById("confirmNewPassword").value;
-    const confirmField = document.getElementById("confirmNewPassword");
 
-    if (confirmPass.length === 0) {
-        confirmField.style.borderColor = "";
-        return;
-    }
-
-    if (newPass === confirmPass) {
-        confirmField.style.borderColor = "#4cae4c"; // green
-    } else {
-        confirmField.style.borderColor = "#d9534f"; // red
-    }
-}
 
 // ==========================================================================
 // SUBMIT NEW PASSWORD — ina-update ang password sa Supabase Auth
@@ -2016,10 +3440,14 @@ async function submitNewPassword() {
     const confirmNewPassword = document.getElementById("confirmNewPassword").value;
 
 
+
+
     if (!newPassword || newPassword.length < 6) {
         alert("Ang password ay dapat hindi bababa sa 6 na characters.");
         return;
     }
+
+
 
 
     if (newPassword !== confirmNewPassword) {
@@ -2028,13 +3456,19 @@ async function submitNewPassword() {
     }
 
 
+
+
     const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+
 
 
     if (error) {
         alert("Hindi na-update ang password: " + error.message);
         return;
     }
+
+
 
 
     alert("✅ Matagumpay na na-update ang password! Pakilog-in muli.");
@@ -2049,6 +3483,12 @@ async function submitNewPassword() {
 
 
 
+
+
+
+
+
+
 // ==========================================================================
 // ROUTING
 // ==========================================================================
@@ -2057,6 +3497,22 @@ function executeSecureRouting(role) {
         alert("System Error: Configuration role metadata lost.");
         return;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2095,6 +3551,28 @@ function executeSecureRouting(role) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 window.location.href = routes[role.toLowerCase()] || "/pages/resident.html";
 }
+
+
+
+
+
+
 

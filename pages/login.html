@@ -198,7 +198,7 @@
 
         <div id="signupForm" class="hidden">
             <h2 style="color:#621a19; margin-bottom:20px;">Sign Up</h2>
-            <form onsubmit="handleSignup(event)"> <input type="text" class="input-field" id="regFirstName" placeholder="First Name" required>
+            <form onsubmit="syncAddress(); handleSignup(event)"><input type="text" class="input-field" id="regFirstName" placeholder="First Name" required>
                 <input type="text" class="input-field" id="regMiddleName" placeholder="Middle Name (Optional)">
                 <input type="text" class="input-field" id="regLastName" placeholder="Last Name" required>
 
@@ -223,9 +223,13 @@
                 <input type="tel" class="input-field" id="regContactNo" placeholder="Contact No." required>
 
 
-                <input type="text" class="input-field" id="regAddress" placeholder="Address" required>
-
-
+                <div class="address-title">Address</div>
+<input type="text" class="input-field" id="regHouseNo" placeholder="House No./Blk-Lot (If Applicable)" required>
+<input type="text" class="input-field" id="regStreet" placeholder="Street (If Applicable)">
+<input type="text" class="input-field" id="regPurok" placeholder="Purok" required>
+<input type="text" class="input-field" id="regBarangay" placeholder="Barangay" required>
+<input type="text" class="input-field" id="regMunicipality" placeholder="Municipality" required>
+<input type="hidden" id="regAddress">
                 <input type="text" class="input-field" id="regRoleDisplay" value="Resident" disabled style="background:#f0f0f0; color:#666;">
 
 
@@ -281,14 +285,14 @@
 
 
     <div style="position:relative; margin-bottom:15px;">
-      <input type="password" class="input-field" id="newPassword" placeholder="New Password" required style="margin-bottom:0; padding-right:40px;" oninput="checkPasswordMatch()">
+        <input type="password" class="input-field" id="newPassword" placeholder="New Password" required style="margin-bottom:0; padding-right:40px;">
         <i class="fas fa-eye" id="toggleNewPass" onclick="togglePasswordVisibility('newPassword', 'toggleNewPass')"
            style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
     </div>
 
 
     <div style="position:relative; margin-bottom:15px;">
-        <input type="password" class="input-field" id="confirmNewPassword" placeholder="Re-type New Password" required style="margin-bottom:0; padding-right:40px;" oninput="checkPasswordMatch()">
+        <input type="password" class="input-field" id="confirmNewPassword" placeholder="Re-type New Password" required style="margin-bottom:0; padding-right:40px;">
         <i class="fas fa-eye" id="toggleConfirmNewPass" onclick="togglePasswordVisibility('confirmNewPassword', 'toggleConfirmNewPass')"
            style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
     </div>
@@ -524,12 +528,23 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="../assets/login.js"></script>
 <script>
+    function syncAddress() {
+        const full = ['regHouseNo', 'regStreet', 'regPurok', 'regBarangay', 'regMunicipality']
+            .map(id => (document.getElementById(id)?.value || '').trim())
+            .filter(Boolean)
+            .join(', ');
+        document.getElementById('regAddress').value = full;
+    }
+</script>
+<script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
     }
 </script>
  </body>
 </html>
+
+
 
 
 

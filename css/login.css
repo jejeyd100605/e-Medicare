@@ -6,36 +6,6 @@
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* BODY - Full screen dark red gradient background (eMedicare brand color) */
 body {
     font-family: 'Segoe UI', Roboto, sans-serif; /* Modern, readable font */
@@ -44,36 +14,6 @@ body {
     display: flex; justify-content: center; align-items: center; /* Centers auth card */
     overflow: hidden; /* No scrollbars */
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* --- LOADING SCREEN (3-Second Splash) --- */
@@ -86,53 +26,9 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .loading-screen.hidden {
     opacity: 0; visibility: hidden; /* Fade effect when hidden */
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 .logo-inner-circle {
@@ -144,55 +40,11 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .logo-inner-circle img {
     width: 100%; height: auto;
     object-fit: contain; /* Logo maintains aspect ratio */
     background-color: transparent !important;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* BRAND NAME - Glowing text effect */
@@ -203,71 +55,11 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* TAGLINE - Subtitle below logo */
 .tagline {
     color: white; font-size: 1.1rem; margin-bottom: 35px;
     font-weight: 500; text-align: center; opacity: 0.9;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* YELLOW LINE - Design separator */
@@ -277,71 +69,11 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* COUNTDOWN TIMER */
 .timer-text {
     color: white; font-size: 1.8rem; font-weight: bold;
     text-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* --- MAIN AUTH CARD (White popup) --- */
@@ -352,36 +84,6 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.4); /* Deep shadow */
     text-align: center;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* USER AVATAR - Profile picture circle */
@@ -395,70 +97,10 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* PIN INPUT CONTAINER - 4 boxes side-by-side */
 .pin-container {
     display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* INDIVIDUAL PIN BOXES (MPIN/OTP) */
@@ -469,71 +111,11 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* REGULAR INPUT FIELDS (Email, Password, Name) */
 .input-field {
     width: 100%; padding: 12px 15px;
     border: 2px solid #ddd; border-radius: 10px; margin-bottom: 15px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* BUTTONS - Full width, dark red */
@@ -544,69 +126,9 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .btn-block:hover {
     background: #621a19; /* Darker red on hover */
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* LINKS - "Forgot MPIN?", "Create Account" */
@@ -616,38 +138,26 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* HIDE ELEMENTS (login/signup toggle) */
 .hidden { display: none !important; }
+
+
+/* ADDRESS HEADING (Sign Up form) */
+.address-title{
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #333;
+    margin: 4px 0 8px;
+}
+
+
+/* BAGO — para ma-scroll ang mahabang form (Sign Up) at hindi maputol ang "Back to Login" */
+.auth-card{
+    max-height: 92vh;
+    max-height: 92dvh;
+    overflow-y: auto;
+}
 
 
 

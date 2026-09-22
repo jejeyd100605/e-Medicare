@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,21 @@
     <link rel="apple-touch-icon" href="/assets/logo.png">
     <meta name="theme-color" content="#800000">
     <link rel="stylesheet" href="/css/admin.css">
+
+
+    <!-- BAGO: Theme (Light / Dark / Device). Tumatakbo ito bago mag-render
+         para hindi mag-flash ng maling kulay pag nag-reload. -->
+    <script>
+    (function () {
+        var mode = 'dark';
+        try { mode = localStorage.getItem('theme-mode') || 'dark'; } catch (e) {}
+        var isDark = mode === 'dark' ||
+            (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    })();
+    </script>
+
+
     <!-- BAGO: Leaflet, para sa Live Response Tracking map sa Dispatch modal -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -16,15 +31,48 @@
 <body>
 
 
+
+
+
+
+
+
     <!-- HEADER SECTION -->
     <div class="header">
         <h1>e-Medicare <span>Bambang Admin</span></h1>
         <div class="user-info">
-            <span id="activeRoleBadge" style="font-size: 0.75em; background: #333; padding: 4px 8px; border-radius: 4px; border: 1px solid #555; color: #ffd700; margin-right: 10px;">Checking Privilege...</span>
+
+
+            <!-- BAGO: Light / Dark / Device switch -->
+            <div class="theme-switch" id="themeSwitch" role="group" aria-label="Theme">
+                <button type="button" data-mode="light" aria-pressed="false">
+                    <svg class="ic-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg class="ic-main" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                    <span>Light</span>
+                </button>
+                <button type="button" data-mode="dark" aria-pressed="true">
+                    <svg class="ic-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg class="ic-main" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <span>Dark</span>
+                </button>
+                <button type="button" data-mode="device" aria-pressed="false">
+                    <svg class="ic-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg class="ic-main" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg>
+                    <span>Device</span>
+                </button>
+            </div>
+
+
             <div class="user-avatar">A</div>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
+
+
+
+
+
+
 
 
     <!-- MAIN CONTENT WRAPPER -->
@@ -33,6 +81,12 @@
             <h2>Barangay Bambang Emergency Response</h2>
             <p id="tabStatusMsg">Target Response Time: 5-10 Minutes | Priority: Life-Threatening Cases (Motorcycle/Stroke)</p>
         </div>
+
+
+
+
+
+
 
 
         <!-- TAB NAVIGATION -->
@@ -48,6 +102,12 @@
         </div>
 
 
+
+
+
+
+
+
         <!-- DASHBOARD TAB -->
         <div id="dashboard-tab">
             <div class="summary-grid">
@@ -61,12 +121,18 @@
                     <div class="summary-value" id="assignedCount">0</div>
                     <span class="summary-tag tag-warning">Team Coordinating</span>
                 </div>
-                <div class="summary-card" style="border-left: 5px solid #00c853;">
+                <div class="summary-card" style="border-left: 5px solid var(--green);">
                     <div class="summary-label">Resolved Cases</div>
                     <div class="summary-value" id="resolvedCount">0</div>
                     <span class="summary-tag tag-ok">Successful Transports</span>
                 </div>
             </div>
+
+
+
+
+
+
 
 
             <div class="layout">
@@ -85,34 +151,52 @@
                 </div>
 
 
+
+
+
+
+
+
                 <!-- Right Column: Quick Stats & Advisory -->
                 <div class="column">
-                    <div class="panel" style="border-top: 5px solid #ff9100;">
-                        <div class="panel-title" style="color:#ff9100;">📢 Community Advisory</div>
+                    <div class="panel" style="border-top: 5px solid var(--orange);">
+                        <div class="panel-title" style="color:var(--orange);">📢 Community Advisory</div>
                         <input type="text" id="advTitle" class="form-control" placeholder="Subject (e.g. Medicine Availability)">
                         <textarea id="advMsg" class="form-control" rows="2" placeholder="Announce vaccination drive..."></textarea>
-                        <button class="primary-btn" style="background:#ff9100; width:100%;" onclick="postAdvisory()">Broadcast</button>
+                        <button class="primary-btn" style="background:var(--orange); width:100%;" onclick="postAdvisory()">Broadcast</button>
                     </div>
 
 
-                    <div class="panel" style="border-top: 5px solid #00b0ff;">
-                        <div class="panel-title" style="color:#00b0ff; display: flex; justify-content: space-between;">
+
+
+
+
+
+
+                    <div class="panel" style="border-top: 5px solid var(--blue);">
+                        <div class="panel-title" style="color:var(--blue); display: flex; justify-content: space-between;">
                             <span>🚑 Active Fleet & Personnel</span>
-                            <button id="btn-mutual-aid" onclick="requestMutualAid()" style="font-size: 0.6em; background: #00b0ff; color: white; display: none;">Borrow Vehicle (Mutual Aid)</button>
+                            <button id="btn-mutual-aid" onclick="requestMutualAid()" style="font-size: 0.6em; background: var(--blue); color: white; display: none;">Borrow Vehicle (Mutual Aid)</button>
                         </div>
                         <div id="quickFleetStatus"></div>
                     </div>
 
 
+
+
+
+
+
+
                     <!-- BAGO: Documentation Tracker — nakatutok na sa resolved/completed
                          SOS at Emergency incidents (galing sa incidentsCache), hindi na
                          sa lumang localStorage medical assistance seed data. -->
-                    <div class="panel" style="border-top: 5px solid #ffeb3b;">
+                    <div class="panel" style="border-top: 5px solid var(--yellow);">
                         <div class="panel-header">
-                            <div class="panel-title" style="color: #fbc02d;">📜 Documentation Tracker</div>
+                            <div class="panel-title" style="color: var(--yellow);">📜 Documentation Tracker</div>
                             <span class="badge" id="historyCountBadge">0 Records</span>
                         </div>
-                        <p style="font-size: 0.7em; color: #888;">Resolved/completed incident reports — printable history.</p>
+                        <p style="font-size: 0.7em; color: var(--text-muted);">Resolved/completed incident reports — printable history.</p>
                         <div id="incidentHistoryList"></div>
                     </div>
                 </div>
@@ -120,18 +204,36 @@
         </div>
 
 
+
+
+
+
+
+
         <!-- FLEET MANAGEMENT TAB -->
         <div id="fleet-tab" style="display: none;">
             <div class="layout">
                 <div class="column" style="flex: 1.2;">
-                    <div class="panel" style="border-top: 5px solid #00b0ff;">
-                        <div class="panel-title" style="color: #00b0ff;" id="formFleetTitle">🚒 Register Ambulance / Resource Unit</div>
+                    <div class="panel" style="border-top: 5px solid var(--blue);">
+                        <div class="panel-title" style="color: var(--blue);" id="formFleetTitle">🚒 Register Ambulance / Resource Unit</div>
                         <form id="fleetForm" onsubmit="handleFleetSubmit(event)">
                             <input type="hidden" id="fleetId">
 
 
+
+
+
+
+
+
                             <label style="font-size: 0.8em;">Unit Name / Personnel Name:</label>
                             <input type="text" id="fleetName" class="form-control" placeholder="e.g. Ambulance Alpha / Responder Cruz" required>
+
+
+
+
+
+
 
 
                             <label style="font-size: 0.8em;">Resource Classification:</label>
@@ -146,8 +248,20 @@
 </select>
 
 
+
+
+
+
+
+
 <label style="font-size: 0.8em;">Plate Number (optional):</label>
                             <input type="text" id="fleetPlate" class="form-control" placeholder="e.g. ABC-1234">
+
+
+
+
+
+
 
 
                            <label style="font-size: 0.8em;">Initial Availability Status:</label>
@@ -158,23 +272,41 @@
                             </select>
 
 
+
+
+
+
+
+
                             <label style="font-size: 0.8em;">Link to Responder Account (optional):</label>
                             <select id="fleetLinkedProfile" class="form-control">
                                 <option value="">— No linked account —</option>
                             </select>
 
 
+
+
+
+
+
+
                             <div style="margin-top: 15px; display: flex; gap: 10px;">
-                                <button type="submit" class="primary-btn" style="background:#00b0ff; color:white; flex: 1;">Save Resource</button>
-                                <button type="button" class="primary-btn" style="background:#555;" onclick="clearFleetForm()">Cancel</button>
+                                <button type="submit" class="primary-btn" style="background:var(--blue); color:white; flex: 1;">Save Resource</button>
+                                <button type="button" class="primary-btn btn-secondary" onclick="clearFleetForm()">Cancel</button>
                             </div>
                         </form>
                     </div>
 
 
-                 <div class="panel" style="border-top: 5px solid #00c853;">
-    <div class="panel-title" style="color:#00c853;">🚀 Quick Dispatch</div>
-    <p style="font-size:0.75em; color:#888; margin-bottom:10px;">
+
+
+
+
+
+
+                 <div class="panel" style="border-top: 5px solid var(--green);">
+    <div class="panel-title" style="color:var(--green);">🚀 Quick Dispatch</div>
+    <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">
         Pumili ng available na vehicle, driver, at responder, i-link sa isang incident (optional), tapos i-dispatch bilang isang team.
     </p>
     <form id="quickDispatchForm" onsubmit="handleQuickDispatch(event)">
@@ -184,10 +316,22 @@
         </select>
 
 
+
+
+
+
+
+
         <label style="font-size: 0.8em;">Responder:</label>
         <select id="dispatchResponder" class="form-control">
             <option value="">— None —</option>
         </select>
+
+
+
+
+
+
 
 
         <label style="font-size: 0.8em;">Paraan ng Pagtanggap:</label>
@@ -199,16 +343,34 @@
         </select>
 
 
+
+
+
+
+
+
         <label style="font-size: 0.8em;">ETA / Notes:</label>
         <textarea id="dispatchNotes" class="form-control" rows="2" placeholder="e.g. 7 mins ETA"></textarea>
 
 
-        <button type="submit" class="primary-btn" style="background:#00c853; color:#111; width:100%; margin-top:8px;">
+
+
+
+
+
+
+        <button type="submit" class="primary-btn" style="background:var(--green); color:#111; width:100%; margin-top:8px;">
             🚀 Dispatch Team
         </button>
     </form>
 </div>
   </div>
+
+
+
+
+
+
 
 
                 <div class="column" style="flex: 2.8;">
@@ -217,7 +379,7 @@
                             <div class="panel-title">🚑 Vehicles & Resource Units</div>
                             <span class="live-indicator"><span class="status-dot pulse"></span>Live</span>
                         </div>
-                        <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">Ambulances, transport vehicles, rescue/patrol, and auxiliary units. Change any unit's status inline below.</p>
+                        <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 15px;">Ambulances, transport vehicles, rescue/patrol, and auxiliary units. Change any unit's status inline below.</p>
                         <table class="fleet-table" style="width: 100%;">
                             <thead>
                                 <tr>
@@ -233,12 +395,18 @@
                     </div>
 
 
+
+
+
+
+
+
                     <div class="panel">
                         <div class="panel-header">
                             <div class="panel-title">🧑‍⚕️ Personnel (Drivers & Responders)</div>
                             <span class="live-indicator"><span class="status-dot pulse"></span>Live</span>
                         </div>
-                        <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">On-foot / staff personnel — drivers and medical responders. Change any status inline below.</p>
+                        <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 15px;">On-foot / staff personnel — drivers and medical responders. Change any status inline below.</p>
                         <table class="fleet-table" style="width: 100%;">
                             <thead>
                                 <tr>
@@ -257,32 +425,50 @@
         </div>
 
 
+
+
+
+
+
+
         <!-- DOCUMENT EVALUATION TAB -->
        <div id="docs-tab" style="display: none;">
     <div class="layout">
         <div class="column" style="flex: 1.6;">
-            <div class="panel" style="border-top: 5px solid #0091ea;">
+            <div class="panel" style="border-top: 5px solid var(--blue);">
                 <div class="panel-header">
                     <div class="panel-title">🚐 Schedule Transpo Requests</div>
                     <span class="badge" id="transpoCountBadge">0 Pending</span>
                 </div>
-                <p style="color:#aaa; font-size: 0.8em; margin-bottom: 15px;">Review resident transport bookings. Click a request to assign a vehicle.</p>
+                <p style="color:var(--text-muted); font-size: 0.8em; margin-bottom: 15px;">Review resident transport bookings. Click a request to assign a vehicle.</p>
                 <div id="transpoRequestsList"></div>
                 <div class="empty-state" id="transpoEmpty" style="display:block;">No submitted transport requests found.</div>
             </div>
 
 
+
+
+
+
+
+
            <!-- BAGO: Completed Transport Records — approved/completed/rejected
      transpo requests, hiwalay sa Documentation Tracker at sa
      Assistance Queue history. -->
-<div class="panel" style="border-top: 5px solid #0091ea;">
+<div class="panel" style="border-top: 5px solid var(--blue);">
     <div class="panel-header">
         <div class="panel-title">✅ Completed Transport Records</div>
         <span class="badge" id="transpoHistoryCountBadge">0 Records</span>
     </div>
-    <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Approved and completed transport requests — printable history.</p>
+    <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">Approved and completed transport requests — printable history.</p>
     <div id="transpoHistoryList"></div>
 </div>
+
+
+
+
+
+
 
 
 <!-- BAGO: Reservation Calendar — makikita lahat ng naka-schedule na
@@ -292,38 +478,80 @@
     <div class="panel-header">
         <div class="panel-title" style="color:#7c4dff;">📅 Vehicle/Driver Reservations</div>
     </div>
-    <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Lahat ng naka-schedule na approved na transport bookings, naka-group per araw. Pula ang lalabas kapag may conflict.</p>
+    <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">Lahat ng naka-schedule na approved na transport bookings, naka-group per araw. Pula ang lalabas kapag may conflict.</p>
     <div id="transpoReservationCalendar"></div>
 </div>
 </div>
         <div class="column" style="flex: 1.4;">
-            <div class="panel" style="border-top: 5px solid #0091ea;">
+            <div class="panel" style="border-top: 5px solid var(--blue);">
                 <div class="panel-title">🔍 Transpo Assignment Terminal</div>
                 <div id="transpoStepper"></div>
+
+
+
+
+
+
 
 
                 <form id="transpoEvalForm" onsubmit="handleTranspoEvaluation(event)">
                     <input type="hidden" id="selectedTranspoId">
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Patient / Requesting Resident:</label>
                     <input type="text" id="transpoResidentName" class="form-control" readonly placeholder="No selected request">
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Pickup Location:</label>
                     <input type="text" id="transpoPickup" class="form-control" readonly>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Destination:</label>
                     <input type="text" id="transpoDestination" class="form-control" readonly>
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Schedule:</label>
                     <input type="text" id="transpoSchedule" class="form-control" readonly>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Requested Vehicle Type / Condition:</label>
                     <input type="text" id="transpoType" class="form-control" readonly>
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Assign Vehicle / Unit:</label>
@@ -332,14 +560,32 @@
 </select>
 
 
+
+
+
+
+
+
 <label style="font-size: 0.8em;">Assign Driver:</label>
 <select id="transpoDriverSelect" class="form-control">
     <option value="">— None —</option>
 </select>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Admin Notes:</label>
                     <textarea id="transpoNotes" class="form-control" rows="2" placeholder="Remarks, ETA, or reason for rejection..."></textarea>
+
+
+
+
+
+
 
 
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
@@ -355,12 +601,18 @@
        <div id="queue-tab" style="display: none;">
     <div class="layout">
         <div class="column" style="flex: 1;">
-            <div class="panel" style="border-top: 5px solid #ff9100;">
-                <div class="panel-title" style="color:#ff9100;">💰 Medical Assistance Fund Pool</div>
-                <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Requests are auto-queued here when approved but the fund pool can't cover the cost yet. Top up funds to release them.</p>
+            <div class="panel" style="border-top: 5px solid var(--orange);">
+                <div class="panel-title" style="color:var(--orange);">💰 Medical Assistance Fund Pool</div>
+                <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Requests are auto-queued here when approved but the fund pool can't cover the cost yet. Top up funds to release them.</p>
                 <div id="queueBudgetBox" class="budget-box"></div>
-                <p style="font-size:0.68em; color:#666;">Queue order is computed automatically from urgency, eligibility, budget fit, and time waiting — not manually ranked.</p>
+                <p style="font-size:0.68em; color:var(--text-dim);">Queue order is computed automatically from urgency, eligibility, budget fit, and time waiting — not manually ranked.</p>
             </div>
+
+
+
+
+
+
 
 
             <div class="panel">
@@ -368,61 +620,109 @@
                     <div class="panel-title">🗂️ Priority Queue — Awaiting Funds</div>
                     <span class="badge" id="queueCountBadge">0 Queued</span>
                 </div>
-                <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Sorted highest priority first. A request can be disbursed the moment the fund pool covers its cost.</p>
+                <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">Sorted highest priority first. A request can be disbursed the moment the fund pool covers its cost.</p>
                 <div id="queueList"></div>
             </div>
+
+
+
+
+
+
 
 
             <!-- BAGO: Completed Assistance Records — disbursed/approved/rejected
                  medical & financial assistance requests, hiwalay sa
                  Documentation Tracker at sa Transport Queue history. -->
-            <div class="panel" style="border-top: 5px solid #ffeb3b;">
+            <div class="panel" style="border-top: 5px solid var(--yellow);">
                 <div class="panel-header">
-                    <div class="panel-title" style="color:#ffd700;">✅ Completed Assistance Records</div>
+                    <div class="panel-title" style="color:var(--gold);">✅ Completed Assistance Records</div>
                     <span class="badge" id="requestHistoryCountBadge">0 Records</span>
                 </div>
-                <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Disbursed, approved, and rejected requests — printable history.</p>
+                <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">Disbursed, approved, and rejected requests — printable history.</p>
                 <div id="requestHistoryList"></div>
             </div>
         </div>
 
 
+
+
+
+
+
+
         <div class="column" style="flex: 1.4;">
-            <div class="panel" style="border-top: 5px solid #ffd700;">
+            <div class="panel" style="border-top: 5px solid var(--gold);">
                 <div class="panel-header">
                     <div class="panel-title">📥 Medical Assistance Requests</div>
                     <span class="badge" id="assistanceCountBadge">0 Pending</span>
                 </div>
-                <p style="color:#aaa; font-size: 0.8em; margin-bottom: 15px;">Review medical applications submitted by residents. Click a request to load it.</p>
+                <p style="color:var(--text-muted); font-size: 0.8em; margin-bottom: 15px;">Review medical applications submitted by residents. Click a request to load it.</p>
                 <div id="assistanceRequestsList"></div>
                 <div class="empty-state" id="assistanceEmpty" style="display:block;">No submitted medical assistance requests found.</div>
             </div>
         </div>
 
 
+
+
+
+
+
+
         <div class="column" style="flex: 1.4;">
-            <div class="panel" style="border-top: 5px solid #ffd700;">
+            <div class="panel" style="border-top: 5px solid var(--gold);">
                 <div class="panel-title">🔍 Request Verification Terminal</div>
-                <p style="color:#aaa; font-size: 0.8em; margin-bottom: 10px;">Select a request from the list to load documents and routing logs.</p>
+                <p style="color:var(--text-muted); font-size: 0.8em; margin-bottom: 10px;">Select a request from the list to load documents and routing logs.</p>
                 <div id="statusStepper"></div>
+
+
+
+
+
+
 
 
                 <form id="assistanceEvalForm" onsubmit="handleAssistanceEvaluation(event)">
                     <input type="hidden" id="selectedRequestId">
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Resident Applicant:</label>
                     <input type="text" id="evalResidentName" class="form-control" readonly placeholder="No selected request">
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Details / Medical Purpose:</label>
                     <textarea id="evalPurpose" class="form-control" rows="3" readonly placeholder="Waiting for selection..."></textarea>
 
 
-                    <div style="background:#2d2d2d; padding:12px; border-radius:8px; border-left:4px solid #ffd700; margin-bottom: 15px;">
-                        <h4 style="font-size: 0.85em; margin-bottom: 5px; color:#ffd700;">Attached Document Audit:</h4>
-                        <div id="evalDocAttachments" style="font-size: 0.8em; color: #eee;">Select a resident's ticket to inspect medical certificates and indigency forms.</div>
+
+
+
+
+
+
+                    <div style="background:var(--bg-card); border:1px solid var(--border); padding:12px; border-radius:8px; border-left:4px solid var(--gold); margin-bottom: 15px;">
+                        <h4 style="font-size: 0.85em; margin-bottom: 5px; color:var(--gold);">Attached Document Audit:</h4>
+                        <div id="evalDocAttachments" style="font-size: 0.8em; color: var(--text-main);">Select a resident's ticket to inspect medical certificates and indigency forms.</div>
                     </div>
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Categorize Request Type:</label>
@@ -434,6 +734,12 @@
                     </select>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Urgency & Priority Level:</label>
                     <select id="evalPriority" class="form-control" required>
                         <option value="Routine">🟢 Routine / Low Priority</option>
@@ -442,12 +748,30 @@
                     </select>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Estimated Cost (₱):</label>
                     <input type="number" id="evalCost" class="form-control" min="0" placeholder="0">
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Evaluator Command Notes:</label>
                     <textarea id="evalNotes" class="form-control" rows="2" placeholder="Input remarks, approval criteria, or reasons for rejection..."></textarea>
+
+
+
+
+
+
 
 
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
@@ -458,8 +782,14 @@
             </div>
 
 
-            <div class="panel" style="border-top: 5px solid #00b0ff;">
-                <div class="panel-title" style="color:#00b0ff;">🔔 Resident Notifications</div>
+
+
+
+
+
+
+            <div class="panel" style="border-top: 5px solid var(--blue);">
+                <div class="panel-title" style="color:var(--blue);">🔔 Resident Notifications</div>
                 <div id="evalNotifications"></div>
             </div>
         </div>
@@ -472,7 +802,7 @@
                     <div class="panel-title">📈 System Activity — Full Oversight Log</div>
                     <span class="badge" id="activityCountBadge">0 Events</span>
                 </div>
-                <p style="font-size:0.8em; color:#aaa; margin-bottom: 10px;">Every dispatch, fleet status change, request decision, fund movement, advisory, and account change is logged here for oversight.</p>
+                <p style="font-size:0.8em; color:var(--text-muted); margin-bottom: 10px;">Every dispatch, fleet status change, request decision, fund movement, advisory, and account change is logged here for oversight.</p>
                 <div class="activity-filters">
                     <button class="active" onclick="filterActivity('all', this)">All</button>
                     <button onclick="filterActivity('dispatch', this)">🚑 Dispatch</button>
@@ -491,14 +821,26 @@
         <div id="users-tab" style="display: none;">
         <div class="layout">
         <div class="column" style="flex: 1.2;">
-                    <div class="panel" style="border-top: 5px solid #e040fb;">
-                        <div class="panel-title" style="color: #e040fb;" id="formUserTitle">👤 Create Responder Account</div>
+                    <div class="panel" style="border-top: 5px solid var(--purple);">
+                        <div class="panel-title" style="color: var(--purple);" id="formUserTitle">👤 Create Responder Account</div>
                        <form id="userForm" onsubmit="handleUserFormSubmit(event)">
     <input type="hidden" id="userId">
 
 
+
+
+
+
+
+
     <label style="font-size: 0.8em;">Full Name:</label>
     <input type="text" id="userFullName" class="form-control" placeholder="Juan Dela Cruz" required>
+
+
+
+
+
+
 
 
     <label style="font-size: 0.8em;">Position:</label>
@@ -508,41 +850,83 @@
     </select>
 
 
+
+
+
+
+
+
     <label style="font-size: 0.8em;">Email Address:</label>
     <input type="email" id="userEmail" class="form-control" placeholder="responder@bambang.gov.ph" required>
+
+
+
+
+
+
 
 
     <label style="font-size: 0.8em;">Temporary Password:</label>
     <input type="password" id="userPassword" class="form-control" placeholder="Min. 6 characters" required minlength="6">
 
 
+
+
+
+
+
+
     <label style="font-size: 0.8em;">Contact Number:</label>
     <input type="text" id="userContact" class="form-control" placeholder="0917XXXXXXX" required>
 
 
+
+
+
+
+
+
     <label style="font-size: 0.8em;">Barangay ID (photo/scan):</label>
     <input type="file" id="userIdImage" class="form-control" accept="image/*">
-    <p style="font-size: 0.68em; color: #888; margin-top: -2px; margin-bottom: 8px;">
+    <p style="font-size: 0.68em; color: var(--text-muted); margin-top: -2px; margin-bottom: 8px;">
         I-verify muna ang pagkakakilanlan gamit ang ID bago i-submit.
     </p>
+
+
+
+
+
+
 
 
     <div id="licenseFieldWrap" style="display: none;">
         <label style="font-size: 0.8em;">Driver's License (photo/scan):</label>
         <input type="file" id="userLicenseImage" class="form-control" accept="image/*">
-        <p style="font-size: 0.68em; color: #888; margin-top: -2px; margin-bottom: 8px;">
+        <p style="font-size: 0.68em; color: var(--text-muted); margin-top: -2px; margin-bottom: 8px;">
             Required para sa Driver position — kailangang makita ang valid license.
         </p>
     </div>
 
 
+
+
+
+
+
+
     <div style="margin-top: 15px; display: flex; gap: 10px;">
-        <button type="submit" id="userFormSubmitBtn" class="primary-btn" style="background:#e040fb; flex: 1;">Create Account</button>
-        <button type="button" class="primary-btn" style="background:#555;" onclick="clearUserForm()">Cancel</button>
+        <button type="submit" id="userFormSubmitBtn" class="primary-btn" style="background:var(--purple); flex: 1;">Create Account</button>
+        <button type="button" class="primary-btn btn-secondary" onclick="clearUserForm()">Cancel</button>
     </div>
 </form>
                     </div>
                 </div>
+
+
+
+
+
+
 
 
                 <div class="column" style="flex: 2.8;">
@@ -551,7 +935,12 @@
     <div class="table-scroll-wrap">
         <table class="fleet-table" style="width: 100%;">
             <thead>
-                ...
+             <tr>
+        <th>Name / Contact</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
             </thead>
             <tbody id="usersList"></tbody>
         </table>
@@ -564,86 +953,177 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- ============================================================
      COMMUNICATIONS TAB (External Agency Coordination) — v2
-     Palitan ang BUONG lumang <div id="comms-tab"> ... </div>
-     ng block na ito. BURAHIN din yung duplicate na panel na
-     "📨 Coordination Log — New Entry" na nasa labas ng tab
-     (may pangalawang <form id="coordForm"> — dahil doon,
-     laging luma/blangko ang nakukuha ng JS).
      ============================================================ -->
 <div id="comms-tab" style="display: none;">
     <div class="layout">
+
+
+
+
+
+
 
 
         <!-- LEFT: Agency Directory -> Add/Edit Agency -> Completed Records -->
         <div class="column" style="flex: 1.3;">
 
 
-            <div class="panel" style="border-top: 5px solid #00e5ff;">
-                <div class="panel-title" style="color:#00e5ff;">📡 External Agency Directory</div>
-                <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Mga karatig-barangay, BFP/PNP, ospital, DRRMO, at NGO na pwedeng hingan ng mutual aid o referral.</p>
+
+
+
+
+
+
+            <div class="panel" style="border-top: 5px solid var(--cyan);">
+                <div class="panel-title" style="color:var(--cyan);">📡 External Agency Directory</div>
+                <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Mga karatig-barangay, BFP/PNP, ospital, DRRMO, at NGO na pwedeng hingan ng mutual aid o referral.</p>
                 <div id="agencyDirectory"></div>
             </div>
 
 
-            <div class="panel" style="border-top: 5px solid #00e5ff;">
-                <div class="panel-title" style="color:#00e5ff;" id="formAgencyTitle">➕ Add Agency / Contact</div>
+
+
+
+
+
+
+            <div class="panel" style="border-top: 5px solid var(--cyan);">
+                <div class="panel-title" style="color:var(--cyan);" id="formAgencyTitle">➕ Add Agency / Contact</div>
                 <form id="agencyForm" onsubmit="handleAgencySubmit(event)">
                     <input type="hidden" id="agencyId">
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Agency / Unit Name:</label>
                     <input type="text" id="agencyName" class="form-control" placeholder="hal. MDRRMO Bulakan" required>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Contact Person / Office:</label>
                     <input type="text" id="agencyContactPerson" class="form-control" placeholder="hal. MDRRMO Office" required>
-                    <p style="font-size:0.68em; color:#888; margin-top:-2px; margin-bottom:8px;">Ito ang awtomatikong lalabas sa coordination form kapag pinili ang agency na ito.</p>
+                    <p style="font-size:0.68em; color:var(--text-muted); margin-top:-2px; margin-bottom:8px;">Ito ang awtomatikong lalabas sa coordination form kapag pinili ang agency na ito.</p>
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Hotline / Contact Number:</label>
                     <input type="text" id="agencyContact" class="form-control" placeholder="hal. (044) 123-4567 / 0917XXXXXXX" required>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Available Services:</label>
                     <input type="text" id="agencyServices" class="form-control" placeholder="hal. Ambulance, Rescue Truck, Manpower">
 
 
+
+
+
+
+
+
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button type="submit" class="primary-btn" style="background:#00e5ff; color:#111; flex: 1;">Save Agency</button>
-                        <button type="button" class="primary-btn" style="background:#555;" onclick="clearAgencyForm()">Cancel</button>
+                        <button type="submit" class="primary-btn" style="background:var(--cyan); color:#111; flex: 1;">Save Agency</button>
+                        <button type="button" class="primary-btn btn-secondary" onclick="clearAgencyForm()">Cancel</button>
                     </div>
                 </form>
             </div>
 
 
-            <div class="panel" style="border-top: 5px solid #00c853;">
+
+
+
+
+
+
+            <div class="panel" style="border-top: 5px solid var(--green);">
                 <div class="panel-header">
-                    <div class="panel-title" style="color:#00c853;">✅ Completed Coordination Records</div>
+                    <div class="panel-title" style="color:var(--green);">✅ Completed Coordination Records</div>
                     <span class="badge" id="coordHistoryCountBadge">0 Records</span>
                 </div>
-                <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Mga tapos nang coordination — may actual response time at printable para sa report.</p>
+                <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">Mga tapos nang coordination — may actual response time at printable para sa report.</p>
                 <div id="coordHistoryList" style="max-height:480px; overflow-y:auto; padding-right:4px;"></div>
             </div>
         </div>
+
+
+
+
+
+
 
 
         <!-- RIGHT: Coordination Request form + Pending log -->
         <div class="column" style="flex: 1.7;">
 
 
+
+
+
+
+
+
             <div class="panel" style="border-top: 5px solid #7c4dff;">
                 <div class="panel-title" style="color:#7c4dff;" id="coordFormTitle">📨 Coordination Request</div>
-                <p style="font-size:0.8em; color:#aaa; margin-bottom:15px;">Itala ang bawat hiling ng mutual aid sa ibang ahensya. Naka-<b>Pending</b> muna ito hanggang may update. Kapag na-click ang <b>Mark Complete</b>, doon lang nase-save nang tuluyan at doon kinukwenta ang response time para sa report.</p>
+                <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">Itala ang bawat hiling ng mutual aid sa ibang ahensya. Naka-<b>Pending</b> muna ito hanggang may update. Kapag na-click ang <b>Mark Complete</b>, doon lang nase-save nang tuluyan at doon kinukwenta ang response time para sa report.</p>
+
+
+
+
+
+
 
 
                 <form id="coordForm" onsubmit="handleSendCoordination(event)">
                     <input type="hidden" id="coordId">
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">External Request ID:</label>
-                    <input type="text" id="coordRefDisplay" class="form-control" readonly style="color:#00e5ff; font-weight:600;">
+                    <input type="text" id="coordRefDisplay" class="form-control" readonly style="color:var(--cyan); font-weight:600;">
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">External Agency:</label>
@@ -652,31 +1132,67 @@
                     </select>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Contact Person:</label>
                     <input type="text" id="coordContactPerson" class="form-control" readonly placeholder="Awtomatikong lalabas kapag may napiling agency">
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Hotline:</label>
                     <input type="text" id="coordHotline" class="form-control" readonly placeholder="—">
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Available Services (hinihiling):</label>
                     <input type="text" id="coordServices" class="form-control" placeholder="hal. Ambulance" required>
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Related Incident:</label>
                     <select id="coordIncidentSelect" class="form-control" onchange="onCoordIncidentChange()">
                         <option value="">— Manual / Wala sa listahan (hal. tawag lang sa telepono) —</option>
                     </select>
-                    <p style="font-size:0.68em; color:#888; margin-top:-2px; margin-bottom:8px;">Pumili kung galing sa app ang report (SOS o Emergency) — matic na kukunin ang buong info ng resident.</p>
+                    <p style="font-size:0.68em; color:var(--text-muted); margin-top:-2px; margin-bottom:8px;">Pumili kung galing sa app ang report (SOS o Emergency) — matic na kukunin ang buong info ng resident.</p>
 
 
-                    <div id="coordResidentInfoBox" style="display:none; margin-bottom:10px; font-size:0.85em; color:#ccc; background:#222; padding:10px; border-radius:6px;">
-                        <div style="font-weight:600; color:#ffd700;" id="coordResidentReportType">—</div>
+
+
+
+
+
+
+                    <div id="coordResidentInfoBox" style="display:none; margin-bottom:10px; font-size:0.85em; color:var(--text-main); background:var(--bg-card); border:1px solid var(--border); padding:10px; border-radius:6px;">
+                        <div style="font-weight:600; color:var(--gold);" id="coordResidentReportType">—</div>
                         <div>👤 <span id="coordResidentName">—</span></div>
                         <div>📞 <span id="coordResidentContact">—</span></div>
-                        <div style="color:#aaa;">🏠 <span id="coordResidentAddress">—</span></div>
+                        <div style="color:var(--text-muted);">🏠 <span id="coordResidentAddress">—</span></div>
                     </div>
+
+
+
+
+
+
 
 
                     <div id="coordManualIncidentWrap">
@@ -685,11 +1201,29 @@
                     </div>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">Details / Message (optional):</label>
                     <textarea id="coordDetails" class="form-control" rows="2" placeholder="Ilarawan ang sitwasyon at ang kailangan..."></textarea>
 
 
+
+
+
+
+
+
                     <input type="hidden" id="coordUrgency" value="Emergency">
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Response:</label>
@@ -699,20 +1233,44 @@
                     </select>
 
 
+
+
+
+
+
+
                     <label style="font-size: 0.8em;">ETA:</label>
                     <input type="text" id="coordETA" class="form-control" placeholder="hal. 10 minutes / 3:30 PM">
+
+
+
+
+
+
 
 
                     <label style="font-size: 0.8em;">Remarks:</label>
                     <textarea id="coordRemarks" class="form-control" rows="2">Confirmed through phone call</textarea>
 
 
+
+
+
+
+
+
                     <div style="margin-top: 15px; display:flex; gap:10px;">
                         <button type="submit" id="coordSaveBtn" class="primary-btn" style="background:#7c4dff; color:white; flex:1;">💾 I-save (Pending)</button>
-                        <button type="button" id="coordCancelBtn" class="primary-btn" style="background:#555; display:none;" onclick="resetCoordForm()">Cancel</button>
+                        <button type="button" id="coordCancelBtn" class="primary-btn btn-secondary" style="display:none;" onclick="resetCoordForm()">Cancel</button>
                     </div>
                 </form>
             </div>
+
+
+
+
+
+
 
 
             <div class="panel">
@@ -721,13 +1279,25 @@
                     <span class="badge" id="coordCountBadge">0 Pending</span>
                 </div>
                 <div id="coordSummaryStrip"></div>
-                <p style="font-size:0.8em; color:#aaa; margin: 10px 0;">I-update ang response/ETA habang hinihintay ang ahensya. Pindutin ang <b>Mark Complete</b> kapag tapos na ang tulong — doon mase-save nang tuluyan at doon lalabas ang response time.</p>
+                <p style="font-size:0.8em; color:var(--text-muted); margin: 10px 0;">I-update ang response/ETA habang hinihintay ang ahensya. Pindutin ang <b>Mark Complete</b> kapag tapos na ang tulong — doon mase-save nang tuluyan at doon lalabas ang response time.</p>
                 <div id="coordLogList"></div>
                 <div class="empty-state" id="coordLogEmpty" style="display:none;">Walang pending na coordination request.</div>
             </div>
         </div>
     </div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -745,7 +1315,7 @@
                 <div class="summary-value" id="repTotalRequests">0</div>
                 <span class="summary-tag tag-ok">Assistance Pipeline</span>
             </div>
-            <div class="summary-card" style="border-left: 5px solid #00b0ff;">
+            <div class="summary-card" style="border-left: 5px solid var(--blue);">
                 <div class="summary-label">Fleet Utilization</div>
                 <div class="summary-value" id="repFleetUtil">0%</div>
                 <span class="summary-tag tag-critical">On Duty / Total Tracked Time</span>
@@ -753,43 +1323,73 @@
         </div>
 
 
+
+
+
+
+
+
         <div class="layout">
             <!-- Left: Response Performance + Request Volume -->
             <div class="column">
-                <div class="panel" style="border-top: 5px solid #ffd700;">
-                    <div class="panel-title" style="color:#ffd700;">⏱️ Response Performance by Incident Type</div>
-                    <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Average time between report and dispatch, per incident category.</p>
+                <div class="panel" style="border-top: 5px solid var(--gold);">
+                    <div class="panel-title" style="color:var(--gold);">⏱️ Response Performance by Incident Type</div>
+                    <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Average time between report and dispatch, per incident category.</p>
                     <div id="repResponseByType"></div>
                 </div>
 
 
-                <div class="panel" style="border-top: 5px solid #ff9100;">
-                    <div class="panel-title" style="color:#ff9100;">📄 Assistance Request Volume</div>
-                    <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Breakdown of all submitted requests by category and current status.</p>
+
+
+
+
+
+
+                <div class="panel" style="border-top: 5px solid var(--orange);">
+                    <div class="panel-title" style="color:var(--orange);">📄 Assistance Request Volume</div>
+                    <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Breakdown of all submitted requests by category and current status.</p>
                     <div id="repRequestVolume"></div>
                 </div>
             </div>
 
 
+
+
+
+
+
+
             <!-- Right: Resource Utilization + Export -->
             <div class="column">
-                <div class="panel" style="border-top: 5px solid #00b0ff;">
-                    <div class="panel-title" style="color:#00b0ff;">🚑 Fleet & Personnel Utilization</div>
-                    <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Share of tracked time each unit has spent in each status.</p>
+                <div class="panel" style="border-top: 5px solid var(--blue);">
+                    <div class="panel-title" style="color:var(--blue);">🚑 Fleet & Personnel Utilization</div>
+                    <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Share of tracked time each unit has spent in each status.</p>
                     <div id="repFleetUtilList"></div>
                 </div>
 
 
+
+
+
+
+
+
                 <div class="panel" style="border-top: 5px solid #7c4dff;">
                     <div class="panel-title" style="color:#7c4dff;">📤 Export System Data</div>
-                    <p style="font-size:0.75em; color:#888; margin-bottom:10px;">Download CSV extracts for offline reporting, audits, or municipal submission.</p>
+                    <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Download CSV extracts for offline reporting, audits, or municipal submission.</p>
                     <div class="export-btn-grid">
-                        <button class="primary-btn" style="background:#333;color:#eee;" onclick="exportData('incidents')">🚨 Incidents</button>
-                        <button class="primary-btn" style="background:#333;color:#eee;" onclick="exportData('requests')">📄 Assistance Requests</button>
-                        <button class="primary-btn" style="background:#333;color:#eee;" onclick="exportData('fleet')">🚒 Fleet Roster</button>
-                        <button class="primary-btn" style="background:#333;color:#eee;" onclick="exportData('activity')">📈 Activity Log</button>
+                        <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('incidents')">🚨 Incidents</button>
+                        <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('requests')">📄 Assistance Requests</button>
+                        <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('fleet')">🚒 Fleet Roster</button>
+                        <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('activity')">📈 Activity Log</button>
                     </div>
-                    <p style="font-size:0.68em; color:#666; margin-top:8px;">Files download as .csv, timestamped for the current session.</p>
+                    <p style="font-size:0.68em; color:var(--text-dim); margin-top:8px;">Files download as .csv, timestamped for the current session.</p>
+
+
+
+
+
+
 
 
                     <!-- Print Full Report -->
@@ -803,15 +1403,33 @@
     <!-- /reports-tab -->
 
 
+
+
+
+
+
+
     </div>
     <!-- /main-content -->
+
+
+
+
+
+
 
 
     <!-- MODAL: DISPATCH CONTROL CENTER -->
     <div class="modal" id="assignModal" style="display: none;">
         <div class="modal-content" style="max-width: 520px;">
-            <h4 style="font-size: 0.9em; color: #ffd700;" id="assignModalTitle">Dispatch Control Center</h4>
+            <h4 style="font-size: 0.9em; color: var(--gold);" id="assignModalTitle">Dispatch Control Center</h4>
             <div id="assignIncidentInfo"></div>
+
+
+
+
+
+
 
 
             <!-- DISPATCH ASSIGNMENT FORM — shown only while walang naka-assign na team pa
@@ -819,15 +1437,15 @@
                  Live Tracking View sa ibaba. -->
           <form id="dispatchAssignForm" onsubmit="handleAssignResponder(event)">
                 <label style="font-size: 0.75em;">Select Standby Driver/Unit:</label>
-                <label style="font-size:0.8em; color:#999; display:block; margin-bottom:4px;">Vehicle / Unit (optional)</label>
+                <label style="font-size:0.8em; color:var(--text-muted); display:block; margin-bottom:4px;">Vehicle / Unit (optional)</label>
                 <select id="assignVehicleSelect" class="form-control">
                     <option value="">— None —</option>
                 </select>
-                <label style="font-size:0.8em; color:#999; display:block; margin-bottom:4px;">Driver</label>
+                <label style="font-size:0.8em; color:var(--text-muted); display:block; margin-bottom:4px;">Driver</label>
 <select id="driverSelect" class="form-control" required>
   <option value="" disabled selected>Select driver on standby</option>
 </select>
-                <label style="font-size:0.8em; color:#999; display:block; margin-bottom:4px;">Responder</label>
+                <label style="font-size:0.8em; color:var(--text-muted); display:block; margin-bottom:4px;">Responder</label>
                 <select id="responderSelect" class="form-control" required>
                     <option value="" disabled selected>Select responder on standby</option>
                 </select>
@@ -838,22 +1456,28 @@
                         <button type="button" onclick="openIncidentPhotosModal()" class="primary-btn btn-hold">📷 View Photos</button>
                     </div>
                     <div class="action-row" style="margin-top: 10px;">
-                        <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+                        <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn btn-secondary" style="flex: 1;">Close</button>
                     </div>
                 </div>
             </form>
+
+
+
+
+
+
 
 
             <!-- LIVE TRACKING VIEW — lumalabas kapag naka-assign na ang isang team.
                  Ipinapakita ang lokasyon ng resident at ng responder sa mapa, kasama
                  ang distansya sa pagitan nila, para ma-monitor ng admin ang response. -->
             <div id="trackingView" style="display:none;">
-                <div id="trackingMap" style="height:260px;border-radius:10px;overflow:hidden;border:1px solid #333;margin-bottom:12px;"></div>
-                <div id="trackingInfo" style="font-size:0.8em; color:#ccc; line-height:1.7; margin-bottom:12px;"></div>
+                <div id="trackingMap" style="height:260px;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:12px;"></div>
+                <div id="trackingInfo" style="font-size:0.8em; color:var(--text-main); line-height:1.7; margin-bottom:12px;"></div>
                 <div class="modal-action-grid">
                     <div class="action-row">
                         <button id="btn-print-report" type="button" onclick="printIncidentReport()" class="primary-btn btn-print" style="flex:1;">🖨️ Print Report</button>
-                        <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+                        <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn btn-secondary" style="flex: 1;">Close</button>
                     </div>
                 </div>
             </div>
@@ -861,28 +1485,58 @@
     </div>
 
 
+
+
+
+
+
+
     <!-- MODAL: SECURITY OVERRIDE -->
     <div class="modal" id="securityModal" style="display: none;">
         <div class="modal-content" style="max-width: 400px;">
-            <h4 style="font-size: 1em; color: #e040fb; margin-bottom: 10px;">🔑 Account Security Override</h4>
-            <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">Manually resetting credential configurations for: <strong id="resetTargetName" style="color: #fff;">-</strong></p>
+            <h4 style="font-size: 1em; color: var(--purple); margin-bottom: 10px;">🔑 Account Security Override</h4>
+            <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 15px;">Manually resetting credential configurations for: <strong id="resetTargetName" style="color: var(--text-main);">-</strong></p>
+
+
+
+
+
+
 
 
             <form onsubmit="handleResetPassword(event)">
                 <input type="hidden" id="resetTargetId">
 
 
+
+
+
+
+
+
                 <label style="font-size: 0.8em; display: block; margin-bottom: 5px;">Temporary New Password:</label>
                 <input type="password" id="newTempPassword" class="form-control" placeholder="Enter temporary password" required minlength="6">
 
 
-                <p style="font-size: 0.7em; color: #ffd700; margin-top: 5px;">ℹ️ User will be forced to update this upon their next operational terminal login.</p>
+
+
+
+
+
+
+                <p style="font-size: 0.7em; color: var(--gold); margin-top: 5px;">ℹ️ User will be forced to update this upon their next operational terminal login.</p>
+
+
+
+
+
+
 
 
                 <div class="modal-action-grid" style="margin-top: 20px;">
                     <div class="action-row">
-                        <button type="submit" class="primary-btn" style="background: #e040fb; color: white; flex: 1.5;">Update Password</button>
-                        <button type="button" class="primary-btn" style="background: #444; color: white; flex: 1;" onclick="closeSecurityModal()">Close</button>
+                        <button type="submit" class="primary-btn" style="background: var(--purple); color: white; flex: 1.5;">Update Password</button>
+                        <button type="button" class="primary-btn btn-secondary" style="flex: 1;" onclick="closeSecurityModal()">Close</button>
                     </div>
                 </div>
             </form>
@@ -891,26 +1545,38 @@
   <!-- MODAL: ID VERIFICATION -->
 <div class="modal" id="idVerificationModal" style="display: none;">
     <div class="modal-content" style="max-width: 560px;">
-        <h4 style="font-size: 1em; color: #00b0ff; margin-bottom: 4px;">🪪 ID Verification</h4>
+        <h4 style="font-size: 1em; color: var(--blue); margin-bottom: 4px;">🪪 ID Verification</h4>
         <div style="margin-bottom: 14px;">
             <div style="font-weight:600; font-size:0.95em;" id="idVerifyName">-</div>
-            <div style="font-size:0.78em; color:#999;" id="idVerifyMeta">-</div>
-            <div style="font-size:0.78em; margin-top:4px; color:#ffd700;" id="idVerifyStatus">-</div>
+            <div style="font-size:0.78em; color:var(--text-muted);" id="idVerifyMeta">-</div>
+            <div style="font-size:0.78em; margin-top:4px; color:var(--gold);" id="idVerifyStatus">-</div>
         </div>
+
+
+
+
+
+
 
 
         <!-- Dynamic photo grid, pinupuno ng JS depende kung resident (face + government ID), driver (barangay ID + license), o responder (barangay ID lang) -->
         <div id="idVerifyPhotoGrid" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
 
 
+
+
+
+
+
+
         <div class="modal-action-grid">
             <div class="action-row">
                 <button type="button" class="primary-btn" style="background:var(--green); color:#111; flex:1.3;" onclick="setIdVerified(true)">✓ Mark as Verified</button>
                 <button type="button" class="primary-btn" style="background:var(--red); color:#111; flex:1;" onclick="setIdVerified(false)">✕ Not Verified</button>
-                <button class="primary-btn" style="background:#3a1c1c;color:#ff8a8a;" onclick="rejectIdVerification()">❌ Reject (need resubmit)</button>
+                <button type="button" class="primary-btn" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red);" onclick="rejectIdVerification()">❌ Reject (need resubmit)</button>
             </div>
             <div class="action-row" style="margin-top: 10px;">
-                <button type="button" onclick="closeIdVerificationModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+                <button type="button" onclick="closeIdVerificationModal()" class="primary-btn btn-secondary" style="flex: 1;">Close</button>
             </div>
         </div>
     </div>
@@ -920,31 +1586,43 @@
        detalye ng record bago i-print) -->
 <div class="modal" id="recordDetailModal" style="display: none;">
     <div class="modal-content" style="max-width: 480px;">
-        <h4 style="font-size: 1em; color: #ffd700; margin-bottom: 12px;" id="recordDetailTitle">Record Details</h4>
+        <h4 style="font-size: 1em; color: var(--gold); margin-bottom: 12px;" id="recordDetailTitle">Record Details</h4>
         <div id="recordDetailBody" style="font-size:0.85em;"></div>
         <div class="modal-action-grid" style="margin-top: 16px;">
             <div class="action-row">
-                <button type="button" id="recordDetailPrintBtn" class="primary-btn" style="background:#333; color:#eee; flex:1;">🖨️ Print</button>
-                <button type="button" onclick="closeRecordDetailModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+                <button type="button" id="recordDetailPrintBtn" class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border); flex:1;">🖨️ Print</button>
+                <button type="button" onclick="closeRecordDetailModal()" class="primary-btn btn-secondary" style="flex: 1;">Close</button>
             </div>
         </div>
     </div>
 </div>
+
+
+
+
+
+
 
 
 <!-- MODAL: INCIDENT PHOTOS (mga litratong kinunan ng resident gamit ang
        in-app camera habang nagsu-submit ng Emergency request) -->
 <div class="modal" id="incidentPhotosModal" style="display: none;">
     <div class="modal-content" style="max-width: 560px;">
-        <h4 style="font-size: 1em; color: #00b0ff; margin-bottom: 12px;">📷 Mga Litrato mula sa Resident</h4>
+        <h4 style="font-size: 1em; color: var(--blue); margin-bottom: 12px;">📷 Mga Litrato mula sa Resident</h4>
         <div id="incidentPhotosGrid" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
         <div class="modal-action-grid" style="margin-top: 16px;">
             <div class="action-row">
-                <button type="button" onclick="closeIncidentPhotosModal()" class="primary-btn" style="background: #444; color: white; flex: 1;">Close</button>
+                <button type="button" onclick="closeIncidentPhotosModal()" class="primary-btn btn-secondary" style="flex: 1;">Close</button>
             </div>
         </div>
     </div>
 </div>
+
+
+
+
+
+
 
 
 <!-- SCRIPTS -->
@@ -952,6 +1630,49 @@
     <script src="/assets/admin.js"></script>
     <script src="/assets/admin-comms.js"></script>
     <script src="/assets/admin-reports.js"></script>
+
+
+    <!-- BAGO: Theme switch logic (Light / Dark / Device) -->
+    <script>
+    (function initThemeSwitch() {
+        var root = document.documentElement;
+        var media = window.matchMedia('(prefers-color-scheme: dark)');
+        var buttons = document.querySelectorAll('#themeSwitch button');
+
+
+        function getMode() {
+            try { return localStorage.getItem('theme-mode') || 'dark'; } catch (e) { return 'dark'; }
+        }
+
+
+        function applyTheme(mode) {
+            var isDark = mode === 'dark' || (mode === 'device' && media.matches);
+            root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            buttons.forEach(function (b) {
+                var on = b.dataset.mode === mode;
+                b.classList.toggle('active', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            try { localStorage.setItem('theme-mode', mode); } catch (e) {}
+        }
+
+
+        buttons.forEach(function (b) {
+            b.addEventListener('click', function () { applyTheme(b.dataset.mode); });
+        });
+
+
+        // Kapag "Device" ang napili at nag-switch ang system theme, susunod agad
+        var onSystemChange = function () { if (getMode() === 'device') applyTheme('device'); };
+        if (media.addEventListener) media.addEventListener('change', onSystemChange);
+        else if (media.addListener) media.addListener(onSystemChange);
+
+
+        applyTheme(getMode());
+    })();
+    </script>
+
+
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
