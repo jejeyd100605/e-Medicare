@@ -732,17 +732,20 @@ async function handleSignup(e) {
     const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ");
 
 
+    if (!firstName || !lastName || !contactNo || !address) {
+        alert("Pakikumpleto ang lahat ng required fields (Pangalan, Contact Number, at Address) bago magpatuloy.");
+        return;
+    }
 
+    if (password !== confirmPassword) {
+        alert("Hindi magkatugma ang password at re-type password. Pakisuri ulit.");
+        return;
+    }
 
-
-
-
-
-
-
-
-
-
+        if (!/^09\d{9}$/.test(contactNo)) {
+        alert("Pakilagay ng valid na 11-digit contact number (hal. 09123456789).");
+        return;
+    }
 
 
 
@@ -751,16 +754,6 @@ async function handleSignup(e) {
         alert("Hindi magkatugma ang password at re-type password. Pakisuri ulit.");
         return;
     }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -784,36 +777,10 @@ async function handleSignup(e) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (error) {
         alert("Registration Failed: " + error.message);
         return;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
