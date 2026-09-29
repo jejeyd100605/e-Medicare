@@ -1450,17 +1450,18 @@
                     <option value="" disabled selected>Select responder on standby</option>
                 </select>
                 <textarea id="assignNotes" class="form-control" rows="2" placeholder="ETA (e.g. 7 mins)..."></textarea>
-               <div class="modal-action-grid">
+                           
+                <div class="modal-action-grid">
                     <div class="action-row">
                         <button type="submit" class="primary-btn btn-confirm">🚀 Confirm Dispatch</button>
                         <button type="button" onclick="openIncidentPhotosModal()" class="primary-btn btn-hold">📷 View Photos</button>
                     </div>
                     <div class="action-row" style="margin-top: 10px;">
+                        <button type="button" onclick="rejectIncident()" class="primary-btn" style="background:#3a1c1c; color:#ff8a8a; flex:1;">✕ Reject Report</button>
                         <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="primary-btn btn-secondary" style="flex: 1;">Close</button>
                     </div>
                 </div>
             </form>
-
 
 
 
