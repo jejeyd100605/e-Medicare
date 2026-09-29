@@ -10725,13 +10725,6 @@ function printIncidentReport(){
     loadFleetFromSupabase();
    }
 
-
-    logActivity('dispatch', `<b>${teamLabel}</b> dispatched to ${inc.category || inc.type} (${inc.sender ? inc.sender.name : 'Resident'})${notes ? ' — ETA: ' + notes : ''}`);
-    document.getElementById('assignModal').style.display = 'none';
-    loadIncidentsFromSupabase();
-    loadFleetFromSupabase();
-
-
 // BAGO — Reject Report: para sa hoax, duplicate, o walang sapat na detalyeng reports
 async function rejectIncident(){
     const inc = incidentsCache.find(i => i.id === activeIncidentId);
@@ -10765,10 +10758,6 @@ async function rejectIncident(){
     document.getElementById('assignModal').style.display = 'none';
     loadIncidentsFromSupabase();
 }
-
-  async function openIncidentPhotosModal(){}
-
-
 
 
 
