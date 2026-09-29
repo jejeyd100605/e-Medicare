@@ -7,35 +7,6 @@ const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ==========================================================================
 // GLOBAL VARIABLES
@@ -48,70 +19,12 @@ let idVideoStream = null;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ==========================================================================
 // LOADING SCREEN
 // ==========================================================================
 document.addEventListener("DOMContentLoaded", () => {
     startLoadingScreen();
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -122,67 +35,9 @@ function startLoadingScreen() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const interval = setInterval(() => {
         countdown--;
         if (timerEl) timerEl.textContent = countdown;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -196,69 +51,11 @@ function startLoadingScreen() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ==========================================================================
 // INIT APP — tinitingnan kung may existing Supabase session na
 // ==========================================================================
 async function initApp() {
     const { data: { session } } = await supabase.auth.getSession();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -268,35 +65,6 @@ async function initApp() {
             .select("*")
             .eq("id", session.user.id)
             .single();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -314,65 +82,7 @@ async function initApp() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             window._currentProfile = profile;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -380,35 +90,6 @@ async function initApp() {
                 document.getElementById("setMpinOverlay").classList.remove("hidden");
                 return;
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -420,35 +101,6 @@ async function initApp() {
             return;
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -466,68 +118,10 @@ function showForm(type) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (document.getElementById("facialCaptureOverlay")) {
         document.getElementById("facialCaptureOverlay").classList.add("hidden");
         stopCamera();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -538,68 +132,10 @@ function showForm(type) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     document.getElementById("formView")?.classList.remove("hidden");
     document.getElementById("loginForm")?.classList.toggle("hidden", type !== "login");
     document.getElementById("signupForm")?.classList.toggle("hidden", type !== "signup");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -622,19 +158,6 @@ function moveFocus(el) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ==========================================================================
 // SHOW/HIDE PASSWORD TOGGLE
 // ==========================================================================
@@ -642,19 +165,6 @@ function togglePasswordVisibility(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
     if (!input || !icon) return;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -671,53 +181,11 @@ function togglePasswordVisibility(inputId, iconId) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ==========================================================================
 // SIGNUP — gumagawa muna ng Supabase Auth account, sends real 6-digit OTP
 // ==========================================================================
 async function handleSignup(e) {
     e.preventDefault();
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -757,9 +225,6 @@ async function handleSignup(e) {
 
 
 
-
-
-
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -784,20 +249,7 @@ async function handleSignup(e) {
 
 
 
-    tempUser = { email, role: "resident", firstName, lastName };
-
-
-
-
-
-
-
-
-
-
-
-
-
+       tempUser = { email, role: "resident", firstName, lastName, contactNo, address };
 
 
 
@@ -805,19 +257,6 @@ async function handleSignup(e) {
     document.getElementById("otpOverlay").classList.remove("hidden");
     alert("A 6-digit verification code was sent to your email.");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -829,68 +268,10 @@ async function verifyOtp() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (!/^\d{6}$/.test(otp)) {
         alert("Please enter the full 6-digit code.");
         return;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -902,35 +283,6 @@ async function verifyOtp() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (error) {
         alert("Incorrect or expired OTP: " + error.message);
         return;
@@ -938,66 +290,8 @@ async function verifyOtp() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     startFacialCapture();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1010,68 +304,10 @@ function startFacialCapture() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const video = document.getElementById("webcam");
     const statusText = document.getElementById("cameraStatus");
     statusText.style.color = "";
     statusText.innerText = "Initializing camera...";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1094,69 +330,11 @@ function startFacialCapture() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function captureLivePhoto() {
     const video = document.getElementById("webcam");
     const canvas = document.getElementById("photoCanvas");
     const context = canvas.getContext("2d");
     const statusText = document.getElementById("cameraStatus");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1168,67 +346,9 @@ function captureLivePhoto() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1242,35 +362,6 @@ function captureLivePhoto() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function proceedToNextStep() {
     stopCamera();
     setTimeout(() => {
@@ -1278,35 +369,6 @@ function proceedToNextStep() {
         document.getElementById("idConsentOverlay")?.classList.remove("hidden");
     }, 800);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1319,35 +381,6 @@ function stopCamera() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ==========================================================================
 // ID SCAN CONSENT — Data Privacy Act (RA 10173) compliance
 // ==========================================================================
@@ -1357,68 +390,10 @@ function toggleConsentButton() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     btn.disabled = !checkbox.checked;
     btn.style.opacity = checkbox.checked ? "1" : "0.5";
     btn.style.cursor = checkbox.checked ? "pointer" : "not-allowed";
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1431,66 +406,8 @@ function proceedToIdCapture() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     window._idConsentGiven = true;
     window._idConsentTimestamp = new Date().toISOString();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1498,35 +415,6 @@ function proceedToIdCapture() {
     document.getElementById("idCaptureOverlay")?.classList.remove("hidden");
     startIdCapture();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1538,35 +426,6 @@ function startIdCapture() {
     const statusText = document.getElementById("idCameraStatus");
     statusText.style.color = "";
     statusText.innerText = "Initializing camera...";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1589,70 +448,12 @@ function startIdCapture() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function stopIdCamera() {
     if (idVideoStream) {
         idVideoStream.getTracks().forEach((track) => track.stop());
         idVideoStream = null;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1664,69 +465,11 @@ async function captureIdPhoto() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const video = document.getElementById("idWebcam");
     const canvas = document.getElementById("idPhotoCanvas");
     const context = canvas.getContext("2d");
     const statusText = document.getElementById("idCameraStatus");
     const captureBtn = document.getElementById("captureIdBtn");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1738,67 +481,9 @@ async function captureIdPhoto() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1807,35 +492,6 @@ async function captureIdPhoto() {
         stopIdCamera();
         captureBtn.classList.add("hidden");
         statusText.innerText = "Reading ID... please wait.";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1853,67 +509,9 @@ async function captureIdPhoto() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function normalizeText(str) {
     return str.toUpperCase().replace(/[^A-Z\s]/g, " ").replace(/\s+/g, " ").trim();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1926,67 +524,9 @@ function handleOcrResult(rawText) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const normalizedOcr = normalizeText(rawText);
     const firstName = normalizeText(tempUser?.firstName || "");
     const lastName = normalizeText(tempUser?.lastName || "");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1996,67 +536,9 @@ function handleOcrResult(rawText) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     statusText.innerText = "";
     resultBox.classList.remove("hidden");
     actionButtons.classList.remove("hidden");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2073,67 +555,9 @@ function handleOcrResult(rawText) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     extractedTextEl.innerText = "Detected text: " + (rawText.trim() || "(none)");
     window._idVerified = isMatch;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2147,68 +571,10 @@ function retakeIdPhoto() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function confirmIdAndProceed() {
     document.getElementById("idCaptureOverlay").classList.add("hidden");
     document.getElementById("setMpinOverlay").classList.remove("hidden");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2224,35 +590,6 @@ async function hashText(text) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ==========================================================================
 // SAVE ACCOUNT — i-upload ang face image at ID image, i-save ang MPIN hash
 // at consent record sa profile
@@ -2262,68 +599,10 @@ async function saveAccount() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (!/^\d{4}$/.test(pin)) {
         alert("Please enter exactly 4 digits for your MPIN.");
         return;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2336,67 +615,12 @@ async function saveAccount() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    const mpinHash = await hashText(pin);
-    const updatePayload = { mpin: mpinHash };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        const mpinHash = await hashText(pin);
+    const updatePayload = {
+        mpin: mpinHash,
+        contact: tempUser?.contactNo || null,
+        address: tempUser?.address || null
+    };
 
 
     if (capturedImageBlob) {
@@ -2407,35 +631,6 @@ async function saveAccount() {
         if (uploadError) alert("Face image upload failed: " + uploadError.message);
         else updatePayload.face_image_url = filePath;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2450,35 +645,6 @@ async function saveAccount() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    if (window._idConsentGiven !== undefined) {
         // BAGO — inalis ang auto id_verified mula sa OCR match. Ang
         // totoong pag-verify ay dapat manggaling lamang sa Admin's
@@ -2486,27 +652,6 @@ async function saveAccount() {
         updatePayload.id_consent_given = window._idConsentGiven || false;
         updatePayload.id_consent_timestamp = window._idConsentTimestamp || null;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2519,68 +664,10 @@ async function saveAccount() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (updateError) {
         alert("Could not finish setting up your account: " + updateError.message);
         return;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2595,66 +682,8 @@ async function saveAccount() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     executeSecureRouting(roleToForward);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2666,66 +695,8 @@ async function handleLogin(e) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const email = document.getElementById("loginEmail").value.trim().toLowerCase();
     const password = document.getElementById("loginPass").value;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2733,68 +704,10 @@ async function handleLogin(e) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (error) {
         alert("Login failed: " + error.message);
         return;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2806,8 +719,6 @@ async function handleLogin(e) {
 
 
 
-
-
     if (profileError || !profile) {
         alert("Hindi makuha ang account profile mo. Makipag-ugnayan sa admin.");
         await supabase.auth.signOut();
@@ -2816,17 +727,11 @@ async function handleLogin(e) {
 
 
 
-
-
-
     if (profile.active === false) {
         alert("Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.");
         await supabase.auth.signOut();
         return;
     }
-
-
-
 
 
 
@@ -2874,7 +779,6 @@ async function handleLogin(e) {
 
 
 
-
     window._currentProfile = profile;
 
 
@@ -2892,7 +796,6 @@ async function handleLogin(e) {
 
 
 
-
 // ==========================================================================
 // MAGIC LINK LOGIN (optional passwordless alternative)
 // ==========================================================================
@@ -2901,8 +804,6 @@ async function handleMagicLink(email) {
         email,
        options: { emailRedirectTo: window.location.origin + "/pages/login.html" }
     });
-
-
 
 
 
@@ -2923,8 +824,6 @@ async function verifyMpin() {
 
 
 
-
-
     if (!/^\d{4}$/.test(pin)) {
         alert("Please enter your 4-digit MPIN.");
         return;
@@ -2932,10 +831,8 @@ async function verifyMpin() {
 
 
 
-
     const profile = window._currentProfile;
     const enteredHash = await hashText(pin);
-
 
 
 
@@ -2950,8 +847,6 @@ async function verifyMpin() {
 
 
 
-
-
 // ==========================================================================
 // FORGOT MPIN — hihingi ng password bago payagang mag-set ng bagong MPIN
 // ==========================================================================
@@ -2959,11 +854,6 @@ function forgotMpin() {
     document.getElementById("mpinView")?.classList.add("hidden");
     document.getElementById("resetMpinOverlay")?.classList.remove("hidden");
 }
-
-
-
-
-
 
 
 
@@ -2997,7 +887,6 @@ async function verifyPasswordForMpinReset() {
 
 
 
-
 // ==========================================================================
 // CANCEL MPIN RESET — bumalik sa MPIN unlock screen
 // ==========================================================================
@@ -3006,7 +895,6 @@ function cancelMpinReset() {
     document.getElementById("resetMpinOverlay")?.classList.add("hidden");
     document.getElementById("mpinView")?.classList.remove("hidden");
 }
-
 
 
 
@@ -3048,21 +936,11 @@ async function updateMpin() {
 
 
 
-
-
-
-
-
-
-
-
-
 // ==========================================================================
 // FORGOT PASSWORD — nagpapadala ng password reset link gamit Supabase Auth
 // ==========================================================================
 async function forgotPassword() {
     const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-
 
 
 
@@ -3073,11 +951,9 @@ async function forgotPassword() {
 
 
 
-
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + "/pages/login.html"
     });
-
 
 
 
@@ -3087,15 +963,6 @@ async function forgotPassword() {
         alert("Naipadala na ang password reset link sa iyong email.");
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3112,14 +979,12 @@ supabase.auth.onAuthStateChange((event, session) => {
 
 
 
-
 // ==========================================================================
 // SUBMIT NEW PASSWORD — ina-update ang password sa Supabase Auth
 // ==========================================================================
 async function submitNewPassword() {
     const newPassword = document.getElementById("newPassword").value;
     const confirmNewPassword = document.getElementById("confirmNewPassword").value;
-
 
 
 
@@ -3130,7 +995,6 @@ async function submitNewPassword() {
 
 
 
-
     if (newPassword !== confirmNewPassword) {
         alert("Hindi magkatugma ang bagong password at re-type password.");
         return;
@@ -3138,9 +1002,7 @@ async function submitNewPassword() {
 
 
 
-
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-
 
 
 
@@ -3151,22 +1013,12 @@ async function submitNewPassword() {
 
 
 
-
     alert("✅ Matagumpay na na-update ang password! Pakilog-in muli.");
     document.getElementById("resetPasswordOverlay")?.classList.add("hidden");
     await supabase.auth.signOut();
     document.getElementById("formView")?.classList.remove("hidden");
     showForm("login");
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3181,35 +1033,6 @@ function executeSecureRouting(role) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const routes = {
     resident: "/pages/resident.html",
     official: "/pages/Baranggayofficial.html",
@@ -3219,41 +1042,8 @@ function executeSecureRouting(role) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 window.location.href = routes[role.toLowerCase()] || "/pages/resident.html";
 }
-
-
-
-
 
 
 
