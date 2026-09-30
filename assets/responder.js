@@ -643,12 +643,13 @@ async function loadData() {
 async function fetchRequestsFromSupabase() {
     const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
 
+    let query = supabase.from('emergency_requests')
+        .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
+        .neq('type', 'Medical Assistance')
+        .neq('status', 'Rejected')
+        .order('created_at', { ascending: false });
 
-
-let query = supabase.from('emergency_requests')
-    .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
-    .neq('type', 'Medical Assistance')
-    .order('created_at', { ascending: false });{
+    if (!crossBarangay) {
         query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);
     }
 
@@ -735,7 +736,7 @@ function normalizeIncident(row) {
 
 
 function isActiveIncident(incident) {
-    return !['Resolved', 'Completed'].includes(incident.status);
+    return !['Resolved', 'Completed', 'Rejected'].includes(incident.status);
 }
 
 
