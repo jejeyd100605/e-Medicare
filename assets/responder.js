@@ -511,6 +511,7 @@ function bindDashboardEvents() {
 
 
     document.getElementById('completionForm')?.addEventListener('submit', saveServiceCompletion);
+        document.getElementById('deployForm')?.addEventListener('submit', confirmDeploy);
 }
 
 
@@ -1392,42 +1393,164 @@ function buildActionButtons(incident, mapsUrl) {
 
 
 
+let deployOptions = { vehicles: [], partners: [] };
+let deploying = false;
+
 async function acceptAndDeploy() {
-    if (myFleetRow && myFleetRow.status === 'On Duty') {
+    if (!myFleetRow) {
+        alert('Wala pang naka-link na unit sa account mo. Piliin muna sa itaas.');
+        return;
+    }
+    if (myFleetRow.status === 'On Duty') {
         alert('Hindi ka pwedeng tumanggap ng bagong request habang "On Duty" ka pa sa ibang kaso.');
         return;
     }
 
-    const etaInput = prompt('Estimated time of arrival in minutes:', '5');
-    if (etaInput === null) return;
+    const { data, error } = await supabase.from('fleet').select('*').eq('status', 'Available');
+    if (error) {
+        console.error(error);
+        showToast('Hindi makuha ang listahan ng available units.');
+        return;
+    }
 
+    const isDriver = myFleetRow.type === 'Driver';
+    const partnerType = isDriver ? 'Medical Personnel' : 'Driver';
 
+    deployOptions.vehicles = (data || []).filter(f => FLEET_VEHICLE_TYPES.includes(f.type));
+    deployOptions.partners = (data || []).filter(f => f.type === partnerType && f.id !== myFleetRow.id);
 
-    const etaMinutes = Math.max(1, Number.parseInt(etaInput, 10) || 5);
-    const now = new Date().toISOString();
+    document.getElementById('deployVehicle').innerHTML =
+        '<option value="">— Walang vehicle —</option>' +
+        deployOptions.vehicles.map(f => `<option value="${f.id}">${escapeHtml(f.name)} (${escapeHtml(f.type)})</option>`).join('');
 
-    notifiedAssignments.add(selectedId);   // BAGO — sarili mismo ang tumanggap, huwag nang i-notify pa
+    document.getElementById('deployPartner').innerHTML =
+        '<option value="">— Walang kasama —</option>' +
+        deployOptions.partners.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
 
-    await patchSelectedIncident({
-        status: 'In Transit',
-        assignedTo: `Self-accepted: ${CURRENT_RESPONDER.name}`,
-        assignedResponderId: CURRENT_RESPONDER.id,
-        assignedResponderName: CURRENT_RESPONDER.name,
-        acceptedAt: now,
-        etaMinutes,
-        eta: `${etaMinutes} mins`,
-        etaUpdatedAt: now
-    });
+    document.getElementById('deployPartnerLabel').textContent =
+        isDriver ? 'Responder (Medical Personnel) na kasama mo' : 'Driver na kasama mo';
 
-
-
-
-    await updateResponderOperationalStatus('On Duty');
-    startLocationTracking(selectedId);
-    startEtaBroadcast(selectedId);
-    showToast('Request accepted. GPS tracking and ETA updates are active.');
+    document.getElementById('deployEta').value = 5;
+    document.getElementById('deployModal').classList.add('open');
+    document.getElementById('deployModal').setAttribute('aria-hidden', 'false');
 }
 window.acceptAndDeploy = acceptAndDeploy;
+
+function closeDeployModal() {
+    document.getElementById('deployModal').classList.remove('open');
+    document.getElementById('deployModal').setAttribute('aria-hidden', 'true');
+}
+window.closeDeployModal = closeDeployModal;
+
+async function confirmDeploy(event) {
+    event.preventDefault();
+    if (deploying || !selectedId || !myFleetRow) return;
+    deploying = true;
+
+    const submitBtn = document.getElementById('deploySubmitBtn');
+    submitBtn.disabled = true;
+
+    try {
+        const vehicleId = document.getElementById('deployVehicle').value;
+        const partnerId = document.getElementById('deployPartner').value;
+        const etaMinutes = Math.max(1, Number.parseInt(document.getElementById('deployEta').value, 10) || 5);
+
+        const vehicle = vehicleId ? deployOptions.vehicles.find(f => String(f.id) === String(vehicleId)) : null;
+        const partner = partnerId ? deployOptions.partners.find(f => String(f.id) === String(partnerId)) : null;
+
+        const isDriver = myFleetRow.type === 'Driver';
+        const driverRow = isDriver ? myFleetRow : partner;
+        const responderRow = isDriver ? partner : myFleetRow;
+
+        const { data: reqData } = await supabase.from('emergency_requests')
+            .select('*').eq('id', selectedId).single();
+        const incident = reqData ? normalizeIncident(reqData) : null;
+        if (!incident) { showToast('Hindi na available ang request na ito.'); return; }
+
+        const now = new Date().toISOString();
+        const assignTag = `${incident.category}, ${incident.patientName}`;
+        const teamLabel = [vehicle?.name, driverRow?.name, responderRow?.name].filter(Boolean).join(' + ');
+
+        // Parehong format ng admin, para gumana ang regex sa header at personnel
+        const buildTeamTag = (member) => {
+            const partners = [];
+            if (vehicle && String(member.id) !== String(vehicle.id)) partners.push(`Vehicle: ${vehicle.name}`);
+            if (driverRow && String(member.id) !== String(driverRow.id)) partners.push(`Driver: ${driverRow.name}`);
+            if (responderRow && String(member.id) !== String(responderRow.id)) partners.push(`Responder: ${responderRow.name}`);
+            return assignTag + (partners.length ? ` (${partners.join(', ')})` : '');
+        };
+
+        notifiedAssignments.add(selectedId);
+
+        // 1) I-update ang request
+        const { error: reqError } = await supabase.from('emergency_requests').update({
+            status: 'In Transit',
+            assigned_to: teamLabel || `Self-accepted: ${CURRENT_RESPONDER.name}`,
+            assigned_responder_id: responderRow?.profile_id || CURRENT_RESPONDER.id,
+            assigned_responder_name: responderRow?.name || CURRENT_RESPONDER.name,
+            assigned_driver_id: driverRow?.profile_id || null,
+            accepted_at: now,
+            assigned_at: now,
+            eta_minutes: etaMinutes,
+            eta: `${etaMinutes} mins`,
+            eta_updated_at: now
+        }).eq('id', selectedId);
+
+        if (reqError) {
+            console.error(reqError);
+            showToast('Hindi na-save ang request. Subukang ulit.');
+            return;
+        }
+
+        // 2) Sarili kong fleet row
+        const { data: meData, error: meError } = await supabase.from('fleet')
+            .update({ status: 'On Duty', assigned_to: buildTeamTag(myFleetRow) })
+            .eq('id', myFleetRow.id).select();
+        if (meError || !meData?.length) {
+            console.error(meError);
+            showToast('Hindi na-update ang status mo sa fleet (posibleng RLS).');
+        } else {
+            myFleetRow = meData[0];
+            localStorage.setItem('currentResponderStatus', 'On Duty');
+        }
+
+        // 3) Vehicle at kasama (huwag ipilit kung may nakauna na)
+        const others = [vehicle, partner].filter(Boolean);
+        for (const member of others) {
+            const { data: upd, error: updErr } = await supabase.from('fleet')
+                .update({ status: 'On Duty', assigned_to: buildTeamTag(member) })
+                .eq('id', member.id)
+                .eq('status', 'Available')
+                .select();
+            if (updErr || !upd?.length) {
+                console.warn('Hindi na-assign:', member.name, updErr?.message);
+                showToast(`Hindi na-assign si/ang ${member.name} (may nakakuha na o RLS issue).`);
+            }
+        }
+
+        // 4) I-notify ang kasama
+        if (partner?.profile_id) {
+            const { error: notifError } = await supabase.from('notifications').insert({
+                receiver_id: partner.profile_id,
+                title: 'New Dispatch Assignment',
+                message: `Na-assign ka ni ${CURRENT_RESPONDER.name} sa ${incident.category} (${incident.patientName}).`
+            });
+            if (notifError) console.warn('Hindi na-send ang notification:', notifError.message);
+        }
+
+        closeDeployModal();
+        renderUnitHeader();
+        renderAssignedPersonnel();
+        updateVehicleMetrics();
+        startLocationTracking(selectedId);
+        startEtaBroadcast(selectedId);
+        loadData();
+        showToast('Request accepted. GPS tracking and ETA updates are active.');
+    } finally {
+        deploying = false;
+        submitBtn.disabled = false;
+    }
+}
 
 
 
@@ -1830,7 +1953,17 @@ function closeCompletionModal() {
 window.closeCompletionModal = closeCompletionModal;
 
 
-
+async function releaseTeammates() {
+    const tag = myFleetRow?.assigned_to;
+    if (!tag) return;
+    const names = [...tag.matchAll(/(?:Vehicle|Driver|Responder):\s*([^,)]+)/g)].map(m => m[1].trim());
+    if (!names.length) return;
+    const { error } = await supabase.from('fleet')
+        .update({ status: 'Available', assigned_to: null })
+        .in('name', names)
+        .eq('status', 'On Duty');
+    if (error) console.warn('Hindi na-release ang teammates:', error.message);
+}
 
 async function saveServiceCompletion(event) {
     event.preventDefault();
@@ -1891,10 +2024,10 @@ async function saveServiceCompletion(event) {
 
 
 
-    stopLocationTracking();
+        stopLocationTracking();
     stopEtaBroadcast();
+    await releaseTeammates();   // dapat una ito, bago mawala ang assigned_to ko
     await updateResponderOperationalStatus('Available');
-
 
 
 

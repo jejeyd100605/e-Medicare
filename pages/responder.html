@@ -596,7 +596,42 @@
     </div>
 
 
+    <!-- ACCEPT & DEPLOY MODAL -->
+    <div id="deployModal" class="modal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px;">
+            <div class="modal-header">
+                <div>
+                    <h2><i class="fas fa-truck-medical"></i> Accept & Deploy</h2>
+                    <p>Pumili ng sasakyan at ng makakasama mo sa team.</p>
+                </div>
+                <button type="button" class="modal-close" onclick="closeDeployModal()" aria-label="Close">&times;</button>
+            </div>
 
+            <form id="deployForm">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label for="deployVehicle">Vehicle</label>
+                        <select id="deployVehicle" class="form-control"></select>
+                    </div>
+                    <div class="form-group full">
+                        <label for="deployPartner" id="deployPartnerLabel">Kasama</label>
+                        <select id="deployPartner" class="form-control"></select>
+                    </div>
+                    <div class="form-group full">
+                        <label for="deployEta">ETA (minutes)</label>
+                        <input id="deployEta" class="form-control" type="number" min="1" value="5" required>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="status-btn btn-secondary" onclick="closeDeployModal()">Cancel</button>
+                    <button type="submit" id="deploySubmitBtn" class="status-btn btn-success">
+                        <i class="fas fa-location-arrow"></i> Confirm & Deploy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div id="dashboardToast" class="dashboard-toast"></div>
    <script type="module" src="/assets/responder.js"></script>
