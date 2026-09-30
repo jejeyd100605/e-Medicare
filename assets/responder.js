@@ -1816,16 +1816,27 @@ function getCurrentEta(incident) {
 }
 
 async function notifyResident(requestId, title, message) {
-    const { data } = await supabase.from('emergency_requests')
+    const { data, error: selError } = await supabase.from('emergency_requests')
         .select('sender_id').eq('id', requestId).single();
-    if (!data?.sender_id) return;
+
+    if (selError || !data?.sender_id) {
+        console.error('Walang sender_id:', selError);
+        showToast('Walang resident na mapadalhan ng notification.');
+        return false;
+    }
 
     const { error } = await supabase.from('notifications').insert({
         receiver_id: data.sender_id,
         title,
         message
     });
-    if (error) console.warn('Hindi na-send ang notification sa resident:', error.message);
+
+    if (error) {
+        console.error('Notification insert error:', error);
+        showToast('Hindi na-send: ' + error.message);
+        return false;
+    }
+    return true;
 }
 
 
@@ -1837,11 +1848,10 @@ async function sendSMS(message) {
         message === 'Responder has arrived' ? `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.` :
         message;
 
-    await notifyResident(selectedId, 'Responder Update', text);
-    showToast(`Resident update sent: "${message}"`);
+    const ok = await notifyResident(selectedId, 'Responder Update', text);
+    if (ok) showToast(`Resident update sent: "${message}"`);
 }
 window.sendSMS = sendSMS;
-
 
 
 // BAGO — ipinapakita ang mga litratong kinunan ng resident gamit ang
