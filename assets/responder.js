@@ -1843,9 +1843,11 @@ async function notifyResident(requestId, title, message) {
 async function sendSMS(message) {
     if (!selectedId) return;
 
-    const text =
-        message === 'On our way' ? `Papunta na sa iyo si ${CURRENT_RESPONDER.name}.` :
-        message === 'Responder has arrived' ? `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.` :
+       const text =
+        message === 'On our way'
+            ? `Ang aming responder na si ${CURRENT_RESPONDER.name} ay papunta na sa iyong lokasyon. Manatiling kalmado at maghintay.` :
+        message === 'Responder has arrived'
+            ? `Nasa iyong lokasyon na ang aming responder na si ${CURRENT_RESPONDER.name}. Lapitan siya para sa agarang tulong.` :
         message;
 
     const ok = await notifyResident(selectedId, 'Responder Update', text);
