@@ -1504,6 +1504,8 @@ async function confirmDeploy(event) {
             showToast('Hindi na-save ang request. Subukang ulit.');
             return;
         }
+                await notifyResident(selectedId, 'Responder On The Way',
+            `Tinanggap na ang request mo. Paparating na si/sina ${teamLabel || CURRENT_RESPONDER.name}. ETA: ${etaMinutes} minuto.`);
 
         // 2) Sarili kong fleet row
         const { data: meData, error: meError } = await supabase.from('fleet')
@@ -1584,8 +1586,9 @@ async function markArrived() {
 
 
 
-    stopEtaBroadcast();
-    showToast('Arrival timestamp recorded and synced live to the resident.');
+       stopEtaBroadcast();
+    await notifyResident(selectedId, 'Responder Arrived', `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.`);
+    showToast('Arrival timestamp recorded and synced live to the resident.');howToast('Arrival timestamp recorded and synced live to the resident.');
 }
 window.markArrived = markArrived;
 
@@ -1609,7 +1612,10 @@ function promptEtaUpdate() {
         etaMinutes: value,
         eta: `${value} mins`,
         etaUpdatedAt: now
-    }).then(() => showToast('Updated ETA sent to the resident.'));
+    }).then(async () => {
+        await notifyResident(selectedId, 'ETA Updated', `Bagong ETA ng responder: ${value} minuto.`);
+        showToast('Updated ETA sent to the resident.');
+    });
 }
 window.promptEtaUpdate = promptEtaUpdate;
 
@@ -1760,45 +1766,10 @@ function stopLocationTracking() {
 
 
 
-function startEtaBroadcast(requestId) {
-    stopEtaBroadcast();
-
-
-
-
-    const broadcast = async () => {
-        const { data } = await supabase.from('emergency_requests').select('*').eq('id', requestId).single();
-        const request = data ? normalizeIncident(data) : null;
-
-
-
-
-        if (!request || !['Accepted', 'Assigned', 'In Transit'].includes(request.status)) {
-            stopEtaBroadcast();
-            return;
-        }
-
-
-
-
-        const eta = getCurrentEta(request);
-        await supabase
-            .from('emergency_requests')
-            .update({
-                eta: eta.label,
-                eta_minutes: eta.minutes,
-                eta_updated_at: new Date().toISOString()
-            })
-            .eq('id', requestId);
-    };
-
-
-
-
-    broadcast();
-    etaTimer = setInterval(broadcast, 15000);
+function startEtaBroadcast() {
+    // Hindi na nagsusulat ng ETA kada 15s. Kinukwenta na ng resident
+    // ang natitirang oras mula sa eta_minutes at eta_updated_at.
 }
-
 
 
 
@@ -1820,7 +1791,7 @@ function getCurrentEta(incident) {
 
 
 
-    if (!incident.etaMinutes || !incident.acceptedAt) {
+    if (!incident.etaMinutes || !incident.etaUpdatedAt) {
         return {
             minutes: null,
             label: incident.eta || 'Not set',
@@ -1831,7 +1802,7 @@ function getCurrentEta(incident) {
 
 
 
-    const elapsedMinutes = Math.floor((Date.now() - new Date(incident.acceptedAt).getTime()) / 60000);
+        const elapsedMinutes = Math.floor((Date.now() - new Date(incident.etaUpdatedAt).getTime()) / 60000);
     const remaining = Math.max(1, incident.etaMinutes - elapsedMinutes);
 
 
@@ -1844,20 +1815,32 @@ function getCurrentEta(incident) {
     };
 }
 
+async function notifyResident(requestId, title, message) {
+    const { data } = await supabase.from('emergency_requests')
+        .select('sender_id').eq('id', requestId).single();
+    if (!data?.sender_id) return;
+
+    const { error } = await supabase.from('notifications').insert({
+        receiver_id: data.sender_id,
+        title,
+        message
+    });
+    if (error) console.warn('Hindi na-send ang notification sa resident:', error.message);
+}
 
 
-
-function sendSMS(message) {
+async function sendSMS(message) {
     if (!selectedId) return;
 
+    const text =
+        message === 'On our way' ? `Papunta na sa iyo si ${CURRENT_RESPONDER.name}.` :
+        message === 'Responder has arrived' ? `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.` :
+        message;
 
-
-
-    patchSelectedIncident({ message, messageSentAt: new Date().toISOString() });
+    await notifyResident(selectedId, 'Responder Update', text);
     showToast(`Resident update sent: "${message}"`);
 }
 window.sendSMS = sendSMS;
-
 
 
 
@@ -2060,7 +2043,7 @@ async function saveServiceCompletion(event) {
 
 
     locallyCompleted.add(incident.id);
-    
+
     await patchSelectedIncident({
         status: 'Completed',
         completedAt,

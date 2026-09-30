@@ -1512,7 +1512,10 @@ function subscribeNotificationsRealtime(){
         .channel('resident-notifications-' + currentUserId)
         .on('postgres_changes',
             { event: '*', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${currentUserId}` },
-            () => {
+                       (payload) => {
+                if (payload.eventType === 'INSERT' && payload.new) {
+                    showInstantAlertToast('🔔 ' + (payload.new.title || 'Update'), payload.new.message);
+                }
                 loadNotifications();
             })
         .subscribe();
@@ -8108,10 +8111,10 @@ function residentGetCurrentEta(req) {
     if (req.status === 'Arrived' || req.status === 'Completed' || req.status === 'Resolved') {
         return { label: req.status === 'Arrived' ? 'Nasa lokasyon na' : 'Tapos na', sub: '' };
     }
-    if (!req.eta_minutes || !req.accepted_at) {
+       if (!req.eta_minutes || !req.eta_updated_at) {
         return { label: req.eta || 'Hindi pa naka-set', sub: 'Naghihintay ng pag-accept' };
     }
-    const elapsedMinutes = Math.floor((Date.now() - new Date(req.accepted_at).getTime()) / 60000);
+        const elapsedMinutes = Math.floor((Date.now() - new Date(req.eta_updated_at).getTime()) / 60000);
     const remaining = Math.max(1, req.eta_minutes - elapsedMinutes);
     return { label: `${remaining} min`, sub: req.eta_updated_at ? `Updated ${new Date(req.eta_updated_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}` : '' };
 }
@@ -16169,7 +16172,9 @@ function initAllCustomScrollbars() {
 
 document.addEventListener('DOMContentLoaded', initAllCustomScrollbars);
 
-
+setInterval(() => {
+    if (activeTrackingRequestId) openTrackingModal(activeTrackingRequestId);
+}, 30000);
 
 
 
