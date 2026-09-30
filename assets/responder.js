@@ -188,6 +188,7 @@ let simulatedLocationTimer = null;
 let etaTimer = null;
 let safetyPollTimer = null;
 const notifiedAssignments = new Set();   // BAGO — para isang beses lang mag-notify kada tunay na bagong assignment
+const locallyCompleted = new Set();   // mga kasong ako mismo ang nag-complete
 
 
 
@@ -503,7 +504,8 @@ function bindDashboardEvents() {
 
 
 
-    document.getElementById('unitStatus')?.addEventListener('change', event => {
+        document.getElementById('unitStatus')?.addEventListener('change', event => {
+        if (event.target.disabled) return;
         updateResponderOperationalStatus(event.target.value);
     });
 
@@ -629,7 +631,8 @@ async function loadData() {
 
 
 
-    updateMetrics(incidents, statuses);
+       updateMetrics(incidents, statuses);
+    applyStatusLock(incidents);
     renderList(incidents);
 
 
@@ -1965,6 +1968,44 @@ async function releaseTeammates() {
     if (error) console.warn('Hindi na-release ang teammates:', error.message);
 }
 
+// Naka-lock ang status dropdown habang may aktibong kaso na naka-assign sa akin
+function applyStatusLock(incidents) {
+    const select = document.getElementById('unitStatus');
+    if (!select) return;
+
+    const hasActiveCase = incidents.some(i =>
+        ['Assigned', 'Accepted', 'In Transit', 'Arrived'].includes(i.status) && isAssignedToMe(i)
+    );
+
+    select.disabled = hasActiveCase;
+    select.title = hasActiveCase
+        ? 'Hindi mababago ang status habang may aktibong kaso. Kumpletuhin muna ang Service Record.'
+        : '';
+}
+
+// Kapag ang KASAMA ang nag-complete ng kaso: ihinto ang tracking,
+// isara ang form, at i-set ako sa Available
+async function handleCaseClosedByTeammate(row) {
+    if (!row || !CURRENT_RESPONDER?.id) return;
+    if (!['Completed', 'Resolved'].includes(row.status)) return;
+    if (locallyCompleted.has(row.id)) return;   // ako mismo ang nag-complete, may sarili nang flow
+
+    const mine = String(row.assigned_responder_id) === String(CURRENT_RESPONDER.id)
+        || String(row.assigned_driver_id) === String(CURRENT_RESPONDER.id);
+    if (!mine) return;
+
+    stopLocationTracking();
+    stopEtaBroadcast();
+
+    if (String(selectedId) === String(row.id)) closeCompletionModal();
+
+    if (myFleetRow && myFleetRow.status === 'On Duty') {
+        await updateResponderOperationalStatus('Available');
+    }
+
+    showToast('Na-complete na ng kasama mo ang kaso. Available ka na ulit.');
+}
+
 async function saveServiceCompletion(event) {
     event.preventDefault();
 
@@ -1974,7 +2015,12 @@ async function saveServiceCompletion(event) {
     const { data } = await supabase.from('emergency_requests').select('*').eq('id', selectedId).single();
     const incident = data ? normalizeIncident(data) : null;
     if (!incident) return;
-
+    if (['Completed', 'Resolved'].includes(incident.status)) {
+        closeCompletionModal();
+        showToast('Na-complete na ng kasama mo ang kaso na ito.');
+        loadData();
+        return;
+    }
 
 
 
@@ -2013,7 +2059,8 @@ async function saveServiceCompletion(event) {
 
 
 
-
+    locallyCompleted.add(incident.id);
+    
     await patchSelectedIncident({
         status: 'Completed',
         completedAt,
@@ -2125,6 +2172,7 @@ function startRealtimeMonitoring() {
 
 
 
+            handleCaseClosedByTeammate(payload.new);
 
             loadData();
         })
