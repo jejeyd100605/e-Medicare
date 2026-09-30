@@ -221,7 +221,15 @@ function exportData(type){
   let rows = [];
   let filename = '';
 
-  if(type === 'incidents'){
+    if(type === 'incidents'){
+    // BAGO — hinahanap ang pangalan ng driver base sa naka-store na profile id,
+    // dahil ang assigned_driver_id ay profile id lang, walang kasamang pangalan.
+    const findDriverName = (profileId) => {
+      if(!profileId) return '';
+      const p = responderProfilesCache.find(rp => String(rp.id) === String(profileId));
+      return p ? p.name : '';
+    };
+
     rows = incidentsCache
       .filter(i => passesExportFilters(i.sender ? i.sender.name : '', i.created_at, query, dateFrom, dateTo))
       .map(i => ({
@@ -230,12 +238,16 @@ function exportData(type){
         contact: (i.sender && i.sender.contact) || '',
         address: (i.sender && i.sender.address) || '',
         status: i.status,
-        assigned_to: i.assigned_to || '',
+        assigned_driver: findDriverName(i.assigned_driver_id),
+        assigned_responder: i.assigned_responder_name || '',
+        full_team: i.assigned_to || '',
+        eta_notes: i.eta || '',
         description: i.description || '',
-        date_reported: i.created_at
+        date_reported: i.created_at,
+        date_assigned: i.assigned_at || ''
       }));
     filename = `bambang-incidents-${stamp}.csv`;
-
+  
   } else if(type === 'requests'){
     rows = medicalRequestsCache
       .filter(r => passesExportFilters(r.resident_name, r.created_at, query, dateFrom, dateTo))
