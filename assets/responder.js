@@ -1588,7 +1588,7 @@ async function markArrived() {
 
        stopEtaBroadcast();
     await notifyResident(selectedId, 'Responder Arrived', `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.`);
-    showToast('Arrival timestamp recorded and synced live to the resident.');howToast('Arrival timestamp recorded and synced live to the resident.');
+       showToast('Arrival timestamp recorded and synced live to the resident.');
 }
 window.markArrived = markArrived;
 
