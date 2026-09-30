@@ -1374,17 +1374,31 @@
 
 
 
-                <div class="panel" style="border-top: 5px solid #7c4dff;">
+                                <div class="panel" style="border-top: 5px solid #7c4dff;">
                     <div class="panel-title" style="color:#7c4dff;">📤 Export System Data</div>
                     <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Download CSV extracts for offline reporting, audits, or municipal submission.</p>
-                    <div class="export-btn-grid">
+
+                    <label style="font-size: 0.75em;">Maghanap ng pangalan (opsyonal):</label>
+                    <input type="text" id="exportSearchQuery" class="form-control" placeholder="hal. Jade Nicole Napalan">
+
+                    <div style="display:flex; gap:8px;">
+                        <div style="flex:1;">
+                            <label style="font-size: 0.75em;">Mula sa petsa:</label>
+                            <input type="date" id="exportDateFrom" class="form-control">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size: 0.75em;">Hanggang petsa:</label>
+                            <input type="date" id="exportDateTo" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="export-btn-grid" style="margin-top:10px;">
                         <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('incidents')">🚨 Incidents</button>
                         <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('requests')">📄 Assistance Requests</button>
                         <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('fleet')">🚒 Fleet Roster</button>
                         <button class="primary-btn" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border);" onclick="exportData('activity')">📈 Activity Log</button>
                     </div>
-                    <p style="font-size:0.68em; color:var(--text-dim); margin-top:8px;">Files download as .csv, timestamped for the current session.</p>
-
+                    <p style="font-size:0.68em; color:var(--text-dim); margin-top:8px;">Iiwan ang search/date fields na blangko para i-export ang lahat. Files download as .csv, timestamped for the current session.</p>
 
 
 

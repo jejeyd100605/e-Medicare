@@ -195,44 +195,90 @@ function downloadCSV(filename, csvContent){
   URL.revokeObjectURL(url);
 }
 
+/* BAGO — tinitignan kung tumutugma ang isang row sa search query
+   (laban sa pangalan) at sa date range na napili */
+function passesExportFilters(nameValue, dateValue, query, dateFrom, dateTo){
+  if(query){
+    if(!nameValue || !String(nameValue).toLowerCase().includes(query.toLowerCase())) return false;
+  }
+  if(dateFrom){
+    if(!dateValue || new Date(dateValue) < new Date(dateFrom)) return false;
+  }
+  if(dateTo){
+    const end = new Date(dateTo);
+    end.setHours(23, 59, 59, 999); // isama ang buong araw ng "hanggang" petsa
+    if(!dateValue || new Date(dateValue) > end) return false;
+  }
+  return true;
+}
+
 function exportData(type){
   const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  const query    = (document.getElementById('exportSearchQuery')?.value || '').trim();
+  const dateFrom = document.getElementById('exportDateFrom')?.value || '';
+  const dateTo   = document.getElementById('exportDateTo')?.value || '';
+
   let rows = [];
   let filename = '';
 
   if(type === 'incidents'){
-    rows = load(DB.incidents, []).map(i => ({
-      id: i.id, type: i.type, caller: i.caller, location: i.location,
-      status: i.status, reportedAt: i.reportedAt
-    }));
+    rows = incidentsCache
+      .filter(i => passesExportFilters(i.sender ? i.sender.name : '', i.created_at, query, dateFrom, dateTo))
+      .map(i => ({
+        type: i.category || i.type,
+        reported_by: i.sender ? i.sender.name : 'Unknown',
+        contact: (i.sender && i.sender.contact) || '',
+        address: (i.sender && i.sender.address) || '',
+        status: i.status,
+        assigned_to: i.assigned_to || '',
+        description: i.description || '',
+        date_reported: i.created_at
+      }));
     filename = `bambang-incidents-${stamp}.csv`;
+
   } else if(type === 'requests'){
-    rows = load(DB.requests, []).map(r => ({
-      id: r.id, residentName: r.residentName, category: r.category,
-      priority: r.priority, estimatedCost: r.estimatedCost,
-      status: r.status, submittedAt: r.submittedAt
-    }));
+    rows = medicalRequestsCache
+      .filter(r => passesExportFilters(r.resident_name, r.created_at, query, dateFrom, dateTo))
+      .map(r => ({
+        resident_name: r.resident_name,
+        contact: r.contact_number || '',
+        category: r.category,
+        priority: r.priority,
+        estimated_cost: r.estimated_cost,
+        status: r.status,
+        date_submitted: r.created_at
+      }));
     filename = `bambang-assistance-requests-${stamp}.csv`;
+
   } else if(type === 'fleet'){
-    rows = load(DB.fleet, []).map(f => ({
-      id: f.id, name: f.name, type: f.type, plate: f.plate,
-      status: f.status, lastUpdated: f.lastUpdated
-    }));
+    rows = fleetCache
+      .filter(f => passesExportFilters(f.name, f.lastUpdated, query, dateFrom, dateTo))
+      .map(f => ({
+        name: f.name,
+        type: f.type,
+        plate: f.plate || '',
+        status: f.status,
+        assigned_to: f.assignedTo || '',
+        last_updated: f.lastUpdated
+      }));
     filename = `bambang-fleet-roster-${stamp}.csv`;
+
   } else if(type === 'activity'){
-    rows = load(DB.activity, []).map(a => ({
-      id: a.id, type: a.type,
-      message: a.message.replace(/<[^>]+>/g, ''), // strip HTML tags
-      at: a.at
-    }));
+    rows = load(DB.activity, [])
+      .filter(a => passesExportFilters(a.message, a.at, query, dateFrom, dateTo))
+      .map(a => ({
+        type: a.type,
+        message: a.message.replace(/<[^>]+>/g, ''),
+        date_time: a.at
+      }));
     filename = `bambang-activity-log-${stamp}.csv`;
   }
 
   if(rows.length === 0){
-    alert('No data available to export for this category yet.');
+    alert('Walang tumugmang datos para i-export gamit ang kasalukuyang filter.');
     return;
   }
 
   downloadCSV(filename, toCSV(rows));
-  logActivity('request', `System data exported: <b>${type}</b> (${rows.length} records).`);
+  logActivity('request', `System data exported: <b>${type}</b> (${rows.length} records)${query ? ' · search: "' + query + '"' : ''}${dateFrom || dateTo ? ' · date range applied' : ''}.`);
 }
