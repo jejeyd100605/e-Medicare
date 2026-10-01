@@ -1103,42 +1103,44 @@ function teamChipHTML(assignedTo){
 
 function populateDispatchSelects(){
     const vehicleSel = document.getElementById('dispatchVehicle');
+    const driverSel = document.getElementById('dispatchDriver');
     const responderSel = document.getElementById('dispatchResponder');
-    if(!vehicleSel || !responderSel) return;
+    if(!vehicleSel || !driverSel || !responderSel) return;
 
-
-
-    const vehicles = fleetCache.filter(f => ['Medical (Full)','Transport','Rescue/Patrol','Auxiliary'].includes(f.type));
-    const responders = fleetCache.filter(f => f.type === 'Medical Personnel' || f.type === 'Driver');
-
-
+    const vehicles = fleetCache.filter(f => FLEET_VEHICLE_TYPES.includes(f.type));
+    const drivers = fleetCache.filter(f => f.type === 'Driver');
+    const responders = fleetCache.filter(f => f.type === 'Medical Personnel');
 
     const statusTag = (f) => f.status === 'Available' ? '🟢 Available'
         : f.status === 'On Duty' ? '🟡 On Duty'
         : '🔴 Unavailable';
 
-
-
     const buildOptions = (list) => list.map(f =>
         `<option value="${f.id}" ${f.status !== 'Available' ? 'disabled' : ''}>${f.name} — ${statusTag(f)}</option>`
     ).join('');
 
-
+    // ingatan ang napili bago i-refresh ang listahan
+    const keep = [vehicleSel.value, driverSel.value, responderSel.value];
 
     vehicleSel.innerHTML = '<option value="">— None —</option>' + buildOptions(vehicles);
+    driverSel.innerHTML = '<option value="">— None —</option>' + buildOptions(drivers);
     responderSel.innerHTML = '<option value="">— None —</option>' + buildOptions(responders);
+
+    vehicleSel.value = keep[0];
+    driverSel.value = keep[1];
+    responderSel.value = keep[2];
 }
 
 
 
-function buildCrewTag(member, vehicle, responder, assignmentTag){
+function buildCrewTag(member, vehicle, driver, responder, assignmentTag){
     const partners = [];
     if(vehicle && String(member.id) !== String(vehicle.id)) partners.push(`Vehicle: ${vehicle.name}`);
+    if(driver && String(member.id) !== String(driver.id)) partners.push(`Driver: ${driver.name}`);
     if(responder && String(member.id) !== String(responder.id)) partners.push(`Responder: ${responder.name}`);
     const partnerStr = partners.length ? ` (${partners.join(', ')})` : '';
     return assignmentTag + partnerStr;
 }
-
 
 
 async function handleQuickDispatch(e){
