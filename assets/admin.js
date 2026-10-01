@@ -635,7 +635,7 @@ function initRoleBadge(profile){
     const { data, error } = await supabase
         .from('emergency_requests')
        .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
-        .in('type', ['Emergency', 'SOS'])
+                .in('type', ['Emergency', 'SOS', 'Call-in'])
         .order('created_at', { ascending: false });
 
 
@@ -658,9 +658,14 @@ function subscribeIncidentsRealtime() {
     supabase
         .channel('emergency-requests-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'emergency_requests' }, (payload) => {
-            const isSOSorEmergency = ['Emergency', 'SOS'].includes(payload.new?.type || payload.old?.type);
+                       const isSOSorEmergency = ['Emergency', 'SOS', 'Call-in'].includes(payload.new?.type || payload.old?.type);
             if (!isSOSorEmergency) return;
 
+            // Ang admin mismo ang gumawa ng Call-in, kaya walang alarm; i-refresh lang
+            if (payload.eventType === 'INSERT' && payload.new?.type === 'Call-in') {
+                loadIncidentsFromSupabase();
+                return;
+            }
 
 
                         if(payload.eventType === 'INSERT'){
@@ -1139,39 +1144,72 @@ function buildCrewTag(member, vehicle, responder, assignmentTag){
 async function handleQuickDispatch(e){
     e.preventDefault();
 
-
-
     const vehicleId = document.getElementById('dispatchVehicle').value;
     const responderId = document.getElementById('dispatchResponder').value;
-    const source = document.getElementById('dispatchSource').value;   // BAGO — Phone Call / Text Message / FB Message
+    const source = document.getElementById('dispatchSource').value;
     const notes = document.getElementById('dispatchNotes').value;
-
-
+    const callerName = document.getElementById('dispatchCallerName').value.trim();
+    const incidentLocation = document.getElementById('dispatchLocation').value.trim();
+    const incidentDetails = document.getElementById('dispatchIncidentDetails').value.trim();
 
     if(!vehicleId && !responderId){
         alert('Pumili ng kahit isang vehicle o responder bago mag-dispatch.');
         return;
     }
 
-
+    // Kapag may "Paraan ng Pagtanggap", totoong report ito na dapat maitala
+    if(source){
+        if(!responderId){
+            alert('Pumili ng Responder/Driver para sa report na ito, para makita niya ito sa dashboard niya.');
+            return;
+        }
+        if(!callerName || !incidentLocation){
+            alert('Ilagay ang pangalan ng caller at ang lokasyon ng insidente.');
+            return;
+        }
+    }
 
     const vehicle = vehicleId ? fleetCache.find(f => String(f.id) === String(vehicleId)) : null;
     const responder = responderId ? fleetCache.find(f => String(f.id) === String(responderId)) : null;
 
-
-
     const teamLabel = [vehicle?.name, responder?.name].filter(Boolean).join(' + ');
-    // BAGO — Quick Dispatch ay para sa mga emergency na hindi galing sa
-    // app (tumawag/nag-text/nag-FB message sa barangay), kaya wala nang
-    // naka-link na incident record — ang paraan ng pagtanggap na lang
-    // ang inilalagay bilang tag.
     const assignmentTag = source ? `Report via ${source}` : (notes || 'Standby / Patrol');
 
+    // 1) Gumawa ng incident record (kung may report)
+    let createdIncident = null;
+    if(source){
+        const { data: inc, error: incError } = await supabase
+            .from('emergency_requests')
+            .insert({
+                type: 'Call-in',
+                category: `Emergency via ${source}`,
+                service_type: 'Call-in',
+                description: `Caller: ${callerName} | Lokasyon: ${incidentLocation}${incidentDetails ? ' | ' + incidentDetails : ''}`,
+                status: 'Assigned',
+                patient_name: callerName,
+                jurisdiction: 'Bambang',
+                urgency: 'Normal',
+                assigned_to: teamLabel,
+                eta: notes || null,
+                assigned_responder_id: responder?.profileId || null,
+                assigned_responder_name: responder?.name || null,
+                assigned_driver_id: responder?.type === 'Driver' ? (responder.profileId || null) : null,
+                assigned_at: nowISO()
+            })
+            .select()
+            .single();
 
+        if(incError){
+            alert('Hindi nagawa ang incident record: ' + incError.message);
+            return;
+        }
+        createdIncident = inc;
+    }
 
+    // 2) I-update ang fleet (On Duty)
     const membersToUpdate = [vehicle, responder].filter(Boolean);
     for(const member of membersToUpdate){
-        const memberTag = buildCrewTag(member, vehicle, responder, assignmentTag); // BAGO
+        const memberTag = buildCrewTag(member, vehicle, responder, assignmentTag);
         const { error } = await supabase.from('fleet')
             .update({ status: 'On Duty', assigned_to: memberTag })
             .eq('id', member.id)
@@ -1179,14 +1217,21 @@ async function handleQuickDispatch(e){
         if(error){ alert(`Hindi na-update ang ${member.name}: ` + error.message); return; }
     }
 
+    // 3) I-notify ang responder
+    if(createdIncident && responder?.profileId){
+        const { error: notifError } = await supabase.from('notifications').insert({
+            receiver_id: responder.profileId,
+            title: 'New Dispatch Assignment',
+            message: `Na-assign ka sa report via ${source}: ${callerName} (${incidentLocation}).${notes ? ' Notes: ' + notes : ''}`
+        });
+        if(notifError) console.error('Hindi na-send ang notification:', notifError.message);
+    }
 
-
-    logActivity('dispatch', `<b>${teamLabel}</b> dispatched${source ? ' — reported via ' + source : ' (standby/patrol)'}${notes ? ' — ' + notes : ''}`);
-
-
+    logActivity('dispatch', `<b>${teamLabel}</b> dispatched${source ? ' — reported via ' + source + ' (' + callerName + ', ' + incidentLocation + ')' : ' (standby/patrol)'}${notes ? ' — ' + notes : ''}`);
 
     document.getElementById('quickDispatchForm').reset();
     loadFleetFromSupabase();
+    if(createdIncident) loadIncidentsFromSupabase();
 }
 
 
