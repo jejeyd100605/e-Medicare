@@ -135,7 +135,7 @@ async function renderRequestVolume(){
    UI copy so it isn't mistaken for a historical utilization rate.
 --------------------------------------------------------- */
 function renderFleetUtilization(){
-  const fleet = fleetCache;  
+  const fleet = fleetCache;
   const totalEl = document.getElementById('repFleetUtil');
   const wrap = document.getElementById('repFleetUtilList');
   if(!wrap) return;
@@ -146,22 +146,64 @@ function renderFleetUtilization(){
     return;
   }
 
+  // Card sa itaas: bahagdan ng units na On Duty ngayon
   const onDuty = fleet.filter(f => f.status === 'On Duty').length;
-  const pct = Math.round((onDuty / fleet.length) * 100);
-  if(totalEl) totalEl.textContent = pct + '%';
+  if(totalEl) totalEl.textContent = Math.round((onDuty / fleet.length) * 100) + '%';
 
-  wrap.innerHTML = fleet.map(f => `
-    <div class="fleet-quick-row">
-      <div>
-        <div class="fleet-quick-name">${f.name}</div>
-        <div class="fleet-quick-type">${f.type} · updated ${timeAgo(f.lastUpdated)}</div>
-      </div>
-      <span class="status-pill ${statusClass(f.status)}"><span class="status-dot"></span>${f.status}</span>
+  // Mga natapos na kaso lang ang binibilang
+  const done = incidentsCache.filter(i => ['Completed', 'Resolved'].includes(i.status));
+
+  const stats = fleet.map(f => {
+    const isVehicle = FLEET_VEHICLE_TYPES.includes(f.type);
+
+    const cases = done.filter(i => {
+      // Personnel na may naka-link na account: base sa profile id
+      if(!isVehicle && f.profileId){
+        return String(i.assigned_responder_id) === String(f.profileId)
+            || String(i.assigned_driver_id) === String(f.profileId);
+      }
+      // Vehicle (o personnel na walang account): base sa pangalan sa team label
+      return i.assigned_to && i.assigned_to.includes(f.name);
+    });
+
+    const secs = cases
+      .map(i => findServiceRecordForIncident(i.id))
+      .filter(s => s && s.response_duration_seconds !== null && s.response_duration_seconds !== undefined)
+      .map(s => Number(s.response_duration_seconds));
+
+    const avgMin = secs.length
+      ? Math.round(secs.reduce((a, b) => a + b, 0) / secs.length / 60)
+      : null;
+
+    return { f, count: cases.length, avgMin };
+  }).sort((a, b) => b.count - a.count || a.f.name.localeCompare(b.f.name));
+
+  wrap.innerHTML = `
+    <div style="max-height:420px; overflow-y:auto;">
+      <table class="fleet-table" style="width:100%;">
+        <thead>
+          <tr>
+            <th>Unit / Personnel</th>
+            <th>Cases Handled</th>
+            <th>Avg. Response</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${stats.map(s => `
+            <tr>
+              <td>
+                <div style="font-weight:600;">${s.f.name}</div>
+                <div class="timestamp">${s.f.type}</div>
+              </td>
+              <td><b>${s.count}</b></td>
+              <td>${s.avgMin !== null ? s.avgMin + ' min' : '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     </div>
-  `).join('') + `
-    <p style="font-size:0.68em; color:#666; margin-top:10px;">
-      Snapshot of current status distribution. For time-weighted utilization,
-      fleet status-change history would need to be logged per unit over time.
+    <p style="font-size:0.68em; color:var(--text-dim); margin-top:10px;">
+      Ranked by completed cases. Avg. response ay mula sa Service Completion Record (tinanggap → natapos).
     </p>
   `;
 }
