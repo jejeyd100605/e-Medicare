@@ -492,6 +492,7 @@
         <div class="panel-title" style="color:#7c4dff;">📅 Vehicle/Driver Reservations</div>
     </div>
     <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">Lahat ng naka-schedule na approved na transport bookings, naka-group per araw. Pula ang lalabas kapag may conflict.</p>
+      <div id="reservationReminders"></div>
     <div id="transpoReservationCalendar"></div>
 </div>
 </div>
@@ -1646,7 +1647,27 @@
     </div>
 </div>
 
-
+<!-- MODAL: TRANSPO DISPATCH -->
+<div class="modal" id="transpoDispatchModal" style="display:none;">
+    <div class="modal-content" style="max-width:480px;">
+        <h4 style="font-size:1em; color:var(--gold); margin-bottom:10px;">🚐 Dispatch Transport</h4>
+        <div id="tdInfo" style="font-size:0.85em; margin-bottom:10px;"></div>
+        <div id="tdWarning" style="display:none; background:rgba(255,82,82,0.12); border:1px solid var(--red); color:var(--red); padding:10px; border-radius:8px; font-size:0.8em; margin-bottom:10px;"></div>
+        <form onsubmit="confirmTranspoDispatch(event)">
+            <input type="hidden" id="tdId">
+            <label style="font-size:0.8em;">Vehicle:</label>
+            <select id="tdVehicle" class="form-control" required></select>
+            <label style="font-size:0.8em;">Driver:</label>
+            <select id="tdDriver" class="form-control" required></select>
+            <div class="modal-action-grid">
+                <div class="action-row">
+                    <button type="submit" class="primary-btn btn-confirm">🚀 Confirm Dispatch</button>
+                    <button type="button" class="primary-btn btn-secondary" style="flex:1;" onclick="closeTranspoDispatch()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 
 

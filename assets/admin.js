@@ -1147,6 +1147,7 @@ async function handleQuickDispatch(e){
     e.preventDefault();
 
     const vehicleId = document.getElementById('dispatchVehicle').value;
+    const driverId = document.getElementById('dispatchDriver').value;
     const responderId = document.getElementById('dispatchResponder').value;
     const source = document.getElementById('dispatchSource').value;
     const notes = document.getElementById('dispatchNotes').value;
@@ -1154,15 +1155,14 @@ async function handleQuickDispatch(e){
     const incidentLocation = document.getElementById('dispatchLocation').value.trim();
     const incidentDetails = document.getElementById('dispatchIncidentDetails').value.trim();
 
-    if(!vehicleId && !responderId){
-        alert('Pumili ng kahit isang vehicle o responder bago mag-dispatch.');
+    if(!vehicleId && !driverId && !responderId){
+        alert('Pumili ng kahit isang vehicle, driver, o responder bago mag-dispatch.');
         return;
     }
 
-    // Kapag may "Paraan ng Pagtanggap", totoong report ito na dapat maitala
     if(source){
-        if(!responderId){
-            alert('Pumili ng Responder/Driver para sa report na ito, para makita niya ito sa dashboard niya.');
+        if(!driverId || !responderId){
+            alert('Para sa report na ito, pumili ng parehong Driver at Responder.');
             return;
         }
         if(!callerName || !incidentLocation){
@@ -1172,12 +1172,12 @@ async function handleQuickDispatch(e){
     }
 
     const vehicle = vehicleId ? fleetCache.find(f => String(f.id) === String(vehicleId)) : null;
+    const driver = driverId ? fleetCache.find(f => String(f.id) === String(driverId)) : null;
     const responder = responderId ? fleetCache.find(f => String(f.id) === String(responderId)) : null;
 
-    const teamLabel = [vehicle?.name, responder?.name].filter(Boolean).join(' + ');
+    const teamLabel = [vehicle?.name, driver?.name, responder?.name].filter(Boolean).join(' + ');
     const assignmentTag = source ? `Report via ${source}` : (notes || 'Standby / Patrol');
 
-    // 1) Gumawa ng incident record (kung may report)
     let createdIncident = null;
     if(source){
         const { data: inc, error: incError } = await supabase
@@ -1195,7 +1195,7 @@ async function handleQuickDispatch(e){
                 eta: notes || null,
                 assigned_responder_id: responder?.profileId || null,
                 assigned_responder_name: responder?.name || null,
-                assigned_driver_id: responder?.type === 'Driver' ? (responder.profileId || null) : null,
+                assigned_driver_id: driver?.profileId || null,
                 assigned_at: nowISO()
             })
             .select()
@@ -1208,10 +1208,9 @@ async function handleQuickDispatch(e){
         createdIncident = inc;
     }
 
-    // 2) I-update ang fleet (On Duty)
-    const membersToUpdate = [vehicle, responder].filter(Boolean);
+    const membersToUpdate = [vehicle, driver, responder].filter(Boolean);
     for(const member of membersToUpdate){
-        const memberTag = buildCrewTag(member, vehicle, responder, assignmentTag);
+        const memberTag = buildCrewTag(member, vehicle, driver, responder, assignmentTag);
         const { error } = await supabase.from('fleet')
             .update({ status: 'On Duty', assigned_to: memberTag })
             .eq('id', member.id)
@@ -1219,14 +1218,22 @@ async function handleQuickDispatch(e){
         if(error){ alert(`Hindi na-update ang ${member.name}: ` + error.message); return; }
     }
 
-    // 3) I-notify ang responder
-    if(createdIncident && responder?.profileId){
-        const { error: notifError } = await supabase.from('notifications').insert({
+    if(createdIncident){
+        const notifs = [];
+        if(driver?.profileId) notifs.push({
+            receiver_id: driver.profileId,
+            title: 'New Dispatch Assignment',
+            message: `Na-assign ka bilang driver kasama si ${responder.name} sa report via ${source}: ${callerName} (${incidentLocation}).${notes ? ' Notes: ' + notes : ''}`
+        });
+        if(responder?.profileId) notifs.push({
             receiver_id: responder.profileId,
             title: 'New Dispatch Assignment',
-            message: `Na-assign ka sa report via ${source}: ${callerName} (${incidentLocation}).${notes ? ' Notes: ' + notes : ''}`
+            message: `Na-assign ka bilang responder kasama si ${driver.name} sa report via ${source}: ${callerName} (${incidentLocation}).${notes ? ' Notes: ' + notes : ''}`
         });
-        if(notifError) console.error('Hindi na-send ang notification:', notifError.message);
+        if(notifs.length){
+            const { error: notifError } = await supabase.from('notifications').insert(notifs);
+            if(notifError) console.error('Hindi na-send ang notification:', notifError.message);
+        }
     }
 
     logActivity('dispatch', `<b>${teamLabel}</b> dispatched${source ? ' — reported via ' + source + ' (' + callerName + ', ' + incidentLocation + ')' : ' (standby/patrol)'}${notes ? ' — ' + notes : ''}`);
@@ -1235,7 +1242,6 @@ async function handleQuickDispatch(e){
     loadFleetFromSupabase();
     if(createdIncident) loadIncidentsFromSupabase();
 }
-
 
 
     /* ---------------------------------------------------------
@@ -2627,7 +2633,8 @@ function closeIncidentPhotosModal(){
    transpoCache = data || [];
     renderTranspoList();
     renderTranspoHistory();
-    renderReservationCalendar();   // BAGO
+        renderReservationCalendar();   // BAGO
+    checkReservationReminders();
 }
 
 
@@ -2874,59 +2881,24 @@ async function handleTranspoEvaluation(e){
 
 
 
-    const crewTag = `Transpo, ${r.patient_name}` + (driver ? ` (Driver: ${driver.name})` : '');   // BAGO
-    const vehicleTag = `Transpo, ${r.patient_name}` + (driver ? ` (Driver: ${driver.name})` : '');
-
-
-
-    const { error: reqError } = await supabase
+       const { error: reqError } = await supabase
         .from('transport_requests')
-        .update({ status: 'Approved', assigned_vehicle: vehicle.id, assigned_driver: driver ? driver.id : null, admin_notes: notes })   // BAGO
+        .update({ status: 'Approved', assigned_vehicle: vehicle.id, assigned_driver: driver ? driver.id : null, admin_notes: notes })
         .eq('id', r.id);
     if(reqError){ alert('Hindi na-update ang request: ' + reqError.message); return; }
 
-
-
-    const { error: fleetError } = await supabase
-        .from('fleet')
-        .update({ status: 'On Duty', assigned_to: vehicleTag })
-        .eq('id', vehicle.id)
-        .select();
-    if(fleetError){ alert('Hindi na-dispatch ang vehicle: ' + fleetError.message); return; }
-
-
-
-    // BAGO — i-update din ang status ng driver kung meron
-    if(driver){
-        const driverTag = `Transpo, ${r.patient_name} (Vehicle: ${vehicle.name})`;
-        const { error: driverError } = await supabase
-            .from('fleet')
-            .update({ status: 'On Duty', assigned_to: driverTag })
-            .eq('id', driver.id)
-            .select();
-        if(driverError){ alert('Hindi na-dispatch ang driver: ' + driverError.message); return; }
-    }
-
-
-
-    logActivity('dispatch', `<b>${vehicle.name}</b>${driver ? ' (Driver: ' + driver.name + ')' : ''} assigned to transpo request of ${r.patient_name} (${r.pickup_location} → ${r.destination}).`);
-
-
+    logActivity('request', `Transpo ni <b>${r.patient_name}</b> na-approve at nakareserba: <b>${vehicle.name}</b>${driver ? ' + ' + driver.name : ''}.`);
 
     if(r.sender_id){
         await supabase.from('notifications').insert({
             receiver_id: r.sender_id,
             title: 'Transpo Request Approved',
-            message: `Hi ${r.patient_name}, na-approve na ang iyong transport request. Isasadispatch si ${vehicle.name}${driver ? ' at driver ' + driver.name : ''}.${notes ? ' Note: ' + notes : ''}`
+            message: `Hi ${r.patient_name}, na-approve na ang iyong transport request. Nakareserba ang ${vehicle.name}${driver ? ' at driver ' + driver.name : ''} para sa iyong schedule.${notes ? ' Note: ' + notes : ''}`
         });
     }
 
-
-
     loadTranspoFromSupabase();
-    loadFleetFromSupabase();
 }
-
 
 
     const TERMINAL_TRANSPO_STATUSES = ['Approved','Completed','Rejected'];
@@ -2951,6 +2923,7 @@ async function handleTranspoEvaluation(e){
         wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No completed transport records yet.</div>';
         return;
     }
+
     wrap.innerHTML = completed.slice(0,5).map(r => {
         const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
         return `
@@ -2995,6 +2968,237 @@ async function handleTranspoEvaluation(e){
    transport bookings, naka-group per araw. Kapag ang parehong vehicle
    o driver ay may 2+ bookings sa parehong araw, hini-highlight bilang
    conflict (pula) para agad mapansin ng admin. */
+
+   /* ---------------------------------------------------------
+   RESERVATION REMINDERS — 1 oras bago ang schedule, at kapag
+   oras na / late na. Isang beses lang mag-popup kada stage.
+--------------------------------------------------------- */
+const REMINDER_WINDOW_MIN = 60;     // mag-remind 60 minuto bago
+const REMINDER_LATE_MIN = 120;      // hanggang 2 oras pagkatapos ng schedule
+
+function getRemindedSet(){
+    try { return new Set(JSON.parse(localStorage.getItem('bmb_reservation_reminded') || '[]')); }
+    catch(e){ return new Set(); }
+}
+function saveRemindedSet(set){
+    try { localStorage.setItem('bmb_reservation_reminded', JSON.stringify([...set].slice(-300))); }
+    catch(e){}
+}
+
+function checkReservationReminders(){
+    const now = Date.now();
+    const reminded = getRemindedSet();
+    const active = [];
+
+    transpoCache
+               .filter(r => r.status === 'Approved' && r.schedule_time && !r.dispatched_at)
+        .forEach(r => {
+            const diffMin = Math.round((new Date(r.schedule_time).getTime() - now) / 60000);
+
+            let stage = null;
+            if(diffMin <= 0 && diffMin >= -REMINDER_LATE_MIN) stage = 'now';
+            else if(diffMin > 0 && diffMin <= REMINDER_WINDOW_MIN) stage = 'soon';
+            if(!stage) return;
+
+            const vehicle = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
+            const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
+            const time = new Date(r.schedule_time).toLocaleTimeString('en-PH', { hour:'2-digit', minute:'2-digit' });
+
+            active.push({ r, stage, diffMin, vehicle, driver, time });
+
+            const key = r.id + ':' + stage;
+            if(!reminded.has(key)){
+                reminded.add(key);
+                playEmergencyBeepTwice();
+                showReservationToast(r, stage, diffMin, time, vehicle, driver);
+                logActivity('notify', stage === 'soon'
+                    ? `⏰ Reservation ni <b>${r.patient_name}</b> sa loob ng ${diffMin} minuto (${time}).`
+                    : `🔔 Oras na ng reservation ni <b>${r.patient_name}</b> (${time}).`);
+            }
+        });
+
+    saveRemindedSet(reminded);
+    renderReservationBanner(active);
+}
+
+function showReservationToast(r, stage, diffMin, time, vehicle, driver){
+    const container = document.getElementById('sosToastContainer') || (() => {
+        const c = document.createElement('div');
+        c.id = 'sosToastContainer';
+        c.style.cssText = 'position:fixed; top:16px; right:16px; z-index:9999; display:flex; flex-direction:column; gap:10px;';
+        document.body.appendChild(c);
+        return c;
+    })();
+
+    const isNow = stage === 'now';
+    const toast = document.createElement('div');
+    toast.style.cssText = `background:${isNow ? '#3a1c1c' : '#3a2f10'}; border:1px solid ${isNow ? '#ff4d4d' : '#ffd700'}; color:#fff; padding:14px 16px; border-radius:10px; width:300px; box-shadow:0 6px 20px rgba(0,0,0,.4);`;
+    toast.innerHTML = `
+        <div style="font-weight:700; color:${isNow ? '#ff8a8a' : '#ffd700'}; margin-bottom:4px;">
+            ${isNow ? '🔔 Oras na ng Reservation' : '⏰ Malapit na ang Reservation'}
+        </div>
+        <div style="font-size:.85em; margin-bottom:4px;"><b>${time}</b> — ${r.patient_name}</div>
+        <div style="font-size:.78em; color:#ccc; margin-bottom:8px;">
+            ${r.pickup_location} → ${r.destination}<br>
+            ${vehicle ? '🚑 ' + vehicle.name : ''}${driver ? ' · 🧑‍✈️ ' + driver.name : ''}
+            ${isNow ? '' : '<br>Sa loob ng ' + diffMin + ' minuto'}
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button class="primary-btn" style="background:${isNow ? '#ff4d4d' : '#ffd700'};color:#111;flex:1;font-size:.78em;" onclick="switchTab('docs'); this.closest('div[style*=\\'position:fixed\\'] > div, div[style*=\\'width:300px\\']').remove();">Tingnan</button>            <button class="primary-btn" style="background:${isNow ? '#ff4d4d' : '#ffd700'};color:#111;flex:1;font-size:.78em;" onclick="openTranspoDispatch('${r.id}'); this.parentElement.parentElement.remove();">🚀 Dispatch Now</button>
+            <button class="primary-btn" style="background:#333;color:#eee;font-size:.78em;padding:6px 10px;" onclick="this.parentElement.parentElement.remove()">Dismiss</button>
+        </div>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => { if(toast.isConnected) toast.remove(); }, 30000);
+}
+
+function renderReservationBanner(active){
+    const wrap = document.getElementById('reservationReminders');
+    if(!wrap) return;
+
+    if(active.length === 0){
+        wrap.innerHTML = '';
+        return;
+    }
+
+    wrap.innerHTML = active
+        .sort((a, b) => a.diffMin - b.diffMin)
+        .map(a => {
+            const isNow = a.stage === 'now';
+            const label = isNow
+                ? (a.diffMin === 0 ? 'Oras na ngayon' : `Late ng ${Math.abs(a.diffMin)} min`)
+                : `Sa loob ng ${a.diffMin} min`;
+            return `
+            <div style="background:${isNow ? 'rgba(255,82,82,0.12)' : 'rgba(255,215,0,0.12)'}; border:1px solid ${isNow ? 'var(--red)' : 'var(--gold)'}; border-radius:8px; padding:10px 12px; margin-bottom:8px; font-size:.82em;">
+                <div style="font-weight:700; color:${isNow ? 'var(--red)' : 'var(--gold)'};">
+                    ${isNow ? '🔔' : '⏰'} ${label} — ${a.time}
+                </div>
+                <div>${a.r.patient_name} · ${a.r.pickup_location} → ${a.r.destination}</div>
+                               <div style="color:var(--text-muted);">${a.vehicle ? '🚑 ' + a.vehicle.name : ''}${a.driver ? ' · 🧑‍✈️ ' + a.driver.name : ''}</div>
+                <button class="primary-btn" style="margin-top:6px; font-size:.78em; padding:6px 12px; background:${isNow ? 'var(--red)' : 'var(--gold)'}; color:#111;" onclick="openTranspoDispatch('${a.r.id}')">🚀 Dispatch Now</button>
+            </div>`;
+        }).join('');
+}
+
+// Suriin tuwing 1 minuto
+setInterval(checkReservationReminders, 60000);
+
+
+function closeTranspoDispatch(){
+    document.getElementById('transpoDispatchModal').style.display = 'none';
+}
+
+function openTranspoDispatch(id){
+    const r = transpoCache.find(x => String(x.id) === String(id));
+    if(!r){ alert('Hindi makita ang reservation.'); return; }
+    if(r.dispatched_at){ alert('Na-dispatch na ang reservation na ito.'); return; }
+
+    document.getElementById('tdId').value = r.id;
+    const sv = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
+    const sd = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
+
+    document.getElementById('tdInfo').innerHTML = `
+        <div><b>${r.patient_name}</b> · ${new Date(r.schedule_time).toLocaleString('en-PH')}</div>
+        <div style="color:var(--text-muted);">${r.pickup_location} → ${r.destination}</div>`;
+
+    const problems = [];
+    if(r.assigned_vehicle && (!sv || sv.status !== 'Available'))
+        problems.push(`Ang naka-schedule na vehicle na <b>${sv ? sv.name : '(wala na)'}</b> ay <b>${sv ? sv.status : 'hindi na makita'}</b>.`);
+    if(r.assigned_driver && (!sd || sd.status !== 'Available'))
+        problems.push(`Ang naka-schedule na driver na <b>${sd ? sd.name : '(wala na)'}</b> ay <b>${sd ? sd.status : 'hindi na makita'}</b>.`);
+
+    const warn = document.getElementById('tdWarning');
+    if(problems.length){
+        warn.innerHTML = '⚠️ ' + problems.join('<br>⚠️ ') + '<br>Pumili ng ibang available sa ibaba.';
+        warn.style.display = 'block';
+    } else {
+        warn.style.display = 'none';
+    }
+
+    const vehicles = fleetCache.filter(f => FLEET_VEHICLE_TYPES.includes(f.type) && f.status === 'Available');
+    const drivers = fleetCache.filter(f => f.type === 'Driver' && f.status === 'Available');
+
+    const vSel = document.getElementById('tdVehicle');
+    const dSel = document.getElementById('tdDriver');
+    vSel.innerHTML = '<option value="" disabled selected>' + (vehicles.length ? 'Pumili ng available na vehicle' : '⚠️ Walang available na vehicle') + '</option>' +
+        vehicles.map(f => `<option value="${f.id}">${f.name} (${f.type})</option>`).join('');
+    dSel.innerHTML = '<option value="" disabled selected>' + (drivers.length ? 'Pumili ng available na driver' : '⚠️ Walang available na driver') + '</option>' +
+        drivers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+
+    if(sv && sv.status === 'Available') vSel.value = sv.id;
+    if(sd && sd.status === 'Available') dSel.value = sd.id;
+
+    document.getElementById('transpoDispatchModal').style.display = 'flex';
+}
+
+async function confirmTranspoDispatch(e){
+    e.preventDefault();
+    const id = document.getElementById('tdId').value;
+    const r = transpoCache.find(x => String(x.id) === String(id));
+    const vehicle = fleetCache.find(f => String(f.id) === String(document.getElementById('tdVehicle').value));
+    const driver = fleetCache.find(f => String(f.id) === String(document.getElementById('tdDriver').value));
+    if(!r || !vehicle || !driver){ alert('Pumili ng vehicle at driver.'); return; }
+    if(!driver.profileId){ alert('Walang naka-link na account ang driver na ito, kaya hindi niya makikita ang kaso.'); return; }
+
+    const teamLabel = `${vehicle.name} + ${driver.name}`;
+
+    // 1) Kaso para lumabas sa dashboard ng driver
+    const { error: incError } = await supabase.from('emergency_requests').insert({
+        type: 'Transpo',
+        category: 'Transport Request',
+        service_type: 'Transpo',
+        description: `Pickup: ${r.pickup_location} | Destination: ${r.destination}${r.patient_condition ? ' | Kondisyon: ' + r.patient_condition : ''}${r.reason ? ' | ' + r.reason : ''}`,
+        status: 'Assigned',
+        patient_name: r.patient_name,
+        sender_id: r.sender_id || null,
+        jurisdiction: 'Bambang',
+        urgency: 'Normal',
+        assigned_to: teamLabel,
+        assigned_responder_id: driver.profileId,
+        assigned_responder_name: driver.name,
+        assigned_driver_id: driver.profileId,
+        assigned_at: nowISO()
+    });
+    if(incError){ alert('Hindi nagawa ang dispatch: ' + incError.message); return; }
+
+    // 2) Fleet: On Duty
+    const tag = (partner) => `Transpo, ${r.patient_name} (${partner})`;
+    const updates = [
+        { f: vehicle, tag: tag(`Driver: ${driver.name}`) },
+        { f: driver, tag: tag(`Vehicle: ${vehicle.name}`) }
+    ];
+    for(const u of updates){
+        const { error } = await supabase.from('fleet')
+            .update({ status: 'On Duty', assigned_to: u.tag }).eq('id', u.f.id).select();
+        if(error){ alert(`Hindi na-update ang ${u.f.name}: ` + error.message); return; }
+    }
+
+    // 3) Itala ang dispatch at ang aktwal na vehicle/driver
+    const { error: trError } = await supabase.from('transport_requests')
+        .update({ assigned_vehicle: vehicle.id, assigned_driver: driver.id, dispatched_at: nowISO() })
+        .eq('id', r.id);
+    if(trError) console.error('Hindi na-update ang transport request:', trError.message);
+
+    // 4) Notifications
+    const notifs = [{
+        receiver_id: driver.profileId,
+        title: 'New Transport Assignment',
+        message: `Na-assign ka sa transport ni ${r.patient_name}: ${r.pickup_location} → ${r.destination}.`
+    }];
+    if(r.sender_id) notifs.push({
+        receiver_id: r.sender_id,
+        title: '🚐 Papunta na ang Sasakyan',
+        message: `Na-dispatch na ang ${vehicle.name} kasama si ${driver.name} para sa iyong transport request.`
+    });
+    const { error: nErr } = await supabase.from('notifications').insert(notifs);
+    if(nErr) console.error('Hindi na-send ang notification:', nErr.message);
+
+    logActivity('dispatch', `<b>${teamLabel}</b> na-dispatch para sa transpo ni ${r.patient_name}.`);
+    closeTranspoDispatch();
+    loadTranspoFromSupabase();
+    loadFleetFromSupabase();
+}
+
 function renderReservationCalendar(){
     const wrap = document.getElementById('transpoReservationCalendar');
     if(!wrap) return;
@@ -3049,7 +3253,10 @@ function renderReservationCalendar(){
                     <div style="font-size:.85em; color:#aaa; margin-top:2px;">
                         ${vehicle ? '🚑 ' + vehicle.name : '— Walang vehicle —'}${driver ? ' · 🧑\u200d✈️ ' + driver.name : ''}
                     </div>
-                    ${isConflict ? '<div style="font-size:.8em; color:var(--red); margin-top:3px;">⚠️ Conflict — may kasabay na booking ang unit/driver na ito sa araw na ito</div>' : ''}
+                                        ${isConflict ? '<div style="font-size:.8em; color:var(--red); margin-top:3px;">⚠️ Conflict — may kasabay na booking ang unit/driver na ito sa araw na ito</div>' : ''}
+                    ${r.dispatched_at
+                        ? '<div style="font-size:.78em; color:var(--green); margin-top:4px;">✅ Na-dispatch na</div>'
+                        : `<button class="primary-btn" style="margin-top:6px; font-size:.72em; padding:5px 10px;" onclick="openTranspoDispatch('${r.id}')">🚀 Dispatch</button>`}
                 </div>
             `;
         }).join('');
