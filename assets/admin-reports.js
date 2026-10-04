@@ -243,13 +243,11 @@ function passesExportFilters(nameValue, dateValue, query, dateFrom, dateTo){
   if(query){
     if(!nameValue || !String(nameValue).toLowerCase().includes(query.toLowerCase())) return false;
   }
-  if(dateFrom){
-    if(!dateValue || new Date(dateValue) < new Date(dateFrom)) return false;
-  }
-  if(dateTo){
-    const end = new Date(dateTo);
-    end.setHours(23, 59, 59, 999); // isama ang buong araw ng "hanggang" petsa
-    if(!dateValue || new Date(dateValue) > end) return false;
+  if(dateFrom || dateTo){
+    if(!dateValue) return false;
+    const d = new Date(dateValue);
+    if(dateFrom && d < new Date(dateFrom + 'T00:00:00')) return false;
+    if(dateTo && d > new Date(dateTo + 'T23:59:59.999')) return false;
   }
   return true;
 }
@@ -273,10 +271,10 @@ function exportData(type){
     };
 
     rows = incidentsCache
-      .filter(i => passesExportFilters(i.sender ? i.sender.name : '', i.created_at, query, dateFrom, dateTo))
+            .filter(i => passesExportFilters((i.sender ? i.sender.name : i.patient_name) || '', i.created_at, query, dateFrom, dateTo))
       .map(i => ({
         type: i.category || i.type,
-        reported_by: i.sender ? i.sender.name : 'Unknown',
+               reported_by: i.sender ? i.sender.name : (i.patient_name || 'Unknown'),
         contact: (i.sender && i.sender.contact) || '',
         address: (i.sender && i.sender.address) || '',
         status: i.status,
@@ -329,7 +327,11 @@ function exportData(type){
   }
 
   if(rows.length === 0){
-    alert('Walang tumugmang datos para i-export gamit ang kasalukuyang filter.');
+       alert('Walang tumugmang datos.\n\nFilter na ginamit:\n' +
+      '• Pangalan: ' + (query || '(wala)') + '\n' +
+      '• Mula: ' + (dateFrom || '(wala)') + '\n' +
+      '• Hanggang: ' + (dateTo || '(wala)') + '\n\n' +
+      'Tip: sa Fleet at Activity Log, iwanang blangko ang pangalan.');
     return;
   }
 
