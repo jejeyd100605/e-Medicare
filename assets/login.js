@@ -217,14 +217,6 @@ async function handleSignup(e) {
 
 
 
-    // BAGO — i-check muna kung magkatugma bago tumawag ng supabase.auth.signUp
-    if (password !== confirmPassword) {
-        alert("Hindi magkatugma ang password at re-type password. Pakisuri ulit.");
-        return;
-    }
-
-
-
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -274,6 +266,12 @@ async function verifyOtp() {
     }
 
 
+
+       if (!tempUser) {
+        alert("Nag-expire ang signup session. Paki-sign up ulit.");
+        showForm("signup");
+        return;
+    }
 
     const { data, error } = await supabase.auth.verifyOtp({
         email: tempUser.email,
@@ -766,35 +764,16 @@ async function handleLogin(e) {
         return;
     }
 
-    window._currentProfile = profile;    // ← DITO ilalagay bago ito
-
-    if (!profile.mpin) {
-        document.getElementById("formView").classList.add("hidden");
-        document.getElementById("setMpinOverlay").classList.remove("hidden");
-        return;
-    }
-
-    executeSecureRouting(profile.role);
-}
-
-
-
     window._currentProfile = profile;
 
-
-
     if (!profile.mpin) {
         document.getElementById("formView").classList.add("hidden");
         document.getElementById("setMpinOverlay").classList.remove("hidden");
         return;
     }
 
-
-
     executeSecureRouting(profile.role);
 }
-
-
 
 // ==========================================================================
 // MAGIC LINK LOGIN (optional passwordless alternative)
@@ -819,29 +798,69 @@ async function handleMagicLink(email) {
 // ==========================================================================
 // MPIN VALIDATION — compares against the hash stored in profiles
 // ==========================================================================
+const MPIN_MAX_ATTEMPTS = 5;
+const MPIN_BASE_LOCK_SECONDS = 30;
+const MPIN_MAX_LOCK_SECONDS = 300; // hanggang 5 minuto
+
+function mpinLockKey() {
+    return "mpin_lock_" + (window._currentProfile?.id || "unknown");
+}
+
+function getMpinLockInfo() {
+    try { return JSON.parse(localStorage.getItem(mpinLockKey()) || "{}"); }
+    catch (e) { return {}; }
+}
+
+function saveMpinLockInfo(info) {
+    try { localStorage.setItem(mpinLockKey(), JSON.stringify(info)); } catch (e) {}
+}
+
+function clearMpinLockInfo() {
+    try { localStorage.removeItem(mpinLockKey()); } catch (e) {}
+}
+
 async function verifyMpin() {
+    const info = getMpinLockInfo();
+    if (info.lockedUntil && Date.now() < info.lockedUntil) {
+        const secs = Math.ceil((info.lockedUntil - Date.now()) / 1000);
+        alert("Masyadong maraming maling subok. Maghintay ng " + secs + " segundo bago subukan ulit.");
+        return;
+    }
+
     const pin = Array.from(document.querySelectorAll(".mpin-box")).map(i => i.value).join("");
-
-
 
     if (!/^\d{4}$/.test(pin)) {
         alert("Please enter your 4-digit MPIN.");
         return;
     }
 
-
-
     const profile = window._currentProfile;
     const enteredHash = await hashText(pin);
 
-
-
     if (profile && enteredHash === profile.mpin) {
+        clearMpinLockInfo();
         executeSecureRouting(profile.role);
+        return;
+    }
+
+    // Maling MPIN
+    const attempts = (info.attempts || 0) + 1;
+    const lockCount = info.lockCount || 0;
+
+    document.querySelectorAll(".mpin-box").forEach(i => (i.value = ""));
+    document.querySelectorAll(".mpin-box")[0].focus();
+
+    if (attempts >= MPIN_MAX_ATTEMPTS) {
+        const lockSeconds = Math.min(MPIN_BASE_LOCK_SECONDS * Math.pow(2, lockCount), MPIN_MAX_LOCK_SECONDS);
+        saveMpinLockInfo({
+            attempts: 0,
+            lockCount: lockCount + 1,
+            lockedUntil: Date.now() + lockSeconds * 1000
+        });
+        alert("Wrong MPIN. Naka-lock ng " + lockSeconds + " segundo dahil sa sunod-sunod na maling subok.");
     } else {
-        alert("Wrong MPIN code. Access Denied.");
-        document.querySelectorAll(".mpin-box").forEach(i => (i.value = ""));
-        document.querySelectorAll(".mpin-box")[0].focus();
+        saveMpinLockInfo({ attempts: attempts, lockCount: lockCount, lockedUntil: 0 });
+        alert("Wrong MPIN code. May " + (MPIN_MAX_ATTEMPTS - attempts) + " subok pa.");
     }
 }
 
@@ -1046,4 +1065,4 @@ window.location.href = routes[role.toLowerCase()] || "/pages/resident.html";
 }
 
 
-
+}
