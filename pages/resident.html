@@ -32,7 +32,7 @@
            <div class="notif-overlay" id="notifOverlay" onclick="toggleNotifMenu(event)"></div>
 
 
-<div class="notif-dropdown" id="notifDropdown">
+<div class="notif-dropdown" id="notifDropdown" onclick="event.stopPropagation()">
     <div class="notif-dropdown-header">
         <span>Notifications</span>
         <div style="display:flex; align-items:center; gap:14px;">
@@ -442,7 +442,8 @@
 <div id="requestHistoryScrollTrackV" class="custom-scroll-track-v">
     <div id="requestHistoryScrollThumbV" class="custom-scroll-thumb-v"></div>
 </div>
-
+</div>  
+</div>  
 
         <div class="modal" id="firstAidModal">
             <div class="modal-content">
