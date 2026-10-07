@@ -15,44 +15,28 @@
 </head>
 
 
-
-
 <body>
 <!-- ================= HEADER ================= -->
 <div class="header">
-
-
 
 
     <!-- Top -->
     <div class="header-top">
 
 
-
-
         <div class="header-left">
-
-
 
 
             <div class="logo-title">
 
 
-
-
                 <img src="/assets/logo.png" alt="e-Medicare Logo" class="logo-icon" onerror="this.onerror=null;this.src='/assets/logo.png';this.style.display='none';this.insertAdjacentHTML('afterend','<i class=\'fas fa-truck-medical logo-icon\'></i>');">
-
-
 
 
                 <div>
 
 
-
-
                     <h1>e-Medicare</h1>
-
-
 
 
                     <p class="dashboard-subtitle">
@@ -60,21 +44,13 @@
                     </p>
 
 
-
-
                 </div>
-
-
 
 
             </div>
 
 
-
-
         </div>
-
-
 
 
         <button id="logoutBtn" class="logout-btn">
@@ -83,33 +59,21 @@
         </button>
 
 
-
-
     </div>
 
 
-
-
     <hr class="header-divider">
-
-
 
 
     <!-- Bottom -->
     <div class="header-right">
 
 
-
-
         <!-- Assigned Unit -->
         <div class="unit-label">
 
 
-
-
             <i class="fas fa-truck-medical"></i>
-
-
 
 
             <label for="assignedUnit">
@@ -117,71 +81,43 @@
             </label>
 
 
-
-
             <select id="assignedUnit" class="unit-select">
-
-
 
 
                 <option value="Patrol-01">🚓 Patrol Vehicle-01</option>
 
 
-
-
                 <option value="PTV-01">🚐 Patient Transport Vehicle-01</option>
-
-
 
 
                 <option value="Tricycle-01">🛺 Emergency Tricycle-01</option>
 
 
-
-
             </select>
-
-
 
 
         </div>
 
 
-
-
         <span class="separator">|</span>
-
-
 
 
         <!-- Status -->
 
 
-
-
         <div class="status-group">
-
-
 
 
             <label for="unitStatus">
 
 
-
-
             Status
-
-
 
 
             </label>
 
 
-
-
             <select id="unitStatus" class="responder-status-select">
-
-
 
 
                 <option value="Available">
@@ -189,13 +125,9 @@
                 </option>
 
 
-
-
                 <option value="On Duty">
                     🟡 On Duty
                 </option>
-
-
 
 
                 <option value="Unavailable">
@@ -203,36 +135,20 @@
                 </option>
 
 
-
-
             </select>
-
-
 
 
         </div>
 
 
-
-
     </div>
-
-
 
 
 </div>
 <!-- ================= END HEADER ================= -->
 
 
-
-
-
-
-
-
     <div class="main-content">
-
-
 
 
         <div class="metrics-grid">
@@ -245,8 +161,6 @@
             </div>
 
 
-
-
             <div class="metric-card">
                 <div class="metric-icon"><i class="fas fa-ambulance"></i></div>
                 <div class="metric-info">
@@ -254,8 +168,6 @@
                     <span class="metric-value"><span id="availableVehicles">2</span> <small>Available</small></span>
                 </div>
             </div>
-
-
 
 
             <div class="metric-card">
@@ -268,151 +180,91 @@
         </div>
 
 
-
-
 <!-- ================= ASSIGNED PERSONNEL ================= -->
-
-
 
 
 <div class="panel personnel-panel">
 
 
-
-
     <div class="panel-title">
-
-
 
 
         Assigned Personnel
 
 
-
-
     </div>
-
-
 
 
     <div class="personnel-grid">
 
 
-
-
         <!-- Driver -->
-
-
 
 
         <div class="personnel-card">
 
 
-
-
             <h4>
-
-
 
 
                 <i class="fas fa-id-card"></i>
 
 
-
-
                 Driver
 
 
-
-
             </h4>
-
-
 
 
             <p id="driverName">
 
 
-
-
                Loading...
-
-
 
 
             </p>
 
 
-
-
         </div>
-
-
 
 
         <!-- Responder -->
 
 
-
-
         <div class="personnel-card">
-
-
 
 
             <h4>
 
 
-
-
                 <i class="fas fa-shield-alt"></i>
-
-
 
 
                 Responder
 
 
-
-
             </h4>
-
-
 
 
             <ul id="assignedResponder">
 
 
-
-
               <li>Loading...</li>
-
-
 
 
             </ul>
 
 
-
-
         </div>
-
-
 
 
     </div>
 
 
-
-
 </div>
 
 
-
-
 <!-- ================= END PERSONNEL ================= -->
-
-
 
 
         <div class="layout">
@@ -422,8 +274,6 @@
                         Active Emergency Requests
                         <span id="count" class="count-badge">0</span>
                     </div>
-
-
 
 
                     <div class="queue-toolbar">
@@ -436,22 +286,16 @@
                         </div>
 
 
-
-
                         <label class="cross-barangay-toggle">
                             <input type="checkbox" id="crossBarangayToggle" checked>
-                            <span>Cross-barangay visibility</span>
+                            <span>Ipakita rin ang request mula sa ibang barangay</span>
                         </label>
                     </div>
 
 
-
-
                     <div id="incidentList"></div>
-                </div>
+                </div><h2><i class="fas fa-file-medical"></i>
             </div>
-
-
 
 
             <div class="response-panel-col">
@@ -464,10 +308,8 @@
                     </div>
 
 
-
-
                     <div id="incidentDetails">
-                        <p style="opacity: 0.7;">Select a request from the sidebar to begin coordination.</p>
+                        <p style="opacity: 0.7;">Pumili ng request sa listahan para makita ang detalye at makatugon.</p>
                     </div>
                 </div>
             </div>
@@ -475,27 +317,23 @@
     </div>
 
 
-
-
     <div id="completionModal" class="modal" aria-hidden="true">
         <div class="modal-content">
             <div class="modal-header">
                 <div>
-                    <h2><i class="fas fa-file-medical"></i> Service Completion Record</h2>
-                    <p>Record the assistance, outcome, observations, and follow-up notes.</p>
+                    <h2><i class="fas fa-file-medical"></i> Complete Service Record</h2>
+                    <p>Isulat kung ano ang naitulong mo, kumusta na ang pasyente, at kung may kailangan pang gawin pagkatapos.</p>
                 </div>
                 <button type="button" class="modal-close" onclick="closeCompletionModal()" aria-label="Close">&times;</button>
             </div>
 
 
-
-
             <form id="completionForm">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="assistanceProvided">Assistance Provided</label>
+                        <label for="assistanceProvided">Tulong na Naibigay</label>
                         <select id="assistanceProvided" class="form-control" required>
-                            <option value="">Select assistance</option>
+                            <option value="">Pumili ng tulong</option>
                             <option>First Aid</option>
                             <option>Vital Signs Assessment</option>
                             <option>Emergency Transport</option>
@@ -506,12 +344,10 @@
                     </div>
 
 
-
-
                     <div class="form-group">
-                        <label for="patientOutcome">Patient Outcome</label>
+                        <label for="patientOutcome">Lagay ng Pasyente</label>
                         <select id="patientOutcome" class="form-control" required>
-                            <option value="">Select outcome</option>
+                            <option value="">Pumili ng Kinalabasan</option>
                             <option>Stabilized on site</option>
                             <option>Transported to hospital</option>
                             <option>Referred to health center</option>
@@ -521,42 +357,32 @@
                     </div>
 
 
-
-
                     <div class="form-group full">
-                        <label for="clinicalObservations">Clinical Observations</label>
+                        <label for="clinicalObservations">Mga Obserbasyon</label>
                         <textarea id="clinicalObservations" class="form-control" rows="4" required
-                            placeholder="Symptoms, vital signs, interventions, and response to treatment..."></textarea>
+                            placeholder="Isulat ang mga sintomas, vital signs, at mga ginawa mong pangunang lunas..."></textarea>
                     </div>
-
-
 
 
                     <div class="form-group full">
-                        <label for="followUpQuote">Follow-up Notes / Patient Quote</label>
+                        <label for="followUpQuote">Habilin / Susunod na Gagawin</label>
                         <textarea id="followUpQuote" class="form-control" rows="3"
-                            placeholder="Follow-up instructions or relevant quoted statement..."></textarea>
+                            placeholder="Mga bilin sa pasyente o sa pamilya, kung meron..."></textarea>
                     </div>
 
 
-
-
                     <div class="form-group">
-                        <label for="receivingFacility">Receiving Facility</label>
+                        <label for="receivingFacility">Ospital o Health Center na Pinagdalhan</label>
                         <input id="receivingFacility" class="form-control" type="text"
-                            placeholder="Hospital or health center">
+                            placeholder="Pangalan ng ospital o health center kung saan dinala ang pasyente">
                     </div>
 
 
-
-
                     <div class="form-group">
-                        <label for="completionTimestamp">Completion Time</label>
+                        <label for="completionTimestamp">Oras ng Pagkakumpleto</label>
                         <input id="completionTimestamp" class="form-control" type="text" readonly>
                     </div>
                 </div>
-
-
 
 
                 <div class="modal-actions">
@@ -567,24 +393,20 @@
                 </div>
 
 
-
-
                 <p class="security-note">
                     <i class="fas fa-lock"></i>
-                    Records are submitted through the secured server API. Browser JavaScript does not connect directly to MySQL.
+                    Ligtas na naipapadala ang mga record at awtorisadong staff lang ang makakakita.
                 </p>
             </form>
         </div>
 </div>
 
 
-
-
     <div id="incidentPhotosModal" class="modal" aria-hidden="true">
         <div class="modal-content" style="max-width:560px;">
             <div class="modal-header">
                 <div>
-                    <h2><i class="fas fa-camera"></i> Mga Litrato mula sa Resident</h2>
+                    <h2><i class="fas fa-camera"></i> Mga Litrato ng Resident</h2>
                 </div>
                 <button type="button" class="modal-close" onclick="closeIncidentPhotosModal()" aria-label="Close">&times;</button>
             </div>
@@ -602,10 +424,11 @@
             <div class="modal-header">
                 <div>
                     <h2><i class="fas fa-truck-medical"></i> Accept & Deploy</h2>
-                    <p>Pumili ng sasakyan at ng makakasama mo sa team.</p>
+                    <p>Pumili ng sasakyan at kasama mo sa team.</p>
                 </div>
                 <button type="button" class="modal-close" onclick="closeDeployModal()" aria-label="Close">&times;</button>
             </div>
+
 
             <form id="deployForm">
                 <div class="form-grid">
@@ -614,7 +437,7 @@
                         <select id="deployVehicle" class="form-control"></select>
                     </div>
                     <div class="form-group full">
-                        <label for="deployPartner" id="deployPartnerLabel">Kasama</label>
+                        <label for="deployPartner" id="deployPartnerLabel">Makakasama</label>
                         <select id="deployPartner" class="form-control"></select>
                     </div>
                     <div class="form-group full">
@@ -622,6 +445,7 @@
                         <input id="deployEta" class="form-control" type="number" min="1" value="5" required>
                     </div>
                 </div>
+
 
                 <div class="modal-actions">
                     <button type="button" class="status-btn btn-secondary" onclick="closeDeployModal()">Cancel</button>
@@ -633,6 +457,7 @@
         </div>
     </div>
 
+
     <div id="dashboardToast" class="dashboard-toast"></div>
    <script type="module" src="/assets/responder.js"></script>
    <script>
@@ -642,8 +467,8 @@
    </script>
 
 
-
-
 </body>
 </html>
+
+
 

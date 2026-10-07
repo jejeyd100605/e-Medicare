@@ -21,68 +21,6 @@
             <h1>e-Medicare</h1>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <div class="user-nav">
                 <!-- 🔔 NOTIFICATION BELL -->
                 <div class="notif-container" onclick="toggleNotifMenu(event)">
@@ -91,131 +29,7 @@
                 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
            <div class="notif-overlay" id="notifOverlay" onclick="toggleNotifMenu(event)"></div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 <div class="notif-dropdown" id="notifDropdown">
@@ -232,68 +46,6 @@
 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 <div class="profile-container" onclick="toggleProfileMenu(event)">
                     <div class="header-avatar-circle">
                         <img id="userProfilePic" src="/assets/images/default-avatar.png" alt="Profile" class="profile-pic-dash">
@@ -301,68 +53,6 @@
                     <span id="userName" style="font-weight: bold; color: white;">Resident</span>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                 <div class="profile-dropdown" id="profileDropdown">
@@ -382,68 +72,6 @@
         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div class="container">
             <div class="welcome-section">
                 <div class="mini-profile-circle">
@@ -457,135 +85,11 @@
             </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <div class="card-grid">
                 <div class="card card-red" onclick="switchView('emergency-form'); getLocation();">
                     <span class="card-icon"><i class="fas fa-truck-medical"></i></span>
                     <h3>Emergency Request</h3>
                 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             <div class="card card-blue" onclick="switchView('transpo-form'); initTranspoForm();">
@@ -594,134 +98,10 @@
                 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 <div class="card card-green" onclick="switchView('guide-view'); openGuideList();">
                     <span class="card-icon"><i class="fas fa-square-plus"></i></span>
                     <h3>Emergency Guide</h3>
                 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                 <div class="card card-pink" style="position:relative;" onclick="openAdvisories();">
@@ -729,68 +109,6 @@
         <h3>Advisories</h3>
         <span id="advisoryCardBadge" style="display:none; position:absolute; top:10px; right:14px; width:12px; height:12px; background:#ff1744; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.4);"></span>
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             <div class="card card-yellow" onclick="switchView('medical-form'); initMedicalForm();">
@@ -803,133 +121,9 @@
             </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <div id="dynamic-content-panel-overlay" class="panel-overlay">
                 <div id="dynamic-content-panel" class="panel">
                     <button onclick="closeView()" style="position: absolute; top: 14px; right: 14px; background: #e53935; color: white; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; padding: 0; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">✕</button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                     <div id="emergency-form" class="resident-view" style="display: none;">
@@ -942,72 +136,10 @@
                         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         <div class="form-group" style="margin-bottom: 15px;">
                             <div id="emergencyMap"></div>
                             <small id="mapStatus" style="display:block; margin-top:5px; color:#888; font-size:0.75rem;">
-                                <i class="fas fa-satellite-dish"></i> Naghihintay ng GPS signal...
+                                <i class="fas fa-satellite-dish"></i> Hinahanap pa ang GPS signal...
                             </small>
                         </div>
                         <div class="form-group" style="margin-bottom: 15px; display:flex; justify-content:flex-end;">
@@ -1032,129 +164,21 @@
     <p id="othersNote" style="display:none; font-size:0.75rem; color:#c62828; font-weight:bold; margin-bottom:8px; background:#ffebee; padding:8px 10px; border-radius:8px; border:1px solid #ffcdd2;">
         <i class="fas fa-exclamation-circle"></i> "Others" selected. Please provide more details about your situation below.
     </p>
-    <textarea class="form-control" id="desc" rows="3" placeholder="Ilarawan dito ang kasalukuyang sitwasyon o insidente..."></textarea>
+    <textarea class="form-control" id="desc" rows="3" placeholder="Ano ang nangyari? Isulat dito ang sitwasyon o insidente..."></textarea>
 </div>
                         <button class="btn-submit" style="background: #800000; color: white;" onclick="submitRequest('Emergency')">SEND EMERGENCY ALERT</button>
                     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                     <div id="transpo-form" class="resident-view" style="display: none;">
                         <h3 style="color:#0091ea; display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
                             <i class="fas fa-car-side"></i> CENTRALIZED TRANSPO REQUEST
                         </h3>
-                        <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Centralized request system para sa medical transport ng Barangay.</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                        <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Dito ka puwedeng mag-request ng sasakyan ng Barangay papunta sa ospital o clinic.</p>
 
 
                        <div class="vehicle-selection" style="margin-bottom: 20px;">
-                        <p style="font-weight: bold; font-size: 0.8rem; margin-bottom: 10px; color: #333;">PILIIN ANG SASAKYAN:</p>
+                        <p style="font-weight: bold; font-size: 0.8rem; margin-bottom: 10px; color: #333;">PUMILI NG SASAKYAN:</p>
                         <div class="vehicle-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                             <div class="vehicle-card active" data-vehicle="PTV" onclick="selectVehicle(this, 'PTV')" style="border: 2px solid #0091ea; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; background: #f0f7ff; position: relative;">
                                 <span class="status-dot" id="dot-PTV" style="position: absolute; top: 5px; right: 5px; height: 8px; width: 8px; background: #00c853; border-radius: 50%;"></span>
@@ -1176,68 +200,6 @@
                     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         <div id="trackingStatus" style="background: #f0f7ff; border: 1px dashed #0091ea; padding: 15px; border-radius: 15px; margin-bottom: 20px; position: relative;">
                             <label style="font-size: 0.7rem; font-weight: bold; color: #0091ea; text-transform: uppercase;">Request Progress</label>
                             <div style="display: flex; justify-content: space-between; margin-top: 10px; position: relative;">
@@ -1255,135 +217,11 @@
                         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         <div class="availability-status" style="margin-bottom: 15px; padding: 10px; border-radius: 10px; background: #fff3e0; border: 1px solid #ffe0b2;">
                             <p id="availabilityMsg" style="font-size: 0.75em; color: #e65100; margin: 0;">
-                                <i class="fas fa-calendar-alt"></i> <strong>Availability:</strong> Pumili ng Date at Time para makita ang availability.
+                                <i class="fas fa-calendar-alt"></i> <strong>Availability:</strong> Pumili muna ng petsa at oras para makita kung may available na sasakyan.
                             </p>
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <div class="form-group" style="margin-bottom:12px;">
@@ -1391,72 +229,10 @@
                             <select class="form-control" id="patientCondition">
                                 <option value="Stable / Can Walk">Stable / Nakakalakad</option>
                                 <option value="Wheelchair Bound">Naka-wheelchair</option>
-                                <option value="Bedridden">Bedridden (Nakahiga)</option>
+                                <option value="Bedridden">Bedridden (Hindi Makabangon)</option>
                                 <option value="Stroke/Special Case">Stroke / Special Medical Case</option>
                             </select>
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <div style="display: flex; gap: 10px; margin-bottom:12px;">
@@ -1471,88 +247,10 @@
                         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         <div class="form-group" style="margin-bottom:12px;">
                             <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">PICKUP LOCATION</label>
                             <input type="text" class="form-control" id="pickupPoint" placeholder="House No./Blk-Lot, Street, Purok, Barangay">
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <div class="form-group" style="margin-bottom:12px;">
@@ -1562,90 +260,10 @@
                                 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         <div class="form-group" style="margin-bottom:12px;">
                             <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">DESTINATION</label>
-                            <input type="text" class="form-control" id="destination" placeholder="Hospital o Clinic na pupuntahan?">
+                            <input type="text" class="form-control" id="destination" placeholder="Saang ospital o clinic ang punta?">
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <div class="form-group" style="margin-bottom:15px;">
@@ -1654,136 +272,12 @@
                         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         <div id="transpoCooldownMsg" style="display:none; margin-bottom:12px; padding:10px; border-radius:10px; background:#ffebee; border:1px solid #ffcdd2; text-align:center; font-size:0.85rem; color:#c62828; font-weight:bold;"></div>
                         <button class="btn-submit" id="transpoSubmitBtn" style="background:#0091ea; color:white;" onclick="submitTranspo()">SUBMIT TRANSPO REQUEST</button>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                       <div class="hotline-footer" style="margin-top: 15px; text-align: center; padding: 12px; border-top: 1px dashed #eee;">
-     <p style="font-size: 0.7em; color: #666; margin-bottom: 8px;">Hindi available ang sasakyan? Tumawag agad dito:</p>
+     <p style="font-size: 0.7em; color: #666; margin-bottom: 8px;">Walang available na sasakyan? Tumawag agad sa:</p>
     <p id="hotlineNumbers" style="font-weight: bold; color: #800000; font-size: 0.9rem; margin: 0; line-height: 1.8; text-align: center; word-wrap: break-word;">
         <span style="white-space:nowrap;">0969-422-4180 <small style="font-weight:normal; color:#666;">(Punong Baranggay)</small></span> /
         <span style="white-space:nowrap;">0931-006-8118 <small style="font-weight:normal; color:#666;">(MHO-RHU)</small></span> /
@@ -1794,135 +288,11 @@
                     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     <div id="medical-form" class="resident-view" style="display: none;">
                         <h3 style="color:#ff9800; display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
                             <i class="fas fa-hand-holding-heart"></i> Medical Assistance Request
                         </h3>
-                        <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Pakisiguro na kumpleto ang mga sumusunod na dokumento:</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                        <p style="font-size: 0.85rem; margin-bottom: 15px; color: #666;">Siguraduhing kumpleto ang mga dokumentong ito:</p>
 
 
                         <div style="background: #fff5e6; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; color: #855e2d; border: 1px solid #ffe0b2;">
@@ -1936,133 +306,9 @@
                         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <p style="font-size:0.75rem; color:#c62828; font-weight:bold; margin:0 0 8px 0; background:#ffebee; padding:8px 10px; border-radius:8px; border:1px solid #ffcdd2;">
-            <i class="fas fa-exclamation-circle"></i> Paki-combine po ang LAHAT ng required documents (Medical Certificate, Barangay Indigency, Letter, Valid ID) sa I-ISANG PDF FILE lamang bago i-upload.
+            <i class="fas fa-exclamation-circle"></i>  Pagsamahin ang LAHAT ng dokumento (Medical Certificate, Barangay Indigency, Letter, at Valid ID) sa ISANG PDF file bago i-upload.
         </p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <div class="form-group" style="margin-bottom:12px;">
@@ -2075,68 +321,6 @@
                         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     <div class="form-group" style="margin-bottom:12px;">
         <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">UPLOAD DOCUMENTS (Image/PDF)</label>
         <input type="file" class="form-control" id="assistDocs" multiple>
@@ -2144,204 +328,22 @@
     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div id="medicalCooldownMsg" style="display:none; margin-bottom:12px; padding:10px; border-radius:10px; background:#ffebee; border:1px solid #ffcdd2; text-align:center; font-size:0.85rem; color:#c62828; font-weight:bold;"></div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <div class="form-group" style="margin-bottom:20px;">
         <label style="font-weight: bold; font-size: 0.8rem; display:block; margin-bottom:5px;">DETAILS / PURPOSE</label>
-        <textarea class="form-control" id="assistDetails" rows="3" placeholder="I-type dito kung para saan ang assistance..."></textarea>
+        <textarea class="form-control" id="assistDetails" rows="3" placeholder="Isulat dito kung para saan ang tulong na hinihingi mo..."></textarea>
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 <button class="btn-submit" style="background:#ff9800; color: #333;" onclick="submitMedicalRequest()">SUBMIT MEDICAL REQUEST</button>
                     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     <div class="resident-view" id="reverify-view" style="display:none;">
-                        <h3 style="color:#621a19;">Mag-verify Muli ng ID</h3>
-                        <p style="font-size:13px; color:#666; margin-bottom:12px;">Kumuha ng malinaw na selfie, tapos malinaw na larawan ng iyong Valid ID.</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                        <h3 style="color:#621a19;">I-verify Ulit ang ID Mo</h3>
+                        <p style="font-size:13px; color:#666; margin-bottom:12px;">Kumuha muna ng malinaw na selfie, tapos litrato ng Valid ID mo. Siguraduhing mababasa ang lahat ng detalye.</p>
 
 
                         <div id="reverifySelfieStep">
@@ -2351,22 +353,8 @@
                             </div>
                             <canvas id="reverifySelfieCanvas" style="display:none;"></canvas>
                             <p id="reverifySelfieStatus" style="font-size:12px; color:#666; text-align:center;"></p>
-                            <button class="primary-btn" style="width:100%;" onclick="captureReVerifySelfie()">Kunin ang Selfie</button>
+                            <button class="primary-btn" style="width:100%;" onclick="captureReVerifySelfie()">Kunan ang Selfie</button>
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <div id="reverifyIdStep" style="display:none;">
@@ -2376,145 +364,25 @@
                             </div>
                             <canvas id="reverifyIdCanvas" style="display:none;"></canvas>
                             <p id="reverifyIdStatus" style="font-size:12px; color:#666; text-align:center;"></p>
-                            <button class="primary-btn" style="width:100%;" onclick="captureReVerifyId()">Kunin ang ID</button>
+                            <button class="primary-btn" style="width:100%;" onclick="captureReVerifyId()">Kunan ng Litrato ang ID</button>
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <div id="reverifyConfirmStep" style="display:none; text-align:center;">
                             <p style="color:#2E7D32; font-weight:600;">✅ Kumpleto na ang dalawang litrato.</p>
                             <button class="primary-btn" style="width:100%; background:#2E7D32;" onclick="submitReVerification()">I-submit para sa Review</button>
-                            <p class="text-link" onclick="retakeReVerification()">Kunin ulit</p>
+                            <p class="text-link" onclick="retakeReVerification()">Ulitin ang pagkuha</p>
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                         <p class="text-link" onclick="closeView()">Kanselahin</p>
                     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     <div id="guide-view" class="resident-view" style="display: none;">
                         <h3 style="color:#2E7D32;"><i class="fas fa-book-medical"></i> First Aid Guides</h3>
                         <div id="guideList" style="margin-top: 15px; max-height: 400px; overflow-y: auto;"></div>
                     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                     <div id="advisories-view" class="resident-view" style="display: none;">
@@ -2526,68 +394,6 @@
                     </div>
                 </div>
             </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             <!-- 1st: LIVE RESOURCE STATUS (ito na ngayon yung unang lalabas) -->
@@ -2605,72 +411,12 @@
     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div id="ambulanceList" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
         <div style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">
             <i class="fas fa-spinner fa-spin"></i> Loading fleet status...
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 <!-- 2nd: MY RECENT REQUESTS — pinaikli height at scrollable na -->
@@ -2698,104 +444,12 @@
 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div class="modal" id="firstAidModal">
             <div class="modal-content">
                 <div id="firstAidContent"></div>
                 <button class="btn-submit" style="background: #2E7D32; color: white; margin-top: 20px;" onclick="toggleModal('firstAidModal', false)">I UNDERSTAND</button>
             </div>
         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         <div class="modal" id="changePasswordModal">
@@ -2805,15 +459,15 @@
                 </h3>
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 5px;">CURRENT PASSWORD</label>
-                    <input type="password" id="currentPassword" class="form-control" placeholder="I-type ang lumang password">
+                    <input type="password" id="currentPassword" class="form-control" placeholder="Ilagay ang kasalukuyang password">
                 </div>
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 5px;">NEW PASSWORD</label>
-                    <input type="password" id="newPassword" class="form-control" placeholder="I-type ang bagong password">
+                    <input type="password" id="newPassword" class="form-control" placeholder="Ilagay ang bagong password">
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 5px;">CONFIRM NEW PASSWORD</label>
-                    <input type="password" id="confirmPassword" class="form-control" placeholder="Ulitin ang bagong password">
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="I-type ulit  ang bagong password">
                 </div>
             <button class="btn-submit" style="background: #800000; color: white;" onclick="submitChangePassword()">UPDATE PASSWORD</button>
                 <button class="close-modal" style="background: transparent; border: none; color: #666; width: 100%; margin-top: 12px; cursor: pointer;" onclick="toggleModal('changePasswordModal', false)">CANCEL</button>
@@ -2821,103 +475,11 @@
         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div class="modal" id="cameraModal">
     <div class="modal-content" style="max-width:420px; padding:1.25rem;">
         <h3 style="color:#800000; display:flex; align-items:center; gap:10px; margin-bottom:15px;">
             <i class="fas fa-camera"></i> Capture Photo Evidence
         </h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         <!-- LIVE CAMERA VIEW -->
@@ -2933,40 +495,10 @@
         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <!-- PREVIEW — dito nila mave-validate kung malinaw bago tanggapin -->
         <div id="cameraPreviewView" style="display:none;">
             <p style="font-size:0.75rem; color:#666; font-weight:bold; margin-bottom:6px;">
-                I-CHECK KUNG MALINAW ANG LITRATO:
+                TINGNAN KUNG MALINAW ANG LITRATO:
             </p>
             <div style="position:relative; width:100%; border-radius:12px; overflow:hidden; background:#000;">
                 <img id="capturedPreviewImg" style="width:100%; display:block; max-height:360px; object-fit:cover;">
@@ -2982,36 +514,6 @@
         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <!-- THUMBNAILS ng mga na-accept na litrato -->
         <div id="capturedThumbsWrap" style="display:none; margin-top:14px; padding-top:14px; border-top:1px solid #eee;">
             <p style="font-size:0.7rem; font-weight:bold; color:#333; margin-bottom:8px;">
@@ -3021,136 +523,14 @@
         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <button class="btn-submit" id="donePhotosBtn" style="display:none; background:#800000; color:white; margin-top:10px;" onclick="finishEmergencyCamera()">
     <i class="fas fa-check-double"></i> Done (<span id="doneBtnCount">0</span>)
 </button>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <button class="close-modal" style="background: transparent; border: none; color: #666; width: 100%; margin-top: 10px; cursor: pointer;" onclick="closeCameraModal()">CANCEL</button>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         <div class="modal" id="trackingModal">
@@ -3164,68 +544,6 @@
         </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       <button id="sosFloatingBtn" class="floating-emergency-btn">
     <span class="sos-progress" id="sosProgressFill"></span>
     <i class="fas fa-phone-alt"></i>
@@ -3233,134 +551,10 @@
       </button>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div id="instantAlertToast" style="display:none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #d32f2f; color: white; padding: 20px; border-radius: 15px; z-index: 10000; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; border: 2px solid white;">
             🚨 EMERGENCY ALERT SENT! <br>
             <small style="font-weight: normal;">Officials have been notified. Stay calm.</small>
         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3372,30 +566,6 @@
         </script>
     </body>
     </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
