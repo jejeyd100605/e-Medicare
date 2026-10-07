@@ -539,8 +539,8 @@ function initRoleBadge(profile){
 
 
     const open = incidents.filter(i => i.status === 'Pending').length;
-    const assigned = incidents.filter(i => i.status === 'Assigned').length;
-    const resolved = incidents.filter(i => i.status === 'Resolved').length;
+       const assigned = incidents.filter(i => ['Assigned', 'Accepted', 'In Transit', 'Arrived'].includes(i.status)).length;
+    const resolved = incidents.filter(i => ['Completed', 'Resolved'].includes(i.status)).length;
 
 
 
@@ -612,7 +612,7 @@ function initRoleBadge(profile){
 
 
     wrap.innerHTML = open.map(i => {
-        const callerName = i.sender ? i.sender.name : 'Unknown Resident';
+        const callerName = i.sender ? i.sender.name : (i.patient_name || 'Unknown Resident');
         const mapLink = (i.lat && i.lng)
             ? `<a href="https://www.google.com/maps?q=${i.lat},${i.lng}" target="_blank" onclick="event.stopPropagation();" style="color:#00b0ff;">View on Map</a>`
             : 'No GPS data';
@@ -1265,7 +1265,7 @@ async function handleQuickDispatch(e){
 
 
 
-        const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
+        const callerName = inc.sender ? inc.sender.name : (inc.patient_name || 'Unknown Resident');
         const contact = inc.sender && inc.sender.contact ? inc.sender.contact : '';
         const infoBox = document.getElementById('assignIncidentInfo');
         if(infoBox){
@@ -3044,7 +3044,7 @@ function showReservationToast(r, stage, diffMin, time, vehicle, driver){
             ${isNow ? '' : '<br>Sa loob ng ' + diffMin + ' minuto'}
         </div>
         <div style="display:flex; gap:8px;">
-            <button class="primary-btn" style="background:${isNow ? '#ff4d4d' : '#ffd700'};color:#111;flex:1;font-size:.78em;" onclick="switchTab('docs'); this.closest('div[style*=\\'position:fixed\\'] > div, div[style*=\\'width:300px\\']').remove();">Tingnan</button>            <button class="primary-btn" style="background:${isNow ? '#ff4d4d' : '#ffd700'};color:#111;flex:1;font-size:.78em;" onclick="openTranspoDispatch('${r.id}'); this.parentElement.parentElement.remove();">🚀 Dispatch Now</button>
+                     <button class="primary-btn" style="background:${isNow ? '#ff4d4d' : '#ffd700'};color:#111;flex:1;font-size:.78em;" onclick="openTranspoDispatch('${r.id}'); this.parentElement.parentElement.remove();">🚀 Dispatch Now</button>
             <button class="primary-btn" style="background:#333;color:#eee;font-size:.78em;padding:6px 10px;" onclick="this.parentElement.parentElement.remove()">Dismiss</button>
         </div>
     `;

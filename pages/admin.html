@@ -382,15 +382,17 @@
 
 
                     <label style="font-size: 0.8em;">Assign Vehicle / Unit:</label>
-<select id="transpoVehicleSelect" class="form-control" required>
+<select id="transpoVehicleSelect" class="form-control" required onchange="checkTranspoConflict()">
     <option value="" disabled selected>Select available vehicle</option>
 </select>
 
 
 <label style="font-size: 0.8em;">Assign Driver:</label>
-<select id="transpoDriverSelect" class="form-control">
+<select id="transpoDriverSelect" class="form-control" onchange="checkTranspoConflict()">
     <option value="">— None —</option>
 </select>
+
+<div id="transpoConflictWarning" style="display:none; background:rgba(255,82,82,0.12); border:1px solid var(--red); color:var(--red); padding:10px; border-radius:8px; font-size:0.8em; margin:8px 0;"></div>
 
 
                     <label style="font-size: 0.8em;">Admin Notes:</label>
@@ -412,7 +414,7 @@
         <div class="column" style="flex: 1;">
             <div class="panel" style="border-top: 5px solid var(--orange);">
                 <div class="panel-title" style="color:var(--orange);">💰 Medical Assistance Fund Pool</div>
-                <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Dito mapupunta ang mga request na aprubado na pero kulang pa ang pondo.Maaaring dagdagan ang pondo para ma-release ang mga ito.<p>
+                <p style="font-size:0.75em; color:var(--text-muted); margin-bottom:10px;">Dito mapupunta ang mga request na aprubado na pero kulang pa ang pondo.Maaaring dagdagan ang pondo para ma-release ang mga ito.</p>
                 <div id="queueBudgetBox" class="budget-box"></div>
                 <p style="font-size:0.68em; color:var(--text-dim);">Kusang inaayos ang pila base sa kung gaano ka-urgent, eligibility, kung kasya sa budget, at tagal ng paghihintay. Hindi ito manual na inaayos.</p>
             </div>

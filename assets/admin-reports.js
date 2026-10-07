@@ -33,7 +33,7 @@ function findDispatchTime(incident){
 
 function renderResponseSummary(){
   const rows = incidentsCache   // BAGO — totoong Supabase data
-    .filter(i => i.assigned_at)
+    .filt    .filter(i => i.assigned_at && i.type !== 'Call-in')
     .map(i => ({
       ...i,
       minutes: Math.round((new Date(i.assigned_at) - new Date(i.created_at)) / 60000)
