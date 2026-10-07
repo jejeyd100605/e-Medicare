@@ -4,36 +4,6 @@
     <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>e-Medicare Login</title>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <link rel="stylesheet" href="../css/login.css">
     <link rel="manifest" href="/manifest.json">
     <style>
@@ -46,53 +16,9 @@
 <body>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div class="loading-screen" id="loadingScreen">
         <div class="logo-inner-circle"><img src="../assets/LOGO.png" alt="e-Medicare Logo"></div> <h1 class="brand-name">e-Medicare</h1> <p class="tagline">A Smart Medical Assistance Request System</p>
         <div class="yellow-line"></div> <div id="timer" class="timer-text">3</div> </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <div class="auth-card hidden" id="mpinView">
@@ -101,14 +27,6 @@
         <button class="btn-block" onclick="verifyMpin()">Unlock Account</button> <div style="margin-top:10px;">
             <span class="text-link" onclick="forgotMpin()" style="color:#d9534f; margin-right:15px;">Forgot MPIN?</span> <span class="text-link" onclick="showForm('login')">Switch Account</span> </div>
     </div>
-
-
-
-
-
-
-
-
 
 
     <div id="resetMpinOverlay" class="auth-card hidden" style="position: absolute; z-index: 2050;">
@@ -145,18 +63,6 @@
 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     <div class="auth-card hidden" id="formView" style="position:relative;">
         <div id="loginForm">
     <h2 style="color:#621a19; margin-bottom:20px;">Login</h2>
@@ -166,55 +72,11 @@
 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div id="signupForm" class="hidden">
             <h2 style="color:#621a19; margin-bottom:20px;">Sign Up</h2>
-            <form onsubmit="handleSignup(event)"> <input type="text" class="input-field" id="regFirstName" placeholder="First Name" required>
+            <form onsubmit="syncAddress(); handleSignup(event)"><input type="text" class="input-field" id="regFirstName" placeholder="First Name" required>
                 <input type="text" class="input-field" id="regMiddleName" placeholder="Middle Name (Optional)">
                 <input type="text" class="input-field" id="regLastName" placeholder="Last Name" required>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                                 <input type="email" class="input-field" id="regEmail" placeholder="Email Address" required>
@@ -223,9 +85,13 @@
                 <input type="tel" class="input-field" id="regContactNo" placeholder="Contact No." required>
 
 
-                <input type="text" class="input-field" id="regAddress" placeholder="Address" required>
-
-
+                <div class="address-title">Address</div>
+<input type="text" class="input-field" id="regHouseNo" placeholder="House No./Blk-Lot (If Applicable)" required>
+<input type="text" class="input-field" id="regStreet" placeholder="Street (If Applicable)">
+<input type="text" class="input-field" id="regPurok" placeholder="Purok" required>
+<input type="text" class="input-field" id="regBarangay" placeholder="Barangay" required>
+<input type="text" class="input-field" id="regMunicipality" placeholder="Municipality" required>
+<input type="hidden" id="regAddress">
                 <input type="text" class="input-field" id="regRoleDisplay" value="Resident" disabled style="background:#f0f0f0; color:#666;">
 
 
@@ -248,14 +114,6 @@
     </div>
 
 
-
-
-
-
-
-
-
-
     <div id="otpOverlay" class="auth-card hidden" style="position: absolute; z-index: 2100;">
         <h2 style="color:#621a19;">OTP Verification</h2> <p style="color:#666; font-size:14px; margin: 10px 0 20px;">Enter the 6-digit code sent to your email</p>
         <div class="pin-container">
@@ -269,26 +127,20 @@
         <button class="btn-block" onclick="verifyOtp()">Verify OTP</button> <p class="text-link" onclick="showForm('login')">Cancel</p> </div>
 
 
-
-
-
-
-
-
         <div id="resetPasswordOverlay" class="auth-card hidden" style="position: absolute; z-index: 2050;">
     <h2 style="color:#621a19;">Set New Password</h2>
     <p style="color:#666; font-size:14px; margin: 10px 0 20px;">Ilagay ang iyong bagong password</p>
 
 
     <div style="position:relative; margin-bottom:15px;">
-       <input type="password" class="input-field" id="newPassword" placeholder="New Password" required style="margin-bottom:0; padding-right:40px;" oninput="checkPasswordMatch()">
+        <input type="password" class="input-field" id="newPassword" placeholder="New Password" required style="margin-bottom:0; padding-right:40px;">
         <i class="fas fa-eye" id="toggleNewPass" onclick="togglePasswordVisibility('newPassword', 'toggleNewPass')"
            style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
     </div>
 
 
     <div style="position:relative; margin-bottom:15px;">
-        <input type="password" class="input-field" id="confirmNewPassword" placeholder="Re-type New Password" required style="margin-bottom:0; padding-right:40px;" oninput="checkPasswordMatch()">
+        <input type="password" class="input-field" id="confirmNewPassword" placeholder="Re-type New Password" required style="margin-bottom:0; padding-right:40px;">
         <i class="fas fa-eye" id="toggleConfirmNewPass" onclick="togglePasswordVisibility('confirmNewPassword', 'toggleConfirmNewPass')"
            style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#999; cursor:pointer;"></i>
     </div>
@@ -296,12 +148,6 @@
 
     <button class="btn-block" onclick="submitNewPassword()">Update Password</button>
 </div>
-
-
-
-
-
-
 
 
     <div id="facialCaptureOverlay" class="auth-card hidden" style="position: absolute; z-index: 2150;">
@@ -315,72 +161,30 @@
     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div id="idConsentOverlay" class="auth-card hidden" style="position: absolute; z-index: 2155; text-align:left;">
         <h2 style="color:#621a19; text-align:center;">Data Privacy Notice</h2>
         <p style="color:#666; font-size:13px; margin:15px 0; line-height:1.6; max-height:180px; overflow-y:auto; padding-right:5px;">
-            Bago magpatuloy sa pag-scan ng iyong Valid ID, kinakailangan ang iyong pahintulot para sa pagkolekta at pagproseso ng iyong personal na impormasyon, alinsunod sa <strong>Data Privacy Act of 2012 (RA 10173)</strong>.
-            <br><br>
-            Ang larawan ng iyong ID ay gagamitin lamang upang:
-            <br>• Kumpirmahin ang tugma ng iyong ipinasok na pangalan sa iyong opisyal na ID
-            <br>• Patunayan ang iyong pagkakakilanlan bilang residente ng Barangay
-            <br>• Mapabuti ang seguridad ng iyong account sa eMediCare
-            <br><br>
-            Ang iyong larawan ay iimbak nang ligtas at hindi ibabahagi sa ibang partido maliban sa mga awtorisadong tauhan ng Barangay para sa layunin ng emergency medical response.
-        </p>
+    Bago ka magpatuloy sa pag-scan ng Valid ID mo, kailangan namin ang pahintulot mo para kunin at gamitin ang personal mong impormasyon, ayon sa <strong>Data Privacy Act of 2012 (RA 10173)</strong>.
+    <br><br>
+    Gagamitin lang namin ang larawan ng ID mo para:
+    <br>• Tiyaking tugma ang pangalang inilagay mo sa pangalan sa ID mo
+    <br>• Mapatunayang residente ka ng Barangay
+    <br>• Mas maprotektahan ang account mo sa e-Medicare
+    <br><br>
+    Ligtas naming itatago ang larawan mo at hindi namin ito ibabahagi kaninuman, maliban sa mga awtorisadong tauhan ng Barangay para sa emergency medical response.
+</p>
         <label style="display:flex; align-items:flex-start; gap:8px; font-size:13px; color:#333; margin-bottom:20px; cursor:pointer;">
             <input type="checkbox" id="consentCheckbox" style="margin-top:3px;" onchange="toggleConsentButton()">
-            <span>Nabasa at naiintindihan ko ang nabanggit, at pumapayag ako sa pagkolekta at pagproseso ng aking personal na impormasyon.</span>
+            <span>Nabasa at naintindihan ko ito, at pumapayag akong kunin at gamitin ang personal kong impormasyon.</span>
         </label>
         <button class="btn-block" id="consentProceedBtn" disabled style="opacity:0.5; cursor:not-allowed;" onclick="proceedToIdCapture()">I Agree, Continue</button>
         <p class="text-link" onclick="showForm('login')">Cancel</p>
     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <div id="idCaptureOverlay" class="auth-card hidden" style="position: absolute; z-index: 2160;">
     <h2 style="color:#621a19;">ID Verification</h2>
     <p id="idCameraStatus" style="color:#666; font-size:14px; margin-bottom:15px;">Position your ID inside the frame</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <div style="width: 280px; height: 180px; margin: 0 auto 15px; border-radius: 12px; overflow: hidden; border: 3px solid #621a19;">
@@ -389,55 +193,13 @@
     <canvas id="idPhotoCanvas" style="display: none;"></canvas>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <button class="btn-block" id="captureIdBtn" onclick="captureIdPhoto()">Capture ID</button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <div id="idResultBox" class="hidden" style="margin-top:15px; padding:12px; border-radius:10px; font-size:14px; text-align:left;">
         <p id="idMatchStatus" style="font-weight:600; margin-bottom:8px;"></p>
         <p id="idExtractedText" style="color:#666; font-size:12px; word-break:break-word;"></p>
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <div id="idActionButtons" class="hidden" style="margin-top:10px; display:flex; gap:10px;">
@@ -447,37 +209,9 @@
 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div id="setMpinOverlay" class="auth-card hidden" style="position: absolute; z-index: 2000;">
     <h2 style="color:#621a19;">Setup MPIN</h2>
     <p style="color:#666; font-size:14px; margin-bottom:15px;">Create your security PIN</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <div class="pin-container">
@@ -488,41 +222,22 @@
     </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <button type="button" class="btn-block" onclick="saveAccount()">Complete registration</button>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="../assets/login.js"></script>
+<script>
+    function syncAddress() {
+        const full = ['regHouseNo', 'regStreet', 'regPurok', 'regBarangay', 'regMunicipality']
+            .map(id => (document.getElementById(id)?.value || '').trim())
+            .filter(Boolean)
+            .join(', ');
+        document.getElementById('regAddress').value = full;
+    }
+</script>
 <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').catch(err => console.warn('SW registration failed:', err));
