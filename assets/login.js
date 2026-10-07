@@ -688,50 +688,6 @@ async function saveAccount() {
 // ==========================================================================
 // LOGIN — Supabase Auth password sign-in
 // ==========================================================================
-async function handleLogin(e) {
-    e.preventDefault();
-
-
-
-    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-    const password = document.getElementById("loginPass").value;
-
-
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-
-
-    if (error) {
-        alert("Login failed: " + error.message);
-        return;
-    }
-
-
-
-    const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
-
-
-
-    if (profileError || !profile) {
-        alert("Hindi makuha ang account profile mo. Makipag-ugnayan sa admin.");
-        await supabase.auth.signOut();
-        return;
-    }
-
-
-
-    if (profile.active === false) {
-        alert("Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.");
-        await supabase.auth.signOut();
-        return;
-    }
-
-
 
 async function handleLogin(e) {
     e.preventDefault();
@@ -1064,5 +1020,3 @@ function executeSecureRouting(role) {
 window.location.href = routes[role.toLowerCase()] || "/pages/resident.html";
 }
 
-
-}
