@@ -3,11 +3,9 @@
    Themes: dark (default) · light · device (follows system)
    ============================================================ */
 
-
 /* ---------------- DARK THEME (default) ---------------- */
 :root{
   color-scheme: dark;
-
 
   --bg-app:      #14161a;
   --bg-header:   #1c1f24;
@@ -17,11 +15,9 @@
   --border:      #33373f;
   --border-soft: #2a2d33;
 
-
   --text-main:   #eef0f2;
   --text-muted:  #9aa0aa;
   --text-dim:    #6c727c;
-
 
   --gold:        #ffd700;
   --blue:        #00b0ff;
@@ -32,59 +28,49 @@
   --red:         #ff5252;
   --cyan:        #00e5ff;
 
-
   --hover-tint:         rgba(255,255,255,0.03);
   --btn-secondary:      #4a4f58;
   --btn-secondary-text: #ffffff;
-
 
   --radius:      10px;
   --radius-sm:   6px;
   --shadow:      0 4px 14px rgba(0,0,0,0.35);
 }
 
-
-/* ---------------- LIGHT THEME ---------------- */
+/* ---------------- LIGHT THEME (malinis, malambot, madaling basahin) ---------------- */
 :root[data-theme="light"]{
   color-scheme: light;
 
+  --bg-app:      #e8ecf1;
+  --bg-header:   #fafbfc;
+  --bg-panel:    #fafbfc;
+  --bg-card:     #f1f3f7;
+  --bg-input:    #ffffff;
+  --border:      #d3d9e1;
+  --border-soft: #e2e6ec;
 
-  --bg-app:      #f2f4f7;
-  --bg-header:   #ffffff;
-  --bg-panel:    #ffffff;
-  --bg-card:     #f5f6f8;
-  --bg-input:    #eceff3;
-  --border:      #d3d8df;
-  --border-soft: #e4e7ec;
+  --text-main:   #1f2430;
+  --text-muted:  #556070;
+  --text-dim:    #7a8493;
 
+  /* accent colors: sapat ang dilim para mabasa sa maliwanag na background */
+  --gold:        #8a6500;
+  --blue:        #1a6fb0;
+  --green:       #1e7d46;
+  --orange:      #b5600a;
+  --yellow:      #8a6a00;
+  --purple:      #8a3aab;
+  --red:         #c53d3d;
+  --cyan:        #1b7f8c;
 
-  --text-main:   #1b1e23;
-  --text-muted:  #535a65;
-  --text-dim:    #6b7280;
+  --hover-tint:         rgba(20,30,50,0.045);
+  --btn-secondary:      #dde2e9;
+  --btn-secondary-text: #1f2430;
 
-
-  /* mas madidilim ang accent colors para mabasa sa puting background */
-  --gold:        #9c7300;
-  --blue:        #0277bd;
-  --green:       #00873a;
-  --orange:      #c76400;
-  --yellow:      #8f6f00;
-  --purple:      #a01cc0;
-  --red:         #d32f2f;
-  --cyan:        #00838f;
-
-
-  --hover-tint:         rgba(0,0,0,0.04);
-  --btn-secondary:      #e2e5ea;
-  --btn-secondary-text: #1b1e23;
-
-
-  --shadow:      0 2px 10px rgba(16,24,40,0.08);
+  --shadow:      0 1px 3px rgba(20,30,50,0.08), 0 1px 2px rgba(20,30,50,0.04);
 }
 
-
 *{ box-sizing: border-box; }
-
 
 body{
   margin:0;
@@ -93,7 +79,6 @@ body{
   color: var(--text-main);
   font-size: 16px;
 }
-
 
 /* ---------------- HEADER ---------------- */
 .header{
@@ -132,7 +117,6 @@ body{
 }
 .logout-btn:hover{ border-color: var(--red); color: var(--red); }
 
-
 /* ---------------- THEME SWITCH (Light / Dark / Device) ---------------- */
 .theme-switch{
   display:inline-flex; gap:2px; padding:3px;
@@ -162,7 +146,6 @@ body{
 .theme-switch button.active .ic-main{ display:none; }
 .theme-switch button:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
 
-
 /* ---------------- LAYOUT ---------------- */
 .main-content{
     padding:4px 18px 20px;
@@ -174,7 +157,6 @@ body{
 }
 .welcome-section h2{ margin:0; font-size: 1.3em; }
 .welcome-section p{ margin:2px 0 0; color: var(--text-muted); font-size: .85em; }
-
 
 .tab-navigation{
   display:flex; flex-wrap: wrap; gap: 6px;
@@ -191,7 +173,6 @@ body{
 .tab-btn:hover{ color: var(--text-main); background: var(--hover-tint); }
 .tab-btn.active{ color: var(--gold); border-bottom-color: var(--gold); font-weight:600; }
 
-
 /* BAGO — red dot indicator kapag may bagong record sa tab */
 .tab-dot{
   position: absolute;
@@ -207,7 +188,6 @@ body{
 .layout{ display:flex; gap: 20px; align-items:flex-start; flex-wrap: wrap; }
 .column{ flex:1; min-width: 320px; display:flex; flex-direction:column; gap: 18px; }
 
-
 .panel{
     background:var(--bg-panel);
     border:1px solid var(--border);
@@ -219,18 +199,15 @@ body{
 .panel-title{ font-size: .95em; font-weight:600; margin: 0 0 10px; }
 .panel-header .panel-title{ margin-bottom:0; }
 
-
 .badge{
   background: var(--bg-card); border: 1px solid var(--border);
   color: var(--text-muted); font-size: .72em; padding: 3px 10px; border-radius: 20px;
 }
 
-
 .empty-state{
   color: var(--text-dim); font-size: .82em; text-align:center;
   padding: 26px 10px; border: 1px dashed var(--border-soft); border-radius: var(--radius-sm);
 }
-
 
 /* ---------------- SUMMARY CARDS ---------------- */
 .summary-grid{
@@ -239,7 +216,6 @@ body{
     gap:10px;
     margin-bottom:14px;
 }
-
 
 .summary-card{
     background:var(--bg-panel);
@@ -250,18 +226,15 @@ body{
     min-height:82px;
 }
 
-
 .summary-label{
     font-size:.70em;
     margin-bottom:4px;
 }
 
-
 .summary-value{
     font-size:1.45em;
     line-height:1;
 }
-
 
 .summary-tag{
     margin-top:5px;
@@ -271,7 +244,6 @@ body{
 .tag-warning{ background: rgba(255,145,0,0.15); color: var(--orange); }
 .tag-ok{ background: rgba(0,200,83,0.15); color: var(--green); }
 .tag-info{ background: rgba(0,176,255,0.15); color: var(--blue); }
-
 
 /* ---------------- FORMS ---------------- */
 label{ display:block; margin: 10px 0 4px; color: var(--text-muted); }
@@ -284,7 +256,6 @@ label{ display:block; margin: 10px 0 4px; color: var(--text-muted); }
 .form-control[readonly]{ opacity:.7; cursor:not-allowed; }
 textarea.form-control{ resize: vertical; }
 
-
 .primary-btn{
   border:none; border-radius: var(--radius-sm); padding: 10px 16px;
   color:#111; font-weight:600; cursor:pointer; font-size:.85em;
@@ -293,13 +264,11 @@ textarea.form-control{ resize: vertical; }
 .primary-btn:hover{ filter: brightness(1.08); }
 .primary-btn:disabled{ opacity:.45; cursor:not-allowed; filter:none; }
 
-
 /* BAGO — Cancel / Close buttons na sumusunod sa theme */
 .btn-secondary{
   background: var(--btn-secondary);
   color: var(--btn-secondary-text);
 }
-
 
 /* ---------------- TABLES ---------------- */
 .fleet-table{ border-collapse: collapse; }
@@ -309,7 +278,6 @@ textarea.form-control{ resize: vertical; }
 }
 .fleet-table td{ padding: 10px; border-bottom: 1px solid var(--border-soft); font-size:.85em; vertical-align: middle; }
 .fleet-table tr:hover td{ background: var(--hover-tint); }
-
 
 /* ---------------- STATUS PILLS (real-time availability) ---------------- */
 .status-pill{
@@ -324,7 +292,6 @@ textarea.form-control{ resize: vertical; }
 .status-Unavailable{ background: rgba(255,82,82,0.14); color: var(--red); }
 .status-Unavailable .status-dot{ background: var(--red); }
 
-
 .status-Pending{ background: rgba(255,215,0,0.14); color: var(--gold); }
 .status-UnderReview{ background: rgba(0,176,255,0.14); color: var(--blue); }
 .status-Queued{ background: rgba(255,145,0,0.14); color: var(--orange); }
@@ -332,12 +299,10 @@ textarea.form-control{ resize: vertical; }
 .status-Disbursed{ background: rgba(0,200,83,0.22); color: var(--green); }
 .status-Rejected{ background: rgba(255,82,82,0.14); color: var(--red); }
 
-
 .status-Assigned{ background: rgba(0,176,255,0.14); color: var(--blue); }
 .status-Assigned .status-dot{ background: var(--blue); box-shadow: 0 0 6px var(--blue); }
 .status-WaitingList{ background: rgba(255,215,0,0.14); color: var(--gold); }
 .status-Resolved{ background: rgba(0,200,83,0.14); color: var(--green); }
-
 
 .pulse{
   animation: pulseAnim 1.8s infinite;
@@ -346,20 +311,17 @@ textarea.form-control{ resize: vertical; }
   0%{ opacity:1; } 50%{ opacity:.35; } 100%{ opacity:1; }
 }
 
-
 /* ---------------- SOS ALERT TOAST ---------------- */
 @keyframes sosPulse {
   0%, 100% { box-shadow: 0 6px 20px rgba(255,0,0,.3); }
   50% { box-shadow: 0 6px 30px rgba(255,0,0,.7); }
 }
 
-
 .mini-select{
   background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border);
   border-radius: var(--radius-sm); font-size: .78em; padding: 5px 7px;
 }
 .timestamp{ color: var(--text-dim); font-size: .72em; }
-
 
 /* ---------------- QUICK FLEET STATUS (dashboard) ---------------- */
 .fleet-quick-row{
@@ -370,7 +332,6 @@ textarea.form-control{ resize: vertical; }
 .fleet-quick-name{ font-size:.85em; font-weight:600; }
 .fleet-quick-type{ font-size:.72em; color: var(--text-dim); }
 
-
 .fleet-summary-strip{
   display:flex; gap: 8px; margin-bottom: 10px;
 }
@@ -380,7 +341,6 @@ textarea.form-control{ resize: vertical; }
 }
 .fleet-summary-chip .n{ font-size:1.2em; font-weight:700; }
 .fleet-summary-chip .l{ font-size:.65em; color: var(--text-dim); }
-
 
 /* ---------------- REPORT / REQUEST CARDS ---------------- */
 .report-card, .request-card{
@@ -393,7 +353,6 @@ textarea.form-control{ resize: vertical; }
 .report-card-name, .request-card-name{ font-weight:600; font-size:.9em; }
 .report-card-detail, .request-card-detail{ color: var(--text-muted); font-size:.78em; margin-top:4px; }
 .request-card-meta{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
-
 
 /* ---------------- STATUS STEPPER (request pipeline) ---------------- */
 .status-stepper{ display:flex; align-items:center; margin: 12px 0 16px; }
@@ -416,7 +375,6 @@ textarea.form-control{ resize: vertical; }
 .step.rejected .dot{ background: var(--red); border-color: var(--red); color:#fff; }
 .step.rejected .lbl{ color: var(--red); }
 
-
 /* ---------------- BUDGET WIDGET ---------------- */
 .budget-box{
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -430,7 +388,6 @@ textarea.form-control{ resize: vertical; }
 .budget-actions{ display:flex; gap:8px; margin-top: 8px; }
 .budget-actions input{ flex:1; }
 .budget-actions button{ white-space:nowrap; }
-
 
 /* ---------------- PRIORITY QUEUE ---------------- */
 .queue-card{
@@ -448,7 +405,6 @@ textarea.form-control{ resize: vertical; }
 .queue-actions{ display:flex; gap:6px; margin-top:10px; }
 .queue-actions button{ flex:1; font-size:.72em; padding: 6px 8px; }
 
-
 /* ---------------- ACTIVITY LOG ---------------- */
 .activity-filters{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom: 12px; }
 .activity-filters button{
@@ -456,7 +412,6 @@ textarea.form-control{ resize: vertical; }
   font-size:.72em; padding: 5px 10px; border-radius: 20px; cursor:pointer;
 }
 .activity-filters button.active{ background: var(--gold); color:#111; border-color: var(--gold); font-weight:600; }
-
 
 .activity-item{
   display:flex; gap:10px; padding: 9px 0; border-bottom: 1px solid var(--border-soft);
@@ -470,7 +425,6 @@ textarea.form-control{ resize: vertical; }
 .activity-text b{ color: var(--text-main); }
 .activity-meta{ font-size: .68em; color: var(--text-dim); margin-top:2px; }
 
-
 /* ---------------- NOTIFICATIONS ---------------- */
 .notif-item{
   background: var(--bg-card); border:1px solid var(--border); border-left: 3px solid var(--blue);
@@ -481,11 +435,9 @@ textarea.form-control{ resize: vertical; }
 .notif-item .n-time{ color: var(--text-dim); font-size:.7em; margin-top: 4px; }
 .notif-channel-tag{ font-size:.62em; background: rgba(0,176,255,.15); color: var(--blue); padding:2px 7px; border-radius: 10px; }
 
-
 /* ---------------- LIVE INDICATOR ---------------- */
 .live-indicator{ display:inline-flex; align-items:center; gap:6px; font-size:.72em; color: var(--green); }
 .live-indicator .status-dot{ background: var(--green); box-shadow: 0 0 6px var(--green); }
-
 
 /* ---------------- MODAL ---------------- */
 .modal{
@@ -502,7 +454,6 @@ textarea.form-control{ resize: vertical; }
 .btn-hold{ background: var(--orange); color:#111; flex:1; }
 .btn-print{ background: var(--blue); color:#111; }
 
-
 /* ---------------- RESPONSIVE ---------------- */
 @media (max-width: 860px){
   .layout{ flex-direction: column; }
@@ -515,7 +466,6 @@ textarea.form-control{ resize: vertical; }
   .theme-switch button{ padding:6px 9px; }
 }
 
-
 /* ---------------- REPORTS BAR CHART ---------------- */
 .report-bar-row{ display:flex; align-items:center; gap:9px; margin-bottom:10px; }
 .report-bar-label{ flex:0 0 120px; font-size:0.78em; color: var(--text-muted); }
@@ -523,7 +473,6 @@ textarea.form-control{ resize: vertical; }
 .report-bar-fill{ height:100%; background: var(--gold); border-radius:6px; }
 .report-bar-value{ flex:0 0 40px; text-align:right; font-size:0.78em; color: var(--text-main); }
 .export-btn-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-
 
 /* ---------------- INCOMING EMERGENCY FEED — sariling scroll ---------------- */
 #reportsList{
@@ -535,7 +484,6 @@ textarea.form-control{ resize: vertical; }
 #reportsList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #reportsList::-webkit-scrollbar-track{ background: transparent; }
 
-
 /* ---------------- DOCUMENTATION TRACKER — sariling scroll ---------------- */
 #incidentHistoryList{
   max-height: 520px;
@@ -545,7 +493,6 @@ textarea.form-control{ resize: vertical; }
 #incidentHistoryList::-webkit-scrollbar{ width: 6px; }
 #incidentHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #incidentHistoryList::-webkit-scrollbar-track{ background: transparent; }
-
 
 /* ---------------- SCHEDULE TRANSPO REQUESTS — sariling scroll ---------------- */
 #transpoRequestsList{
@@ -557,7 +504,6 @@ textarea.form-control{ resize: vertical; }
 #transpoRequestsList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #transpoRequestsList::-webkit-scrollbar-track{ background: transparent; }
 
-
 /* ---------------- COMPLETED TRANSPORT RECORDS — sariling scroll ---------------- */
 #transpoHistoryList{
   max-height: 520px;
@@ -567,7 +513,6 @@ textarea.form-control{ resize: vertical; }
 #transpoHistoryList::-webkit-scrollbar{ width: 6px; }
 #transpoHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #transpoHistoryList::-webkit-scrollbar-track{ background: transparent; }
-
 
 /* ---------------- MEDICAL ASSISTANCE REQUESTS — sariling scroll ---------------- */
 #assistanceRequestsList{
@@ -579,7 +524,6 @@ textarea.form-control{ resize: vertical; }
 #assistanceRequestsList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #assistanceRequestsList::-webkit-scrollbar-track{ background: transparent; }
 
-
 /* ---------------- COMPLETED ASSISTANCE RECORDS — sariling scroll ---------------- */
 #requestHistoryList{
   max-height: 520px;
@@ -589,7 +533,6 @@ textarea.form-control{ resize: vertical; }
 #requestHistoryList::-webkit-scrollbar{ width: 6px; }
 #requestHistoryList::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 #requestHistoryList::-webkit-scrollbar-track{ background: transparent; }
-
 
 /* ---------------- SYSTEM ACCOUNTS LIST — sariling scroll (table) ---------------- */
 .table-scroll-wrap{
@@ -606,7 +549,6 @@ textarea.form-control{ resize: vertical; }
 .table-scroll-wrap::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
 .table-scroll-wrap::-webkit-scrollbar-track{ background: transparent; }
 
-
 /* ---------------- RESERVATION CALENDAR ---------------- */
 .reservation-day-group{ margin-bottom: 14px; }
 .reservation-day-label{
@@ -622,61 +564,15 @@ textarea.form-control{ resize: vertical; }
   border-color: var(--red); background: rgba(255,82,82,0.08);
 }
 
-
 #transpoReservationCalendar{
   max-height: 420px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
-
-/* ============================================================
-   LIGHT MODE SAFETY NET
-   Para sa mga elements na ginagawa ng admin.js / admin-comms.js /
-   admin-reports.js gamit ang hardcoded na dark colors sa inline style
-   (hal. background:#2d2d2d, color:#eee). Pansamantala lang ito —
-   mas maayos kung papalitan mismo sa JS ng var(--bg-card), etc.
-   ============================================================ */
-:root[data-theme="light"] :is(
-  [style*="background:#222"], [style*="background: #222"],
-  [style*="background:#2d2d2d"], [style*="background: #2d2d2d"],
-  [style*="background:#252525"], [style*="background: #252525"],
-  [style*="background:#1e1e1e"], [style*="background: #1e1e1e"],
-  [style*="background:#1a1a1a"], [style*="background: #1a1a1a"],
-  [style*="background:#333"], [style*="background: #333"]
-){
-  background: var(--bg-card) !important;
-  border-color: var(--border) !important;
-}
-:root[data-theme="light"] :is(
-  [style*="color:#eee"], [style*="color: #eee"],
-  [style*="color:#ddd"], [style*="color: #ddd"],
-  [style*="color:#f5f5f5"], [style*="color: #f5f5f5"]
-){
-  color: var(--text-main) !important;
-}
-:root[data-theme="light"] :is(
-  [style*="color:#ccc"], [style*="color: #ccc"],
-  [style*="color:#bbb"], [style*="color: #bbb"],
-  [style*="color:#aaa"], [style*="color: #aaa"],
-  [style*="color:#999"], [style*="color: #999"],
-  [style*="color:#888"], [style*="color: #888"]
-){
-  color: var(--text-muted) !important;
-}
-:root[data-theme="light"] :is(
-  [style*="color:#ffd700"], [style*="color: #ffd700"]
-){
-  color: var(--gold) !important;
-}
-
-
-
-
 /* ---------------- ASSIGNED TEAM CHIP ---------------- */
 #fleetVehicleList td:nth-child(3),
 #fleetPersonnelList td:nth-child(3){ min-width: 240px; }
-
 
 .team-chip{
   display: inline-block;
@@ -701,15 +597,11 @@ textarea.form-control{ resize: vertical; }
 }
 .team-none{ color: var(--text-dim); font-size: .8em; }
 
-
-
-
 /* ---------------- SYSTEM ACCOUNTS LIST (table layout) ---------------- */
 .table-scroll-wrap .fleet-table{
   width: 100%;
   table-layout: fixed;
 }
-
 
 /* Column widths */
 .table-scroll-wrap .fleet-table th:nth-child(1){ width: 25%; }
@@ -718,7 +610,6 @@ textarea.form-control{ resize: vertical; }
   width: 110px;      /* dati 9%, ginawang fixed px */
 }
 .table-scroll-wrap .fleet-table th:nth-child(4){ width: 47%; }
-
 
 /* Overall compact density para sa buong table */
 #usersList{ font-size: .85em; }
@@ -733,10 +624,7 @@ textarea.form-control{ resize: vertical; }
   font-size: .66em;
 }
 
-
-/* Name + munting sub-text (contact/joined) sa ilalim ng pangalan.
-   Palitan ang selectors na ito kapag nakita na natin ang aktwal na
-   markup sa admin.js — pansamantala munang generic. */
+/* Name + munting sub-text (contact/joined) sa ilalim ng pangalan. */
 #usersList td:first-child > *:first-child{
   font-size: .92em;
   font-weight: 600;
@@ -747,12 +635,10 @@ textarea.form-control{ resize: vertical; }
   line-height: 1.3;
 }
 
-
 /* BAGO — fixed width sa Status column */
 #usersList td:nth-child(3){
   width: 110px;
 }
-
 
 .role-cell{
   display: grid;
@@ -763,13 +649,11 @@ textarea.form-control{ resize: vertical; }
   width: 254px;      /* 68+96+90 */
 }
 
-
 .role-cell .status-pill{
   min-width: 84px;
   justify-content: flex-start;   /* dating center, ngayon naka left-align */
   text-align: left;
 }
-
 
 /* ---- ID badge: maliit, rounded, pero kasya text sa loob ---- */
 .id-badge{
@@ -786,13 +670,11 @@ textarea.form-control{ resize: vertical; }
   color: var(--green);
 }
 
-
 /* Active / Inactive pill */
 #usersList td:nth-child(3) .status-pill{
   font-size: 8px;
   padding: 2px 7px;
 }
-
 
 .user-actions{
   display: flex;
@@ -800,7 +682,6 @@ textarea.form-control{ resize: vertical; }
   gap: 8px;
   align-items: center;
 }
-
 
 .user-actions .act-btn{
   font-size: 9px;
@@ -811,7 +692,6 @@ textarea.form-control{ resize: vertical; }
   line-height: 1.2;
 }
 
-
 /* Ang first button (Activate/Deactivate) laging pareho ang width
    kahit magpalit ang text, para di nagsi-shift yung susunod na buttons */
 .user-actions .act-btn:first-child{
@@ -820,10 +700,8 @@ textarea.form-control{ resize: vertical; }
   margin-right: 10px;   /* dagdag na espasyo papunta sa Forced Reset Password */
 }
 
-
 /* Manipis na row separator, tulad ng reference layout */
 #usersList tr td{ border-bottom: 1px solid var(--border-soft); }
-
 
 /* Mas kitang scroll bar */
 .table-scroll-wrap{ max-height: 560px; overflow-y: auto; }
@@ -832,5 +710,133 @@ textarea.form-control{ resize: vertical; }
 .table-scroll-wrap::-webkit-scrollbar-thumb:hover{ background: var(--text-muted); }
 .table-scroll-wrap::-webkit-scrollbar-track{ background: var(--bg-card); border-radius: 8px; }
 
+/* ============================================================
+   LIGHT MODE — mga override (dapat laging nasa dulo)
+   Para sa mga inline na dark color na galing sa admin.js,
+   admin-comms.js, at admin-reports.js.
+   ============================================================ */
 
+/* Madilim na background -> kulay ng theme */
+:root[data-theme="light"] :is(
+  [style*="background:#222"], [style*="background: #222"],
+  [style*="background:#2d2d2d"], [style*="background: #2d2d2d"],
+  [style*="background:#252525"], [style*="background:#1e1e1e"],
+  [style*="background:#1a1a1a"], [style*="background:#333"], [style*="background: #333"],
+  [style*="background:#1a1c20"], [style*="background: #1a1c20"],
+  [style*="background:#1c2a3a"], [style*="background:#111"],
+  [style*="background:#fff"], [style*="background: #fff"],
+  [style*="background:#ffffff"], [style*="background:white"]
+){
+  background: var(--bg-card) !important;
+  border-color: var(--border) !important;
+}
 
+/* Kulay ng text */
+:root[data-theme="light"] :is([style*="color:#eee"], [style*="color: #eee"], [style*="color:#ddd"], [style*="color:#f5f5f5"]){ color: var(--text-main) !important; }
+:root[data-theme="light"] :is([style*="color:#ccc"], [style*="color:#bbb"], [style*="color:#aaa"], [style*="color:#999"], [style*="color:#888"]){ color: var(--text-muted) !important; }
+:root[data-theme="light"] :is([style*="color:#666"], [style*="color:#777"]){ color: var(--text-dim) !important; }
+:root[data-theme="light"] [style*="color:#ffd700"]{ color: var(--gold) !important; }
+:root[data-theme="light"] [style*="color:#00b0ff"]{ color: var(--blue) !important; }
+:root[data-theme="light"] [style*="color:#ff8a8a"]{ color:#c62828 !important; }
+:root[data-theme="light"] :is([style*="color:#7ecbff"], [style*="color:#66d9ff"]){ color:#0277bd !important; }
+:root[data-theme="light"] [style*="color:#8aff9c"]{ color:#1b7a34 !important; }
+:root[data-theme="light"] [style*="color:#ffcc66"]{ color:#a85d00 !important; }
+
+/* Mga kulay na button (Remove, Deactivate, Activate, Review ID) */
+:root[data-theme="light"] [style*="background:#3a1c1c"]{ background:#fdecec !important; color:#c62828 !important; border:1px solid #f3b8b8 !important; }
+:root[data-theme="light"] [style*="background:#3a2a10"]{ background:#fff4e0 !important; color:#a85d00 !important; border:1px solid #f1d19a !important; }
+:root[data-theme="light"] [style*="background:#123a1c"]{ background:#e6f6ea !important; color:#1b7a34 !important; border:1px solid #b5e0c0 !important; }
+:root[data-theme="light"] [style*="background:#123a4a"]{ background:#e3f4fb !important; color:#0a6d8f !important; border:1px solid #b3dcee !important; }
+
+/* Record Details modal at toast */
+:root[data-theme="light"] #recordDetailBody > div{ border-bottom-color: var(--border-soft) !important; }
+:root[data-theme="light"] #recordDetailBody span{ color: var(--text-main) !important; }
+:root[data-theme="light"] #recordDetailBody span:first-child{ color: var(--text-muted) !important; }
+:root[data-theme="light"] #sosToastContainer > div{
+  background: var(--bg-panel) !important;
+  color: var(--text-main) !important;
+  border-color: var(--red) !important;
+}
+
+/* Banayad na detalye sa Light mode */
+:root[data-theme="light"] .modal{ background: rgba(40,50,65,0.35); }
+:root[data-theme="light"] .theme-switch button.active{ background:#3d6fb5; }
+:root[data-theme="light"] .activity-filters button.active{ background:#e3c76a; color:#3a3000; border-color:#e3c76a; }
+:root[data-theme="light"] .status-pill,
+:root[data-theme="light"] .summary-tag{ filter: saturate(0.85); }
+:root[data-theme="light"] .form-control:focus{
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(42,118,176,0.15);
+}
+
+/* ============================================================
+   LIGHT MODE — POLISH (buttons, contrast, inputs)
+   ============================================================ */
+
+/* Header na may manipis na shadow para humiwalay sa content */
+:root[data-theme="light"] .header{ box-shadow: 0 1px 4px rgba(20,30,50,0.08); }
+
+/* Inputs: puti na may malinaw na border */
+:root[data-theme="light"] .form-control,
+:root[data-theme="light"] .mini-select{
+  background:#ffffff;
+  border-color: var(--border);
+}
+
+/* Mga button: maliwanag na kulay, puti o madilim na text depende sa contrast */
+:root[data-theme="light"] .primary-btn{
+  background:#f0b429;
+  color:#2b2200;
+}
+:root[data-theme="light"] .primary-btn:hover{ filter:brightness(0.96); }
+:root[data-theme="light"] .btn-confirm{ background:#238a52; color:#fff; }
+:root[data-theme="light"] .btn-hold{ background:#d9801a; color:#fff; }
+:root[data-theme="light"] .btn-print{ background:#1a6fb0; color:#fff; }
+:root[data-theme="light"] .btn-secondary{ background:#dde2e9; color:#1f2430; }
+
+/* Active tab, filter, avatar */
+:root[data-theme="light"] .tab-btn.active{ color:#7a5700; border-bottom-color:#d49a00; }
+:root[data-theme="light"] .activity-filters button.active{ background:#f0b429; color:#2b2200; border-color:#f0b429; }
+:root[data-theme="light"] .user-avatar{ background: linear-gradient(135deg,#f0b429,#d49a00); color:#2b2200; }
+
+/* Queue rank at stepper dots: puting text sa kulay na bilog */
+:root[data-theme="light"] .queue-rank{ background:#d9801a; color:#fff; }
+:root[data-theme="light"] .step.done .dot{ background:#238a52; border-color:#238a52; color:#fff; }
+:root[data-theme="light"] .step.current .dot{ background:#f0b429; border-color:#f0b429; color:#2b2200; }
+:root[data-theme="light"] .step.rejected .dot{ background:#c53d3d; border-color:#c53d3d; color:#fff; }
+
+/* Mas malinaw na kulay ng pills at tags sa light background */
+:root[data-theme="light"] .status-Pending,
+:root[data-theme="light"] .status-WaitingList{ background: rgba(212,154,0,0.16); }
+:root[data-theme="light"] .status-Available,
+:root[data-theme="light"] .status-Approved,
+:root[data-theme="light"] .status-Resolved,
+:root[data-theme="light"] .tag-ok,
+:root[data-theme="light"] .id-badge{ background: rgba(30,125,70,0.13); }
+:root[data-theme="light"] .status-Disbursed{ background: rgba(30,125,70,0.2); }
+:root[data-theme="light"] .status-OnDuty,
+:root[data-theme="light"] .status-Assigned,
+:root[data-theme="light"] .status-UnderReview,
+:root[data-theme="light"] .tag-info{ background: rgba(26,111,176,0.13); }
+:root[data-theme="light"] .status-Unavailable,
+:root[data-theme="light"] .status-Rejected,
+:root[data-theme="light"] .tag-critical{ background: rgba(197,61,61,0.13); }
+:root[data-theme="light"] .status-Queued,
+:root[data-theme="light"] .tag-warning{ background: rgba(181,96,10,0.14); }
+:root[data-theme="light"] .status-dot{ box-shadow:none !important; }
+
+/* Cards: manipis na border at hover na malinaw */
+:root[data-theme="light"] .report-card:hover,
+:root[data-theme="light"] .request-card:hover{ border-color:#d49a00; }
+
+/* Inline na dating madilim ang background pero puti ang text: gawing madilim ang text */
+:root[data-theme="light"] :is(
+  [style*="background:#222"], [style*="background: #222"],
+  [style*="background:#2d2d2d"], [style*="background: #2d2d2d"],
+  [style*="background:#252525"], [style*="background:#1e1e1e"],
+  [style*="background:#1a1a1a"], [style*="background:#333"], [style*="background: #333"],
+  [style*="background:#1a1c20"], [style*="background: #1a1c20"],
+  [style*="background:#1c2a3a"], [style*="background:#111"]
+):is([style*="color:#fff"], [style*="color: #fff"], [style*="color:white"], [style*="color:#ffffff"]){
+  color: var(--text-main) !important;
+}
