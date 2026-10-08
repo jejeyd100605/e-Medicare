@@ -9,6 +9,14 @@
    ibang script ang naka-load sa parehong page.
    ============================================================ */
 (function(){
+    if(!window.supabase){
+        document.getElementById('adminSessionCheck')?.classList.add('hidden');
+        const errEl = document.getElementById('adminAuthError');
+        errEl.textContent = 'Failed to load. Please check your connection and refresh.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
     const SUPABASE_URL = "https://szxptfuwkmqwcipxpoym.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -30,29 +38,31 @@ let resendCooldownInterval = null;
         btn.textContent = isLoading ? 'Checking credentials…' : 'Sign In';
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-    const overlay = document.getElementById('adminSessionCheck');
+        document.addEventListener('DOMContentLoaded', async () => {
+        const overlay = document.getElementById('adminSessionCheck');
 
-    try{
-        const { data: { session } } = await supabase.auth.getSession();
-        if(session){
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', session.user.id)
-                .single();
+        try{
+            const { data: { session } } = await supabase.auth.getSession();
+            if(session){
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role, active')
+                    .eq('id', session.user.id)
+                    .single();
 
-            if(profile && profile.role === 'admin'){
-                window.location.href = '/pages/admin.html';
-                return; // huwag na itago overlay, papalit na yung page
-            } else {
-                await supabase.auth.signOut();
+                if(profile && profile.role === 'admin' && profile.active !== false){
+                    window.location.href = '/pages/admin.html';
+                    return; // huwag na itago ang overlay, papalit na ang page
+                } else {
+                    await supabase.auth.signOut({ scope: 'local' });
+                }
             }
+        } catch(err){
+            console.error('Session check error:', err);
+        } finally {
+            if(overlay) overlay.classList.add('hidden');
         }
-    } finally {
-        if(overlay) overlay.classList.add('hidden');
-    }
-});
+    });
 
 let isSubmitting = false;
 
@@ -73,12 +83,12 @@ if(error){
     console.error('Supabase login error:', error.message);
 
     let userMessage = 'Incorrect email or password. Please try again.';
-    if(error.message.includes('Email not confirmed')){
+    if(!navigator.onLine){
+        userMessage = 'No internet connection. Please check your network.';
+    } else if(error.message.includes('Email not confirmed')){
         userMessage = 'Please verify your email address before signing in.';
     } else if(error.status === 429){
         userMessage = 'Too many attempts. Please wait a moment and try again.';
-    } else if(!navigator.onLine){
-        userMessage = 'No internet connection. Please check your network.';
     }
 
     showAdminError(userMessage);
@@ -93,29 +103,38 @@ if(error){
 
             if(profileError){
     console.error('Profile fetch error:', profileError.message);
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
     showAdminError('Something went wrong verifying your account. Please try again.');
     return;
 }
 
             if(!profile){
-                await supabase.auth.signOut();
+                await supabase.auth.signOut({ scope: 'local' });
                 showAdminError('No profile record found for this account.');
                 return;
             }
 
                         if(profile.role !== 'admin'){
-                await supabase.auth.signOut();
+                await supabase.auth.signOut({ scope: 'local' });
                 showAdminError('Incorrect email or password. Please try again.');
                 return;
             }
 
             if(profile.active === false){
-                await supabase.auth.signOut();
+                await supabase.auth.signOut({ scope: 'local' });
                 showAdminError('This admin account has been deactivated. Contact another administrator.');
                 return;
             }
 
+                        if(profile.active === false){
+                await supabase.auth.signOut({ scope: 'local' });
+                showAdminError('This admin account has been deactivated. Contact another administrator.');
+                return;
+            }
+
+            // Password lang ang na-verify. Burahin ang session para
+            // OTP na ang magbibigay ng totoong session.
+            await supabase.auth.signOut({ scope: 'local' });
             await sendOtpAndShowScreen(email);
         }catch(err){
 
@@ -191,6 +210,20 @@ window.togglePasswordVisibility = togglePasswordVisibility;
                 return;
             }
 
+                       const { data: { user } } = await supabase.auth.getUser();
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role, active')
+                .eq('id', user.id)
+                .single();
+
+            if(!profile || profile.role !== 'admin' || profile.active === false){
+                await supabase.auth.signOut({ scope: 'local' });
+                errorEl.textContent = 'Access denied.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
             window.location.href = '/pages/admin.html';
         }catch(err){
             console.error('Unexpected OTP verify error:', err);
@@ -245,7 +278,8 @@ window.togglePasswordVisibility = togglePasswordVisibility;
     function backToLoginForm(){
         document.getElementById('adminOtpCard').classList.add('hidden');
         document.getElementById('adminLoginCard').classList.remove('hidden');
-        document.getElementById('adminOtpCode').value = '';
+                document.getElementById('adminOtpCode').value = '';
+        document.getElementById('adminPassword').value = '';
         document.getElementById('adminOtpError').classList.add('hidden');
         if(resendCooldownInterval) clearInterval(resendCooldownInterval);
         pendingAdminEmail = null;

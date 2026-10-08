@@ -210,3 +210,7 @@ body {
 }
 
 .admin-back-btn:hover { color: #621a19; }
+
+button, input {
+    font-family: inherit;
+}

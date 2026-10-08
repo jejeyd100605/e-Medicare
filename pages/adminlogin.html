@@ -18,7 +18,7 @@
         <h1 class="admin-title">Barangay Bambang</h1>
         <p class="admin-subtitle">Admin Control Center Access</p>
 
-        <div id="adminAuthError" class="admin-error hidden"></div>
+        <div id="adminAuthError" class="admin-error hidden" role="alert"></div>
 
         <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
             <label class="admin-label" for="adminEmail">Email Address</label>
@@ -45,7 +45,7 @@
     <h1 class="admin-title">Verify Your Identity</h1>
     <p class="admin-subtitle">Enter the 6-digit code sent to your email</p>
 
-    <div id="adminOtpError" class="admin-error hidden"></div>
+    <div id="adminOtpError" class="admin-error hidden" role="alert"></div>
 
     <form id="adminOtpForm" onsubmit="handleOtpVerify(event)">
         <label class="admin-label" for="adminOtpCode">6-Digit Code</label>
