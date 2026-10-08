@@ -82,17 +82,7 @@
 
 
             <select id="assignedUnit" class="unit-select">
-
-
-                <option value="Patrol-01">🚓 Patrol Vehicle-01</option>
-
-
-                <option value="PTV-01">🚐 Patient Transport Vehicle-01</option>
-
-
-                <option value="Tricycle-01">🛺 Emergency Tricycle-01</option>
-
-
+                <option value="">Loading...</option>
             </select>
 
 
@@ -125,10 +115,9 @@
                 </option>
 
 
-                <option value="On Duty">
+                                <option value="On Duty" disabled>
                     🟡 On Duty
                 </option>
-
 
                 <option value="Unavailable">
                     🔴 Unavailable
@@ -380,6 +369,11 @@
                             placeholder="Pangalan ng ospital o health center kung saan dinala ang pasyente">
                     </div>
 
+
+                                        <p class="security-note full" style="grid-column:1 / -1;">
+                        <i class="fas fa-heart-pulse"></i>
+                        Ang BP, HR at Temp na inilagay mo sa Response Panel ay awtomatikong isasama sa record.
+                    </p>
 
                     <div class="form-group">
                         <label for="completionTimestamp">Oras ng Pagkakumpleto</label>

@@ -1376,5 +1376,10 @@ button, select, input, textarea{
     border: 1px solid #141414;
 }
 
-
-
+/* Assigned Unit: display lang, kaya dapat malinaw pa rin ang basa */
+.unit-select:disabled{
+    opacity: 1;
+    color: #141414;
+    -webkit-text-fill-color: #141414;   /* para sa Chrome/Safari mobile */
+    cursor: default;
+}
