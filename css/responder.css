@@ -372,15 +372,6 @@ body {
 }
 
 
-.cross-barangay-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-main);
-    font-size: 0.74rem;
-    font-weight: 700;
-}
-
 
 /* --- ACTIVE REQUESTS LIST ITEMS --- */
 .incident-list-item {
@@ -1346,12 +1337,6 @@ button, select, input, textarea{
 /* Cursor ng close button ng modal */
 .modal-close{
     cursor: pointer;
-}
-
-
-/* Kulay ng checkbox */
-.cross-barangay-toggle input{
-    accent-color: var(--gold);
 }
 
 

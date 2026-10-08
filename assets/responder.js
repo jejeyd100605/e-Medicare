@@ -531,9 +531,6 @@ function bindDashboardEvents() {
 
 
 
-    document.getElementById('crossBarangayToggle')?.addEventListener('change', loadData);
-
-
 
 
    document.getElementById('unitStatus')?.addEventListener('change', event => {
@@ -690,11 +687,6 @@ async function loadData() {
 
 
 async function fetchRequestsFromSupabase() {
-    const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
-
-
-
-
     let query = supabase.from('emergency_requests')
         .select('*, sender:profiles!emergency_requests_sender_id_fkey(name, contact, address)')
         .neq('type', 'Medical Assistance')
@@ -704,10 +696,7 @@ async function fetchRequestsFromSupabase() {
 
 
 
-    if (!crossBarangay) {
-        query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);
-    }
-
+       query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);
 
 
 
@@ -818,10 +807,7 @@ function updateMetrics(incidents, statuses) {
 function renderList(incidents) {
     const listDiv = document.getElementById('incidentList');
     const countSpan = document.getElementById('count');
-    const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
-    const jurisdictionMatch = item => crossBarangay || !CURRENT_RESPONDER?.jurisdiction || item.jurisdiction === CURRENT_RESPONDER.jurisdiction;
-
-
+       const jurisdictionMatch = item => !CURRENT_RESPONDER?.jurisdiction || item.jurisdiction === CURRENT_RESPONDER.jurisdiction;
 
 
     // BAGO — "Completed Cases" ay ibang landas, dahil dito talaga
