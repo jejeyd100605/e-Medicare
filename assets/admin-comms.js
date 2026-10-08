@@ -100,7 +100,7 @@ function renderComms(){
   renderAgencyDirectory();
   populateCoordAgencySelect();
   populateCoordIncidentSelect();
-  resetCoordForm();
+    if(!document.getElementById('coordRefDisplay').value) resetCoordForm();
   renderCoordLog();
 }
 
@@ -142,10 +142,10 @@ function renderAgencyDirectory(){
   wrap.innerHTML = list.map(a => `
     <div class="fleet-quick-row">
       <div>
-        <div class="fleet-quick-name">${AGENCY_CATEGORY_ICONS[a.category] || '📍'} ${a.name}</div>
-        <div class="fleet-quick-type">${a.contactPerson || '—'}</div>
-        <div class="fleet-quick-type">${a.contact}</div>
-        ${a.services ? `<div class="fleet-quick-type" style="color:#00e5ff;">Serbisyo: ${a.services}</div>` : ''}
+        <div class="fleet-quick-name">${AGENCY_CATEGORY_ICONS[a.category] || '📍'} ${esc(a.name)}</div>
+        <div class="fleet-quick-type">${esc(a.contactPerson || '—')}</div>
+        <div class="fleet-quick-type">${esc(a.contact)}</div>
+        ${a.services ? `<div class="fleet-quick-type" style="color:#00e5ff;">Serbisyo: ${esc(a.services)}</div>` : ''}
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:5px 8px;" onclick="editAgency('${a.id}')">Edit</button>
@@ -162,6 +162,7 @@ function handleAgencySubmit(e){
   const list = load(DB.agencies, []);
   const data = {
     name:          document.getElementById('agencyName').value.trim(),
+        category:      document.getElementById('agencyCategory').value,
     contactPerson: document.getElementById('agencyContactPerson').value.trim(),
     contact:       document.getElementById('agencyContact').value.trim(),
     services:      document.getElementById('agencyServices').value.trim(),
@@ -187,6 +188,7 @@ function editAgency(id){
   if(!a) return;
   document.getElementById('agencyId').value            = a.id;
   document.getElementById('agencyName').value          = a.name;
+    document.getElementById('agencyCategory').value      = a.category || '';
   document.getElementById('agencyContactPerson').value = a.contactPerson || '';
   document.getElementById('agencyContact').value       = a.contact;
   document.getElementById('agencyServices').value      = a.services || '';
@@ -233,7 +235,7 @@ function onCoordAgencyChange(){
   if(hotline) hotline.value = a.contact || '';
   /* Serbisyo: isinusuggest ang naka-file na serbisyo, pero pwedeng
      i-type/i-palitan ng admin kung ano talaga ang ipinadala. */
-  if(services && !services.value.trim()) services.value = a.services || '';
+    if(services) services.value = a.services || '';
 }
 
 
@@ -365,8 +367,9 @@ function handleSendCoordination(e){
 
 
   const data = {
-    agencyId:      agency.id,
+        agencyId:      agency.id,
     agencyName:    agency.name,
+    agencyCategory: agency.category || '',
     contactPerson: document.getElementById('coordContactPerson').value.trim() || agency.contactPerson,
     hotline:       document.getElementById('coordHotline').value.trim() || agency.contact,
     services:      document.getElementById('coordServices').value.trim(),
@@ -388,8 +391,17 @@ function handleSendCoordination(e){
 
   if(editId){
     /* ---- UPDATE ng existing na Pending request ---- */
-    const r = list.find(x => x.id === editId);
+       const r = list.find(x => x.id === editId);
     if(!r) return;
+    /* Kung may naka-link na incident dati pero wala na sa dropdown, huwag burahin ang resident info */
+    if(r.incidentId && !linkedIncidentId){
+      data.incidentId      = r.incidentId;
+      data.incidentType    = r.incidentType;
+      data.incidentRef     = r.incidentRef;
+      data.residentName    = r.residentName;
+      data.residentContact = r.residentContact;
+      data.residentAddress = r.residentAddress;
+    }
     Object.assign(r, data);
     r.history = r.history || [];
     r.history.push({ status:'Updated', at: nowISO(), note:`Response: ${data.response} · ETA: ${data.eta || '—'}` });
@@ -489,7 +501,7 @@ function declineCoord(id){
   r.history     = r.history || [];
   r.history.push({ status:'Declined', at: r.completedAt, note:'' });
   save(DB.coordinations, list);
-  logActivity('comms', `<b>${r.agencyName}</b> hindi nakasuporta sa request <b>${r.refId}</b>.`);
+  logActivity('comms', `<b>${esc(r.agencyName)}</b> hindi nakasuporta sa request <b>${r.refId}</b>.`);
   renderCoordLog();
 }
 
@@ -576,9 +588,9 @@ function coordCardHTML(r, isDone){
   const residentBox = (r.residentName) ? `
     <div style="margin-top:8px; font-size:.8em; color:#ccc; background:#222; padding:9px 10px; border-radius:6px;">
       <div style="font-weight:600; color:#ffd700;">${r.incidentType ? '🚨 ' + r.incidentType : '🚨 Resident Report'}</div>
-      <div>👤 ${r.residentName}</div>
-      ${r.residentContact ? `<div>📞 ${r.residentContact}</div>` : ''}
-      ${r.residentAddress ? `<div style="color:#aaa;">🏠 ${r.residentAddress}</div>` : ''}
+      <div>👤 ${esc(r.residentName)}</div>
+      ${r.residentContact ? `<div>📞 ${esc(r.residentContact)}</div>` : ''}
+      ${r.residentAddress ? `<div style="color:#aaa;">🏠 ${esc(r.residentAddress)}</div>` : ''}
     </div>` : '';
 
 
@@ -596,7 +608,7 @@ function coordCardHTML(r, isDone){
             <span style="text-align:right; color:#eee; flex:1;">${v}</span>
           </div>`).join('')}
       </div>
-      ${r.details ? `<div class="request-card-detail" style="color:#aaa; margin-top:8px;">${r.details}</div>` : ''}
+      ${r.details ? `<div class="request-card-detail" style="color:#aaa; margin-top:8px;">${esc(r.details)}</div>` : ''}
       <div class="queue-score">Na-log ${timeAgo(r.sentAt)} · ${fmtTime(r.sentAt)}${r.completedAt ? ' → tapos ' + fmtTime(r.completedAt) : ''}</div>
       <div class="queue-actions" style="margin-top:10px;">
         ${!isDone ? `

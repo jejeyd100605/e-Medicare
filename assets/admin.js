@@ -16,7 +16,7 @@
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
-
+const ACTIVE_RESPONSE_STATUSES = ['Assigned', 'Accepted', 'In Transit', 'Arrived'];
 let fleetCache = [];
 let incidentsCache = [];
 let transpoCache = [];
@@ -114,14 +114,22 @@ let trackingRouteLine = null;
         window.location.href = '/pages/adminlogin.html';
         return null;
     }
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('role, name')
-            .eq('id', session.user.id)
-            .single();
-        return profile;
-    }
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role, name, active')
+        .eq('id', session.user.id)
+        .single();
 
+    const role = String(profile?.role || '').trim().toLowerCase();
+    const ALLOWED_ROLES = ['admin'];   // idagdag dito kung may ibang staff role na dapat makapasok
+
+    if (error || !profile || profile.active === false || !ALLOWED_ROLES.includes(role)) {
+        await supabase.auth.signOut();
+        window.location.href = '/pages/adminlogin.html';
+        return null;
+    }
+    return profile;
+}
 
 
     /* ---------------------------------------------------------
@@ -149,6 +157,10 @@ let trackingRouteLine = null;
     function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
     function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
     function nowISO(){ return new Date().toISOString(); }
+        function esc(s){
+        return String(s ?? '').replace(/[&<>"']/g, c =>
+            ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
     function fmtTime(iso){
     const d = new Date(iso);
     return d.toLocaleString('en-PH', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
@@ -170,6 +182,16 @@ let trackingRouteLine = null;
     let sosBeepInterval = null;
     let originalTitle = document.title;
     let titleFlashInterval = null;
+
+        // I-unlock ang audio sa unang click/key ng admin (hinaharang ito ng browser hangga't walang user action)
+    ['click','keydown','touchstart'].forEach(evt => {
+        document.addEventListener(evt, () => {
+            if(!sosAudioCtx){
+                try{ sosAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return; }
+            }
+            if(sosAudioCtx.state === 'suspended') sosAudioCtx.resume();
+        });
+    });
 
 
 
@@ -239,7 +261,7 @@ let trackingRouteLine = null;
 
 
     function showSOSToast(incident){
-        const callerName = incident?.sender?.name || 'A resident';
+        const callerName = esc(incident?.sender?.name || 'A resident');
         const container = document.getElementById('sosToastContainer') || (() => {
             const c = document.createElement('div');
             c.id = 'sosToastContainer';
@@ -254,7 +276,7 @@ let trackingRouteLine = null;
         toast.style.cssText = 'background:#3a1c1c; border:1px solid #ff4d4d; color:#fff; padding:14px 16px; border-radius:10px; width:300px; box-shadow:0 6px 20px rgba(0,0,0,.5); animation:sosPulse 1s infinite;';
         toast.innerHTML = `
             <div style="font-weight:700; color:#ff8a8a; margin-bottom:4px;">🚨 NEW SOS / EMERGENCY</div>
-            <div style="font-size:.85em; margin-bottom:8px;">${callerName} needs help — ${incident.category || incident.type || 'Emergency'}</div>
+            <div style="font-size:.85em; margin-bottom:8px;">${callerName} needs help — ${esc(incident.category || incident.type || 'Emergency')}</div>
             <div style="display:flex; gap:8px;">
                 <button class="primary-btn" style="background:#ff4d4d;color:#fff;flex:1;font-size:.78em;" onclick="acknowledgeSOS('${incident.id}', this)">Acknowledge</button>
             </div>
@@ -268,7 +290,7 @@ let trackingRouteLine = null;
     // Walang pulsing animation, walang paulit-ulit na alarm — mahinahon lang
     // ang itsura kumpara sa SOS toast, pero kitang-kita pa rin sa taas.
     function showEmergencyToast(incident){
-        const callerName = incident?.sender?.name || 'A resident';
+                const callerName = esc(incident?.sender?.name || 'A resident');
         const container = document.getElementById('sosToastContainer') || (() => {
             const c = document.createElement('div');
             c.id = 'sosToastContainer';
@@ -283,10 +305,10 @@ let trackingRouteLine = null;
         toast.style.cssText = 'background:#1c2a3a; border:1px solid #00b0ff; color:#fff; padding:14px 16px; border-radius:10px; width:300px; box-shadow:0 6px 20px rgba(0,0,0,.4);';
         toast.innerHTML = `
             <div style="font-weight:700; color:#7ecbff; margin-bottom:4px;">🚨 New Emergency Report</div>
-            <div style="font-size:.85em; margin-bottom:8px;">${callerName} — ${incident.category || incident.type || 'Emergency'}</div>
+            <div style="font-size:.85em; margin-bottom:8px;">${callerName} — ${esc(incident.category || incident.type || 'Emergency')}</div>
             <div style="display:flex; gap:8px;">
                 <button class="primary-btn" style="background:#00b0ff;color:#111;flex:1;font-size:.78em;" onclick="acknowledgeEmergencyToast('${incident.id}', this)">View</button>
-                <button class="primary-btn" style="background:#333;color:#eee;font-size:.78em;padding:6px 10px;" onclick="this.closest('div[style*=\\'border:1px solid #00b0ff\\']').remove()">Dismiss</button>
+                <button class="primary-btn" style="background:#333;color:#eee;font-size:.78em;padding:6px 10px;" onclick="this.parentElement.parentElement.remove()">Dismiss</button>
             </div>
         `;
         container.appendChild(toast);
@@ -508,7 +530,6 @@ if(tab === 'queue') loadMedicalRequestsFromSupabase();
     ROLE / SESSION BADGE
     --------------------------------------------------------- */
 function initRoleBadge(profile){
-  console.log('ROLE:', JSON.stringify(profile.role));   // pansamantala
   if(String(profile.role || '').trim().toLowerCase() === 'admin'){
     const usersBtn = document.getElementById('btn-users');
     if(usersBtn) usersBtn.style.display = 'inline-block';
@@ -539,7 +560,7 @@ function initRoleBadge(profile){
 
 
     const open = incidents.filter(i => i.status === 'Pending').length;
-       const assigned = incidents.filter(i => ['Assigned', 'Accepted', 'In Transit', 'Arrived'].includes(i.status)).length;
+      const assigned = incidents.filter(i => ACTIVE_RESPONSE_STATUSES.includes(i.status)).length;
     const resolved = incidents.filter(i => ['Completed', 'Resolved'].includes(i.status)).length;
 
 
@@ -569,7 +590,7 @@ function initRoleBadge(profile){
    function incidentFeedRank(i){
         if(i.type === 'SOS' && i.status === 'Pending') return 0;
         if(i.type === 'Emergency' && i.status === 'Pending') return 1;
-        if(i.status === 'Assigned') return 2;
+        if(i.status === 'Assigned' || i.status === 'Accepted') return 2;
         if(i.status === 'In Transit') return 3;
         if(i.status === 'Arrived') return 4;
         return 5;
@@ -612,18 +633,18 @@ function initRoleBadge(profile){
 
 
     wrap.innerHTML = open.map(i => {
-        const callerName = i.sender ? i.sender.name : (i.patient_name || 'Unknown Resident');
+        const callerName = esc(i.sender ? i.sender.name : (i.patient_name || 'Unknown Resident'));
         const mapLink = (i.lat && i.lng)
             ? `<a href="https://www.google.com/maps?q=${i.lat},${i.lng}" target="_blank" onclick="event.stopPropagation();" style="color:#00b0ff;">View on Map</a>`
             : 'No GPS data';
         return `
-        <div class="report-card" onclick="openAssignModal(${i.id})">
+        <div class="report-card" onclick="openAssignModal('${i.id}')">
         <div class="report-card-top">
-            <span class="report-card-name">🚨 ${i.category || i.type}</span>
+                      <span class="report-card-name">🚨 ${esc(i.category || i.type)}</span>
             <span class="status-pill ${statusClass(i.status)}"><span class="status-dot"></span>${i.status}</span>
         </div>
         <div class="report-card-detail">${callerName} · ${mapLink}</div>
-        <div class="report-card-detail" style="color:#aaa;">${i.description || ''}</div>
+        <div class="report-card-detail" style="color:#aaa;">${esc(i.description || '')}</div>
         <div class="timestamp">${timeAgo(i.created_at)}</div>
         </div>
     `;}).join('');
@@ -784,7 +805,6 @@ function subscribeIncidentsRealtime() {
 
 
         await loadResponderProfilesForFleet();
-        await syncMissingPersonnelToFleet();   // BAGO
         renderFleet();
         renderQuickFleetStatus();
     }
@@ -879,8 +899,7 @@ function subscribeIncidentsRealtime() {
 
 
 
-    function statusClass(status){ return 'status-' + status.replace(/\s+/g,''); }
-
+function statusClass(status){ return 'status-' + String(status || '').replace(/\s+/g,''); }
 
 
     function renderQuickFleetStatus(){
@@ -1265,17 +1284,17 @@ async function handleQuickDispatch(e){
 
 
 
-        const callerName = inc.sender ? inc.sender.name : (inc.patient_name || 'Unknown Resident');
-        const contact = inc.sender && inc.sender.contact ? inc.sender.contact : '';
+               const callerName = esc(inc.sender ? inc.sender.name : (inc.patient_name || 'Unknown Resident'));
+        const contact = inc.sender && inc.sender.contact ? esc(inc.sender.contact) : '';
         const infoBox = document.getElementById('assignIncidentInfo');
         if(infoBox){
-            const address = inc.sender && inc.sender.address ? inc.sender.address : '';
+            const address = inc.sender && inc.sender.address ? esc(inc.sender.address) : '';
             infoBox.innerHTML = `
                 <div style="margin-bottom:10px; font-size:0.85em; color:#ccc; background:#222; padding:10px; border-radius:6px;">
-                    <div style="font-weight:600; color:#ffd700;">🚨 ${inc.category || inc.type}</div>
+                    <div style="font-weight:600; color:#ffd700;">🚨 ${esc(inc.category || inc.type)}</div>
                     <div>${callerName}${contact ? ' · ' + contact : ''}</div>
                     ${address ? `<div style="color:#aaa;">🏠 ${address}</div>` : ''}
-                    <div style="color:#888; margin-top:4px;">${inc.description || 'No description provided.'}</div>
+                    <div style="color:#888; margin-top:4px;">${esc(inc.description || 'No description provided.')}</div>
                     <div style="color:#666; margin-top:4px; font-size:0.85em;">Status: ${inc.status} · ${timeAgo(inc.created_at)}</div>
                 </div>
             `;
@@ -1293,7 +1312,7 @@ async function handleQuickDispatch(e){
         // pero hayaan pa rin nating gamitin ang tracking view (read-only)
         // kung meron pang GPS na naitala, kasama ang lumang Pending case
         // na wala pang team gamit ang dispatch form.
-        const isTracking = ['Assigned', 'In Transit', 'Arrived'].includes(inc.status);
+        const isTracking = ACTIVE_RESPONSE_STATUSES.includes(inc.status);
 
 
 
@@ -1369,7 +1388,7 @@ async function handleQuickDispatch(e){
 
 
 
-        if(['Assigned', 'In Transit', 'Arrived'].includes(inc.status)){
+        if(ACTIVE_RESPONSE_STATUSES.includes(inc.status)){
             renderTrackingView(inc);
         } else {
             // Na-resolve o binago ang status habang bukas ang modal — isara na lang.
@@ -1448,7 +1467,7 @@ async function handleQuickDispatch(e){
             });
             trackingResidentMarker = L.marker([inc.lat, inc.lng], { icon: residentIcon })
                 .addTo(trackingMap)
-                .bindPopup(`<b>${inc.sender ? inc.sender.name : 'Resident'}</b><br>${inc.category || inc.type}`)
+                                .bindPopup(`<b>${esc(inc.sender ? inc.sender.name : 'Resident')}</b><br>${esc(inc.category || inc.type)}`)
                 .openPopup();
 
 
@@ -1498,9 +1517,9 @@ async function handleQuickDispatch(e){
                 distanceLine = `<div style="color:#888;">📏 Naghihintay pa ng GPS signal ng responder...</div>`;
             }
             infoEl.innerHTML = `
-                <div>🏠 Address: <b>${inc.sender?.address || 'Not provided'}</b></div>
-                <div>👥 Assigned team: <b>${inc.assigned_to || 'Not yet on record'}</b></div>
-                <div>⏱ ETA / Notes: <b>${inc.eta || 'N/A'}</b></div>
+                <div>🏠 Address: <b>${esc(inc.sender?.address || 'Not provided')}</b></div>
+                <div>👥 Assigned team: <b>${esc(inc.assigned_to || 'Not yet on record')}</b></div>
+                <div>⏱ ETA / Notes: <b>${esc(inc.eta || 'N/A')}</b></div>
                 ${distanceLine}
                 <div style="color:#666; font-size:0.85em; margin-top:4px;">${inc.location_updated_at ? 'Responder location updated ' + timeAgo(inc.location_updated_at) : 'No responder location update yet.'}</div>
             `;
@@ -1515,8 +1534,8 @@ function printIncidentReport(){
 
 
 
-    const callerName = inc.sender ? inc.sender.name : 'Unknown Resident';
-    const contact = inc.sender ? inc.sender.contact : 'N/A';
+    const callerName = esc(inc.sender ? inc.sender.name : (inc.patient_name || 'Unknown Resident'));
+        const contact = esc(inc.sender ? inc.sender.contact : 'N/A');
 
 
 
@@ -1541,8 +1560,8 @@ function printIncidentReport(){
                 <tr><th>Reported By</th><td>${callerName} (${contact})</td></tr>
                 <tr><th>Description</th><td>${inc.description || 'N/A'}</td></tr>
                 <tr><th>Status</th><td>${inc.status}</td></tr>
-                <tr><th>Assigned To</th><td>${inc.assigned_to || 'Not yet assigned'}</td></tr>
-                <tr><th>ETA / Notes</th><td>${inc.eta || 'N/A'}</td></tr>
+                <tr><th>Assigned To</th><td>${esc(inc.assigned_to || 'Not yet assigned')}</td></tr>
+                <tr><th>ETA / Notes</th><td>${esc(inc.eta || 'N/A')}</td></tr>
                 <tr><th>Date Reported</th><td>${fmtTime(inc.created_at)}</td></tr>
                 <tr><th>Location (GPS)</th><td>${inc.lat && inc.lng ? `${inc.lat}, ${inc.lng}` : 'No GPS data'}</td></tr>
             </table>
@@ -1619,7 +1638,12 @@ function printIncidentReport(){
         .update({ status: 'On Duty', assigned_to: buildTeamTag(driver) })
         .eq('id', driver.id)
         .select();
-    if (driverError) { alert('Hindi na-dispatch ang driver: ' + driverError.message); return; }
+        if (driverError) {
+        await supabase.from('emergency_requests').update({ status:'Pending', assigned_to:null, assigned_at:null }).eq('id', inc.id);
+        alert('Hindi na-dispatch ang driver: ' + driverError.message);
+        loadIncidentsFromSupabase();
+        return;
+    }
 
 
 
@@ -1628,7 +1652,13 @@ function printIncidentReport(){
         .update({ status: 'On Duty', assigned_to: buildTeamTag(responder) })
         .eq('id', responder.id)
         .select();
-    if (responderError) { alert('Hindi na-dispatch ang responder: ' + responderError.message); return; }
+        if (responderError) {
+        await supabase.from('emergency_requests').update({ status:'Pending', assigned_to:null, assigned_at:null }).eq('id', inc.id);
+        await supabase.from('fleet').update({ status:'Available', assigned_to:null }).eq('id', driver.id);
+        alert('Hindi na-dispatch ang responder: ' + responderError.message);
+        loadIncidentsFromSupabase(); loadFleetFromSupabase();
+        return;
+    }
 
 
 
@@ -2077,9 +2107,8 @@ function closeIncidentPhotosModal(){
 
 
 
-    function requestMutualAid(){
-    logActivity('fleet', 'Mutual aid vehicle borrow request sent to neighboring barangay dispatch.');
-    alert('Mutual aid request broadcast to neighboring barangays.');
+       function requestMutualAid(){
+    alert('Hindi pa konektado ang feature na ito. Gamitin muna ang External Communications tab o tumawag nang direkta sa kalapit na barangay.');
     }
 
 
@@ -2207,7 +2236,7 @@ function closeIncidentPhotosModal(){
 
 
 
-  const openOnes = sortUnseenFirst(list.filter(r => r.status !== 'Disbursed' && r.status !== 'Rejected'), 'queue');   // BAGO
+  const openOnes = sortUnseenFirst(list.filter(r => !['Disbursed','Rejected','Approved'].includes(r.status)), 'queue');   // BAGO
     badge && (badge.textContent = openOnes.length + ' Pending');
     empty && (empty.style.display = openOnes.length ? 'none' : 'block');
 
@@ -2216,10 +2245,10 @@ function closeIncidentPhotosModal(){
     wrap.innerHTML = openOnes.map(r => `
         <div class="request-card ${String(r.id) === String(selectedRequestId) ? 'selected':''}" onclick="selectRequest('${r.id}')">
         <div class="request-card-top">
-            <span class="request-card-name">${r.resident_name}</span>
+            <span class="request-card-name">${esc(r.resident_name)}</span>
             <span class="status-pill ${statusClass(r.status)}"><span class="status-dot"></span>${r.status}</span>
-        </div>
-        <div class="request-card-detail">${r.category} · ₱${Number(r.estimated_cost || 0).toLocaleString()}</div>
+                </div>
+        <div class="request-card-detail">${esc(r.category)} · ₱${Number(r.estimated_cost || 0).toLocaleString()}</div>
         <div class="request-card-meta">
             <span class="badge">${r.priority}</span>
             <span class="timestamp">${timeAgo(r.created_at)}</span>
@@ -2374,8 +2403,8 @@ function closeIncidentPhotosModal(){
 
     if(action === 'Reject'){
         const history = pushHistory(r, 'Rejected', notes || 'Request did not meet approval criteria.');
-        const { error } = await supabase.from('medical_assistance_requests')
-            .update({ status: 'Rejected', category, priority, admin_notes: notes, history })
+                const { error } = await supabase.from('medical_assistance_requests')
+            .update({ status: 'Rejected', category: category || r.category, priority: priority || r.priority, admin_notes: notes, history })
             .eq('id', r.id);
         if(error){ alert('Hindi na-update: ' + error.message); return; }
 
@@ -2402,14 +2431,14 @@ function closeIncidentPhotosModal(){
         logActivity('budget', `<b>${r.resident_name}</b>'s request (₱${cost.toLocaleString()}) queued — remaining fund pool ₱${remainingBudget().toLocaleString()} is insufficient.`);
         await notifyResident(r, `Hi ${r.resident_name}, your financial assistance request is approved for processing but has been placed in queue while barangay funds are replenished. We'll notify you once funds are available.${notes ? ' Note: ' + notes : ''}`);
         }else{
-        const b = getBudget();
-        b.allocated += cost;
-        save(DB.budget, b);
-        const history = pushHistory(r, 'Disbursed', 'Approved and funds disbursed.');
+               const history = pushHistory(r, 'Disbursed', 'Approved and funds disbursed.');
         const { error } = await supabase.from('medical_assistance_requests')
             .update({ status: 'Disbursed', category, priority, estimated_cost: cost, admin_notes: notes, history })
             .eq('id', r.id);
         if(error){ alert('Hindi na-update: ' + error.message); return; }
+        const b = getBudget();
+        b.allocated += cost;
+        save(DB.budget, b);
 
 
 
@@ -2465,10 +2494,10 @@ function closeIncidentPhotosModal(){
     wrap.innerHTML = queued.map((r, idx) => `
         <div class="queue-card">
         <div class="qc-top">
-            <div><span class="queue-rank">${idx+1}</span><b>${r.resident_name}</b></div>
+            <div><span class="queue-rank">${idx+1}</span><b>${esc(r.resident_name)}</b></div>
             <span class="badge">${r.priority}</span>
         </div>
-        <div class="request-card-detail" style="margin-top:6px;">${r.purpose || ''}</div>
+        <div class="request-card-detail" style="margin-top:6px;">${esc(r.purpose || '')}</div>
         <div class="queue-score">Priority score: <b>${r.priorityScore}</b> · Cost: ₱${Number(r.estimated_cost||0).toLocaleString()} · Waiting ${timeAgo(r.created_at)}</div>
         <div class="queue-actions">
             <button class="primary-btn" style="background:var(--green); color:#111;"
@@ -2593,17 +2622,15 @@ function closeIncidentPhotosModal(){
 
 
 
-    const b = getBudget();
-    b.allocated += r.estimated_cost;
-    save(DB.budget, b);
-
-
-
-    const history = pushHistory(r, 'Disbursed', 'Released from priority queue once funds became available.');
+        const history = pushHistory(r, 'Disbursed', 'Released from priority queue once funds became available.');
     const { error } = await supabase.from('medical_assistance_requests')
         .update({ status: 'Disbursed', history })
         .eq('id', r.id);
     if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+    const b = getBudget();
+    b.allocated += Number(r.estimated_cost || 0);
+    save(DB.budget, b);
 
 
 
@@ -2723,10 +2750,10 @@ function renderTranspoList(){
         return `
         <div class="request-card ${String(r.id) === String(selectedTranspoId) ? 'selected':''}" onclick="selectTranspoRequest('${r.id}')">
         <div class="request-card-top">
-            <span class="request-card-name">${r.patient_name}</span>
+            <span class="request-card-name">${esc(r.patient_name)}</span>
             <span class="status-pill ${statusClass(r.status)}"><span class="status-dot"></span>${r.status}</span>
         </div>
-        <div class="request-card-detail">${r.pickup_location} → ${r.destination}</div>
+        <div class="request-card-detail">${esc(r.pickup_location)} → ${esc(r.destination)}</div>
         ${driver ? `<div class="request-card-detail" style="color:#00b0ff;">🧑‍✈️ Driver: ${driver.name}</div>` : ''}
         <div class="request-card-meta">
             <span class="badge">${r.transport_type || ''}</span>
@@ -3177,7 +3204,10 @@ async function confirmTranspoDispatch(e){
     const { error: trError } = await supabase.from('transport_requests')
         .update({ assigned_vehicle: vehicle.id, assigned_driver: driver.id, dispatched_at: nowISO() })
         .eq('id', r.id);
-    if(trError) console.error('Hindi na-update ang transport request:', trError.message);
+        if(trError){
+        console.error('Hindi na-update ang transport request:', trError.message);
+        alert('Na-dispatch ang unit pero hindi na-mark ang reservation. I-refresh at HUWAG mag-dispatch ulit.');
+    }
 
     // 4) Notifications
     const notifs = [{
@@ -3354,8 +3384,8 @@ function renderUsers(){
     return `
     <tr>
       <td>
-        <div style="font-weight:600;">${u.name}</div>
-        <div class="timestamp">${u.contact || 'No contact on file'}${u.address ? ' · ' + u.address : ''} · joined ${timeAgo(u.created_at)}</div>
+                <div style="font-weight:600;">${esc(u.name)}</div>
+        <div class="timestamp">${esc(u.contact || 'No contact on file')}${u.address ? ' · ' + esc(u.address) : ''} · joined ${timeAgo(u.created_at)}</div>
       </td>
             <td>
         <div class="role-cell">
@@ -3555,7 +3585,7 @@ async function handleUserFormSubmit(e){
     alert('May naganap na error habang gumagawa ng account.');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Create Responder Account';
+        submitBtn.textContent = 'Create Account';
   }
 }
 
@@ -3718,8 +3748,9 @@ async function rejectIdVerification(){
 
 
 
-  const reason = prompt('Bakit rineject? (hal. malabo ang picture, hindi magkatugma ang ID)') 
-                 || 'Malabo o hindi malinaw ang isinumiteng ID/selfie.';
+    const input = prompt('Bakit rineject? (hal. malabo ang picture, hindi magkatugma ang ID)');
+  if(input === null) return;   // Cancel = walang mangyayari
+  const reason = input.trim() || 'Malabo o hindi malinaw ang isinumiteng ID/selfie.';
 
 
 

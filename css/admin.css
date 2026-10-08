@@ -840,3 +840,8 @@ textarea.form-control{ resize: vertical; }
 ):is([style*="color:#fff"], [style*="color: #fff"], [style*="color:white"], [style*="color:#ffffff"]){
   color: var(--text-main) !important;
 }
+
+.status-InTransit, .status-Accepted{ background: rgba(0,176,255,0.14); color: var(--blue); }
+.status-Arrived{ background: rgba(255,145,0,0.14); color: var(--orange); }
+.status-Completed{ background: rgba(0,200,83,0.14); color: var(--green); }
+:root[data-theme="light"] [style*="color:#00e5ff"]{ color: var(--cyan) !important; }

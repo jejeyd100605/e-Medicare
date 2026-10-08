@@ -32,8 +32,8 @@ function findDispatchTime(incident){
 }
 
 function renderResponseSummary(){
-  const rows = incidentsCache   // BAGO — totoong Supabase data
-    .filt    .filter(i => i.assigned_at && i.type !== 'Call-in')
+    const rows = incidentsCache
+    .filter(i => i.assigned_at && i.type !== 'Call-in')
     .map(i => ({
       ...i,
       minutes: Math.round((new Date(i.assigned_at) - new Date(i.created_at)) / 60000)
@@ -215,7 +215,8 @@ function toCSV(rows){
   if(rows.length === 0) return '';
   const headers = Object.keys(rows[0]);
   const escape = (val) => {
-    const s = (val === null || val === undefined) ? '' : String(val);
+        let s = (val === null || val === undefined) ? '' : String(val);
+    if(/^[=+\-@]/.test(s)) s = "'" + s;   // iwas CSV formula injection
     return '"' + s.replace(/"/g, '""') + '"';
   };
   const lines = [headers.join(',')];
@@ -226,7 +227,7 @@ function toCSV(rows){
 }
 
 function downloadCSV(filename, csvContent){
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

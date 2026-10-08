@@ -401,7 +401,7 @@
 
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
                         <button type="submit" name="action" value="Approve" class="primary-btn" style="background:#28a745; color:white; flex: 1.2; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✓ Approve & Assign</button>
-                        <button type="submit" name="action" value="Reject" class="primary-btn" style="background:#dc3545; color:white; flex: 1; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✕ Reject</button>
+                        <button type="submit" name="action" value="Reject" formnovalidate class="primary-btn" style="background:#dc3545; color:white; flex: 1; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✕ Reject</button>
                     </div>
                 </form>
             </div>
@@ -509,7 +509,7 @@
 
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
                         <button type="submit" name="action" value="Approve" class="primary-btn" style="background:#28a745; color:white; flex: 1.2; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✓ Approve Request</button>
-                        <button type="submit" name="action" value="Reject" class="primary-btn" style="background:#dc3545; color:white; flex: 1; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✕ Reject</button>
+                        <button type="submit" name="action" value="Reject" formnovalidate class="primary-btn" style="background:#dc3545; color:white; flex: 1; border:none; border-radius:8px; padding:12px; font-weight:600; cursor:pointer;">✕ Reject</button>
                     </div>
                 </form>
             </div>
@@ -650,7 +650,16 @@
 
                     <label style="font-size: 0.8em;">Agency / Unit Name:</label>
                     <input type="text" id="agencyName" class="form-control" placeholder="hal. MDRRMO Bulakan" required>
-
+<label style="font-size: 0.8em;">Category:</label>
+<select id="agencyCategory" class="form-control">
+    <option value="">— Iba pa —</option>
+    <option value="Barangay">Barangay</option>
+    <option value="Fire">Fire (BFP)</option>
+    <option value="Police">Police (PNP)</option>
+    <option value="Hospital">Hospital</option>
+    <option value="DRRMO">DRRMO</option>
+    <option value="NGO">NGO</option>
+</select>
 
                     <label style="font-size: 0.8em;">Contact Person / Office:</label>
                     <input type="text" id="agencyContactPerson" class="form-control" placeholder="hal. MDRRMO Office" required>
@@ -945,11 +954,7 @@
                 <input type="hidden" id="resetTargetId">
 
 
-                <label style="font-size: 0.8em; display: block; margin-bottom: 5px;">Temporary New Password:</label>
-                <input type="password" id="newTempPassword" class="form-control" placeholder="Enter temporary password" required minlength="6">
-
-
-                <p style="font-size: 0.7em; color: var(--gold); margin-top: 5px;">ℹ️ Kailangang palitan ito ng user pagka-login niya sa susunod.</p>
+                               <p style="font-size: 0.8em; color: var(--gold); margin-top: 5px;">ℹ️ Ima-mark ang account na kailangang mag-set ng bagong password sa susunod na login.</p>
 
 
                 <div class="modal-action-grid" style="margin-top: 20px;">
