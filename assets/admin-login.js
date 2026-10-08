@@ -126,12 +126,6 @@ if(error){
                 return;
             }
 
-                        if(profile.active === false){
-                await supabase.auth.signOut({ scope: 'local' });
-                showAdminError('This admin account has been deactivated. Contact another administrator.');
-                return;
-            }
-
             // Password lang ang na-verify. Burahin ang session para
             // OTP na ang magbibigay ng totoong session.
             await supabase.auth.signOut({ scope: 'local' });
