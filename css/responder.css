@@ -1368,3 +1368,73 @@ button, select, input, textarea{
     -webkit-text-fill-color: #141414;   /* para sa Chrome/Safari mobile */
     cursor: default;
 }
+
+/* ---------------- ACTIVE EMERGENCY REQUESTS: white design ---------------- */
+.request-panel{
+    background: #ffffff;
+    border-color: #e3e5e8;
+    color: #1c1f24;
+}
+
+.request-panel .panel-title{
+    color: #1c1f24;
+    border-bottom-color: #e3e5e8;
+}
+
+/* Filter buttons */
+.request-panel .filter-btn{
+    background: #f3f4f6;
+    color: #1c1f24;
+    border-color: #d5d8dd;
+}
+.request-panel .filter-btn.active,
+.request-panel .filter-btn:hover{
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #141414;
+}
+
+/* Request cards */
+.request-panel .incident-list-item{
+    background: #ffffff;
+    color: #1c1f24;
+    border: 1px solid #d5d8dd;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+.request-panel .incident-list-item:hover{
+    background: #fff8d6;
+    border-color: var(--gold);
+}
+.request-panel .incident-list-item .incident-meta{
+    color: #555b66;
+}
+
+/* Selected card */
+.request-panel .incident-list-item.active{
+    background: var(--gold);
+    color: #141414;
+    border-left: 6px solid var(--red);
+}
+.request-panel .incident-list-item.active .incident-meta{
+    color: #141414;
+}
+
+/* Urgent / mine pa rin ang kulay */
+.request-panel .incident-list-item.urgent{
+    box-shadow: inset 0 0 0 2px var(--red);
+}
+.request-panel .incident-list-item.mine{
+    border-left: 4px solid var(--blue);
+}
+
+/* "Assigned to me" badge mas readable sa puti */
+.request-panel .assigned-to-me-badge{
+    background: rgba(0,176,255,.12);
+    color: #007bb8;
+    border-color: #007bb8;
+}
+
+/* Empty state */
+.request-panel .empty-queue{
+    color: #6c727c;
+}
