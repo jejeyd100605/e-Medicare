@@ -1,6 +1,8 @@
 'use strict';
 
 
+
+
 /*
  * e-Medicare responder dashboard — SUPABASE EDITION
  * -------------------------------------------------
@@ -8,7 +10,11 @@
  */
 
 
+
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+
 
 
 const SUPABASE_URL = "https://szxptfuwkmqwcipxpoym.supabase.co";
@@ -16,9 +22,13 @@ const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
+
+
 let CURRENT_RESPONDER = null; // { id (profile id), name, jurisdiction }
 let myFleetRow = null;        // the row in `fleet` linked to this responder
 const FLEET_VEHICLE_TYPES = ['Medical (Full)', 'Transport', 'Rescue/Patrol', 'Auxiliary'];
+
+
 
 
 /* ---------------------------------------------------------
@@ -32,12 +42,16 @@ let respTitleFlashInterval = null;
 let activeSOSId = null;
 
 
+
+
 function playSOSBeep(){
     if(!sosAudioCtx){
         try{ sosAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         catch(e){ console.warn('AudioContext not supported', e); return; }
     }
     if(sosAudioCtx.state === 'suspended') sosAudioCtx.resume();
+
+
 
 
     const now = sosAudioCtx.currentTime;
@@ -55,6 +69,8 @@ function playSOSBeep(){
 }
 
 
+
+
 function startSOSAlertLoop(){
     stopSOSAlertLoop();
     playSOSBeep();
@@ -63,10 +79,14 @@ function startSOSAlertLoop(){
 }
 
 
+
+
 function stopSOSAlertLoop(){
     if(sosBeepInterval){ clearInterval(sosBeepInterval); sosBeepInterval = null; }
     stopRespTitleFlash();
 }
+
+
 
 
 function startRespTitleFlash(){
@@ -81,6 +101,8 @@ function stopRespTitleFlash(){
     if(respTitleFlashInterval){ clearInterval(respTitleFlashInterval); respTitleFlashInterval = null; }
     document.title = respOriginalTitle;
 }
+
+
 
 
 function showSOSBanner(incident){
@@ -101,6 +123,8 @@ function showSOSBanner(incident){
 }
 
 
+
+
 function acknowledgeResponderSOS(){
     stopSOSAlertLoop();
     const banner = document.getElementById('sosAlertBanner');
@@ -113,11 +137,15 @@ function acknowledgeResponderSOS(){
 window.acknowledgeResponderSOS = acknowledgeResponderSOS;
 
 
+
+
 function requestRespNotifPermission(){
     if('Notification' in window && Notification.permission === 'default'){
         Notification.requestPermission();
     }
 }
+
+
 
 
 /* ---------------------------------------------------------
@@ -128,7 +156,11 @@ function showAssignmentNotification(incident){
     const category = incident?.category || 'Emergency Request';
 
 
+
+
     showToast(`📋 Bagong assignment mula sa admin: ${name} — ${category}`);
+
+
 
 
     if('Notification' in window && Notification.permission === 'granted'){
@@ -138,6 +170,8 @@ function showAssignmentNotification(incident){
         n.onclick = () => { window.focus(); n.close(); };
     }
 }
+
+
 
 
 function showBrowserSOSNotificationResp(incident){
@@ -161,13 +195,19 @@ const notifiedAssignments = new Set();   // BAGO — para isang beses lang mag-n
 const locallyCompleted = new Set();   // mga kasong ako mismo ang nag-complete
 
 
+
+
 /* ============================================================
    SESSION CHECK
    ============================================================ */
 
 
+
+
 async function checkResponderSession() {
     const { data: { session } } = await supabase.auth.getSession();
+
+
 
 
     if (!session) {
@@ -176,11 +216,15 @@ async function checkResponderSession() {
     }
 
 
+
+
     const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
+
+
 
 
     if (error || !profile) {
@@ -192,12 +236,16 @@ async function checkResponderSession() {
     }
 
 
+
+
     if (profile.active === false) {
         alert('Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.');
         await supabase.auth.signOut();
         window.location.href = '/pages/login.html';
         return null;
     }
+
+
 
 
     if (profile.role !== 'responder') {
@@ -207,8 +255,12 @@ async function checkResponderSession() {
     }
 
 
+
+
     return profile;
 }
+
+
 
 
 const REQUEST_COLUMN_MAP = {
@@ -234,6 +286,8 @@ const REQUEST_COLUMN_MAP = {
 };
 
 
+
+
 function toDbChanges(changes) {
     const out = {};
     for (const [key, value] of Object.entries(changes)) {
@@ -241,6 +295,8 @@ function toDbChanges(changes) {
     }
     return out;
 }
+
+
 
 
 /* ---------------------------------------------------------
@@ -252,8 +308,12 @@ async function handleCredsSubmit(e){
   const password = document.getElementById('loginPassword').value;
 
 
+
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if(error){ showAuthError('Incorrect email or password.'); return false; }
+
+
 
 
   const { data: profile } = await supabase
@@ -263,10 +323,14 @@ async function handleCredsSubmit(e){
     .single();
 
 
+
+
   if(profile.role === 'admin') window.location.href = '/pages/admin.html';
   else if(profile.role === 'responder') window.location.href = '/pages/responder.html';
   else window.location.href = '/pages/resident.html';
 }
+
+
 
 
 async function loadMyFleetRow(profileId){
@@ -278,6 +342,8 @@ async function loadMyFleetRow(profileId){
     if(error) console.error('Hindi makuha ang fleet row:', error.message);
     return data || null;
 }
+
+
 
 
 async function loadUnassignedFleetOptions(){
@@ -293,11 +359,15 @@ async function loadUnassignedFleetOptions(){
 }
 
 
+
+
 async function selfAssignFleet(fleetId, profileId){
     const { error } = await supabase.from('fleet').update({ profile_id: profileId }).eq('id', fleetId);
     if(error){ alert('Hindi na-link: ' + error.message); return false; }
     return true;
 }
+
+
 
 
 async function promptSelfAssignIfNeeded(profile){
@@ -307,14 +377,20 @@ async function promptSelfAssignIfNeeded(profile){
     if(!unitSelect) return;
 
 
+
+
     if(options.length === 0){
         unitSelect.innerHTML = '<option value="">None</option>';
         return;
     }
 
 
+
+
     unitSelect.innerHTML = '<option value="" disabled selected>Select your unit / personnel entry</option>' +
         options.map(f => `<option value="f.id">{escapeHtml(f.name)} (${escapeHtml(f.type)})</option>`).join('');
+
+
 
 
     unitSelect.onchange = async () => {
@@ -332,18 +408,59 @@ async function promptSelfAssignIfNeeded(profile){
 }
 
 
-function renderUnitHeader(){
+
+
+let preferredVehicleId = '';   // sasakyang pinili sa header habang Available
+
+
+async function renderUnitHeader(){
     const unitSelect = document.getElementById('assignedUnit');
     const statusSelect = document.getElementById('unitStatus');
+
+
     if(myFleetRow && unitSelect){
+        const onDuty = myFleetRow.status === 'On Duty';
         const vehicleMatch = myFleetRow.assigned_to ? myFleetRow.assigned_to.match(/Vehicle:\s*([^,)]+)/) : null;
-        const isVehicleRow = FLEET_VEHICLE_TYPES.includes(myFleetRow.type);
-        const label = vehicleMatch
-            ? `🚑 ${vehicleMatch[1].trim()}`
-            : (isVehicleRow ? `myFleetRow.name({myFleetRow.type})` : 'None');
-        unitSelect.innerHTML = `<option value="myFleetRow.id"selected>{escapeHtml(label)}</option>`;
-        unitSelect.onchange = null;
+        const currentVehicleName = vehicleMatch
+            ? vehicleMatch[1].trim()
+            : (FLEET_VEHICLE_TYPES.includes(myFleetRow.type) ? myFleetRow.name : null);
+
+
+        const { data } = await supabase
+            .from('fleet')
+            .select('id, name, type, status')
+            .in('type', FLEET_VEHICLE_TYPES)
+            .order('name', { ascending: true });
+
+
+        const vehicles = data || [];
+
+
+        unitSelect.innerHTML =
+            (onDuty ? '' : `<option value="" disabled ${preferredVehicleId ? '' : 'selected'}>Pumili ng sasakyan</option>`) +
+            vehicles.map(v => {
+                const isCurrent = onDuty && v.name === currentVehicleName;
+                const busy = v.status !== 'Available' && !isCurrent;
+                const selected = isCurrent || (!onDuty && String(v.id) === String(preferredVehicleId));
+                return `<option value="${v.id}" ${selected ? 'selected' : ''} ${busy ? 'disabled' : ''}>`
+                    + `🚑 escapeHtml(v.name)({escapeHtml(v.type)})`
+                    + `isCurrent?'—Ginagamit':''{busy ? ' — ' + escapeHtml(v.status) : ''}`
+                    + `</option>`;
+            }).join('');
+
+
+        unitSelect.disabled = false;
+        unitSelect.onchange = () => {
+            if(myFleetRow.status === 'On Duty'){
+                showToast('Hindi mapapalitan ang sasakyan habang may aktibong kaso.');
+                renderUnitHeader();
+                return;
+            }
+            preferredVehicleId = unitSelect.value;
+        };
     }
+
+
     if(myFleetRow && statusSelect){
         statusSelect.value = myFleetRow.status;
     }
@@ -366,16 +483,24 @@ function subscribeMyFleetRealtime(){
 }
 
 
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     const profile = await checkResponderSession();
     if(!profile) return;
 
 
+
+
     requestRespNotifPermission();
+
+
 
 
     CURRENT_RESPONDER = { id: profile.id, name: profile.name, jurisdiction: profile.barangay || 'Bambang' };
     myFleetRow = await loadMyFleetRow(profile.id);
+
+
 
 
     if(myFleetRow){
@@ -386,12 +511,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
+
+
     renderAssignedPersonnel();
     bindDashboardEvents();
     updateVehicleMetrics();
     loadData();
     startRealtimeMonitoring();
 });
+
+
 
 
 function bindDashboardEvents() {
@@ -405,13 +534,23 @@ function bindDashboardEvents() {
     });
 
 
+
+
     document.getElementById('crossBarangayToggle')?.addEventListener('change', loadData);
 
 
-    document.getElementById('unitStatus')?.addEventListener('change', event => {
-        if (event.target.disabled) return;
+
+
+   document.getElementById('unitStatus')?.addEventListener('change', event => {
+        if (statusLocked) {
+            event.target.value = myFleetRow?.status || 'On Duty';
+            showToast('Hindi mababago ang status habang may aktibong kaso. Kumpletuhin muna ang Service Record.');
+            return;
+        }
         updateResponderOperationalStatus(event.target.value);
     });
+
+
 
 
     document.getElementById('completionForm')?.addEventListener('submit', saveServiceCompletion);
@@ -419,9 +558,13 @@ function bindDashboardEvents() {
 }
 
 
+
+
 async function renderAssignedPersonnel() {
     const driverNameEl = document.getElementById('driverName');
     const respondersEl = document.getElementById('assignedResponder');
+
+
 
 
     if (!myFleetRow) {
@@ -431,8 +574,12 @@ async function renderAssignedPersonnel() {
     }
 
 
+
+
     const isDriver = myFleetRow.type === 'Driver';
     const notOnDuty = myFleetRow.status !== 'On Duty' || !myFleetRow.assigned_to;
+
+
 
 
     if (notOnDuty) {
@@ -446,8 +593,12 @@ async function renderAssignedPersonnel() {
     }
 
 
+
+
     const driverMatch = myFleetRow.assigned_to.match(/Driver:\s*([^,)]+)/);
     const responderMatch = myFleetRow.assigned_to.match(/Responder:\s*([^,)]+)/);
+
+
 
 
     if (isDriver) {
@@ -466,6 +617,8 @@ async function renderAssignedPersonnel() {
 }
 
 
+
+
 async function updateVehicleMetrics() {
     const { data, error } = await supabase.from('fleet').select('type, status');
     if (error) {
@@ -474,12 +627,18 @@ async function updateVehicleMetrics() {
     }
 
 
+
+
     const fleet = data || [];
     const vehicleTypes = ['Medical (Full)', 'Transport', 'Rescue/Patrol', 'Auxiliary'];
 
 
+
+
     const availableDrivers = fleet.filter(f => f.type === 'Driver' && f.status === 'Available').length;
     const availableVehicles = fleet.filter(f => vehicleTypes.includes(f.type) && f.status === 'Available').length;
+
+
 
 
     const driversEl = document.getElementById('activeDrivers');
@@ -489,7 +648,11 @@ async function updateVehicleMetrics() {
 }
 
 
+
+
 // ---------------- DATA LOADING (Supabase) ----------------
+
+
 
 
 async function loadData() {
@@ -497,11 +660,15 @@ async function loadData() {
     const statuses = await fetchResponderStatuses();
 
 
+
+
      // Isang beses lang: markahan ang mga naka-assign na sa akin bago mag-reload
     if (!window.__assignmentsSeeded && CURRENT_RESPONDER?.id) {
         incidents.filter(isAssignedToMe).forEach(i => notifiedAssignments.add(i.id));
         window.__assignmentsSeeded = true;
     }
+
+
 
 
     const activeIncidents = incidents.filter(isActiveIncident);
@@ -512,17 +679,25 @@ async function loadData() {
     lastCount = activeIncidents.length;
 
 
+
+
     updateMetrics(incidents, statuses);
     applyStatusLock(incidents);
     renderList(incidents);
+
+
 
 
     if (selectedId) renderDetails(incidents);
 }
 
 
+
+
 async function fetchRequestsFromSupabase() {
     const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
+
+
 
 
     let query = supabase.from('emergency_requests')
@@ -532,9 +707,13 @@ async function fetchRequestsFromSupabase() {
         .order('created_at', { ascending: false });
 
 
+
+
     if (!crossBarangay) {
         query = query.eq('jurisdiction', CURRENT_RESPONDER.jurisdiction);
     }
+
+
 
 
     const { data, error } = await query;
@@ -545,8 +724,12 @@ async function fetchRequestsFromSupabase() {
     }
 
 
+
+
     return (data || []).map(normalizeIncident);
 }
+
+
 
 
 async function fetchResponderStatuses() {
@@ -557,14 +740,20 @@ async function fetchResponderStatuses() {
         .eq('active', true);
 
 
+
+
     if (error) {
         console.error('Failed to fetch active responders:', error);
         return [];
     }
 
 
+
+
     return (data || []).map(() => ({ status: 'Available' }));
 }
+
+
 
 
 function normalizeIncident(row) {
@@ -604,16 +793,22 @@ function normalizeIncident(row) {
 }
 
 
+
+
 function isActiveIncident(incident) {
     return !['Resolved', 'Completed', 'Rejected'].includes(incident.status);
 }
+
+
 
 
 function updateMetrics(incidents, statuses) {
     const completed = incidents.filter(item => ['Resolved', 'Completed'].includes(item.status));
     const durations = completed
         .map(item => calculateDurationMinutes(item.acceptedAt, item.completedAt))
-        .filter(Number.isFinite);
+                .filter(m => Number.isFinite(m) && m < 24 * 60);
+
+
 
 
     if (durations.length) {
@@ -623,11 +818,15 @@ function updateMetrics(incidents, statuses) {
 }
 
 
+
+
 function renderList(incidents) {
     const listDiv = document.getElementById('incidentList');
     const countSpan = document.getElementById('count');
     const crossBarangay = document.getElementById('crossBarangayToggle')?.checked;
     const jurisdictionMatch = item => crossBarangay || !CURRENT_RESPONDER?.jurisdiction || item.jurisdiction === CURRENT_RESPONDER.jurisdiction;
+
+
 
 
     // BAGO — "Completed Cases" ay ibang landas, dahil dito talaga
@@ -651,7 +850,11 @@ function renderList(incidents) {
     }
 
 
+
+
     countSpan.textContent = visible.length;
+
+
 
 
     if (!visible.length) {
@@ -660,13 +863,19 @@ function renderList(incidents) {
     }
 
 
+
+
     listDiv.innerHTML = visible.map(incident => {
         const urgent = isUrgent(incident);
         const statusClass = cssStatus(urgent && incident.status === 'Pending' ? 'Urgent' : incident.status);
         const assignedToMe = isAssignedToMe(incident);   // BAGO
 
 
+
+
         const isTransport = incident.type === 'Transpo';
+
+
 
 
         return `
@@ -680,6 +889,8 @@ function renderList(incidents) {
                 </div>
 
 
+
+
                 ${isTransport ? `
                 <div class="assigned-to-me-badge" style="background:#e3f2fd;color:#0d47a1;">
                     <i class="fas fa-user-shield"></i> Assigned by Admin — Transport Request
@@ -691,6 +902,8 @@ function renderList(incidents) {
                 ` : ''}
 
 
+
+
                 <div class="incident-meta">
                     <i class="fas fa-user"></i> ${escapeHtml(incident.patientName)}<br>
                     <i class="fas fa-location-dot"></i> ${escapeHtml(incident.jurisdiction || 'N/A')}<br>
@@ -700,6 +913,8 @@ function renderList(incidents) {
         `;
     }).join('');
 }
+
+
 
 
 // BAGO — itago ang mga request na naka-assign na sa IBANG responder (hindi sa akin).
@@ -714,11 +929,15 @@ function isVisibleToResponder(incident) {
     }
 
 
+
+
     const notYetAssignedStatuses = ['Pending', 'Waiting List', 'Unattended'];
     if (notYetAssignedStatuses.includes(incident.status)) return true;
     if (!incident.assignedResponderId) return true;
     return isAssignedToMe(incident);
 }
+
+
 
 
 function matchesActiveFilter(incident) {
@@ -730,6 +949,8 @@ function matchesActiveFilter(incident) {
     }
     return true;
 }
+
+
 
 
 function compareQueuePriority(a, b) {
@@ -745,8 +966,12 @@ function compareQueuePriority(a, b) {
     };
 
 
+
+
     return score(b) - score(a);
 }
+
+
 
 
 function isUrgent(incident) {
@@ -754,11 +979,15 @@ function isUrgent(incident) {
 }
 
 
+
+
 function isAssignedToMe(incident) {
     if (!CURRENT_RESPONDER?.id) return false;
     return String(incident.assignedResponderId) === String(CURRENT_RESPONDER.id)
         || String(incident.assignedDriverId) === String(CURRENT_RESPONDER.id);
 }
+
+
 
 
 async function selectIncident(id) {
@@ -770,6 +999,8 @@ async function selectIncident(id) {
 }
 // Expose to inline onclick handlers rendered via innerHTML.
 window.selectIncident = selectIncident;
+
+
 
 
 /* ---------------------------------------------------------
@@ -786,8 +1017,12 @@ function scrollDetailPanelIntoView(){
     if(!isMobileLayout) return;
 
 
+
+
     const panel = document.getElementById('detailPanel');
     if(!panel) return;
+
+
 
 
     // Konting delay para siguraduhing na-render na ang bagong content
@@ -799,9 +1034,13 @@ function scrollDetailPanelIntoView(){
 }
 
 
+
+
 function renderDetails(incidents) {
     const detailDiv = document.getElementById('incidentDetails');
     const incident = incidents.find(item => String(item.id) === String(selectedId));
+
+
 
 
     if (!incident) {
@@ -810,7 +1049,11 @@ function renderDetails(incidents) {
     }
 
 
+
+
         currentIncidentPhotos = incident.photoUrls || [];   // BAGO
+
+
 
 
     // I-save muna ang vitals na tinype bago i-render ulit
@@ -825,15 +1068,26 @@ function renderDetails(incidents) {
     detailDiv.dataset.incidentId = String(incident.id);
 
 
-    const mapsUrl = incident.lat && incident.lng
-        ? `https://www.google.com/maps/dir/?api=1&destination=incident.lat,{incident.lng}&travelmode=driving`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${incident.category} ${incident.description}`)}`;
+
+
+   const originPart = (incident.responderLat && incident.responderLng)
+    ? `&origin=incident.responderLat,{incident.responderLng}`
+    : '';
+
+
+const mapsUrl = incident.lat && incident.lng
+    ? `https://www.google.com/maps/dir/?api=1originPart&destination={incident.lat},${incident.lng}&travelmode=driving`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${incident.category} ${incident.description}`)}`;
         
+
+
 
 
     const eta = getCurrentEta(incident);
     const actionHtml = buildActionButtons(incident, mapsUrl);
     const progress = buildProgressHtml(incident);
+
+
 
 
     // Sirain muna nang tama ang lumang Leaflet map instance BAGO burahin
@@ -848,12 +1102,18 @@ function renderDetails(incidents) {
     }
 
 
+
+
     const isTransportRequest = incident.type === 'Transpo';
+
+
 
 
     detailDiv.innerHTML = `
         <div class="incident-summary">
             <h2>${isTransportRequest ? '🚐 Transport Request' : escapeHtml(incident.category)}</h2>
+
+
 
 
             ${isTransportRequest ? `
@@ -863,10 +1123,12 @@ function renderDetails(incidents) {
             ` : ''}
 
 
+
+
             <div class="incident-information-grid">
                 <p><strong><i class="fas fa-user-circle"></i> Patient:</strong><br>
-                    escapeHtml(incident.patientName)({escapeHtml(incident.patientAge)}, ${escapeHtml(incident.patientSex)})
-                </p>
+    escapeHtml(incident.patientName)({escapeHtml(incident.patientAge)}, ${escapeHtml(incident.patientSex)})
+</p>
                 <p><strong><i class="fas fa-phone"></i> Contact No.:</strong><br>
                     ${escapeHtml(incident.patientContact)}
                 </p>
@@ -891,9 +1153,13 @@ function renderDetails(incidents) {
             </div>
 
 
+
+
             <div class="incident-map-wrap" style="margin:14px 0;">
                 <div id="incidentMap" style="height:240px;border-radius:12px;overflow:hidden;border:1px solid #333;"></div>
             </div>
+
+
 
 
             <div class="eta-location-grid">
@@ -902,6 +1168,8 @@ function renderDetails(incidents) {
                     <div class="eta-value">${escapeHtml(eta.label)}</div>
                     <div class="tracking-time">${escapeHtml(eta.updatedLabel)}</div>
                 </div>
+
+
 
 
                 <div class="location-card">
@@ -919,7 +1187,11 @@ function renderDetails(incidents) {
             </div>
 
 
+
+
             ${progress}
+
+
 
 
             <p style="font-weight:bold;margin-bottom:5px;">Report Details:</p>
@@ -927,11 +1199,17 @@ function renderDetails(incidents) {
         </div>
 
 
+
+
         ${actionHtml}
     `;
 
 
+
+
        renderIncidentMap(incident);
+
+
 
 
     // Ibalik ang vitals
@@ -940,6 +1218,8 @@ function renderDetails(incidents) {
         if (el) el.value = value;
     });
 }
+
+
 
 
 /* ---------------------------------------------------------
@@ -951,9 +1231,13 @@ let incidentResponderMarker = null;
 let incidentRouteLine = null;
 
 
+
+
 function renderIncidentMap(incident) {
     const mapContainer = document.getElementById('incidentMap');
     if (!mapContainer) return;
+
+
 
 
     if (!incident.lat || !incident.lng) {
@@ -965,13 +1249,19 @@ function renderIncidentMap(incident) {
     }
 
 
+
+
     incidentMap = L.map(mapContainer, { zoomControl: true }).setView([incident.lat, incident.lng], 16);
+
+
 
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(incidentMap);
+
+
 
 
     const patientIcon = L.divIcon({
@@ -981,13 +1271,19 @@ function renderIncidentMap(incident) {
     });
 
 
+
+
     incidentPatientMarker = L.marker([incident.lat, incident.lng], { icon: patientIcon })
         .addTo(incidentMap)
         .bindPopup(`<b>escapeHtml(incident.patientName)</b><br>{escapeHtml(incident.category)}`)
         .openPopup();
 
 
+
+
     const bounds = [[incident.lat, incident.lng]];
+
+
 
 
     if (incident.responderLat && incident.responderLng) {
@@ -998,9 +1294,13 @@ function renderIncidentMap(incident) {
         });
 
 
+
+
         incidentResponderMarker = L.marker([incident.responderLat, incident.responderLng], { icon: responderIcon })
             .addTo(incidentMap)
             .bindPopup('Responder (Ikaw)');
+
+
 
 
         incidentRouteLine = L.polyline(
@@ -1009,8 +1309,12 @@ function renderIncidentMap(incident) {
         ).addTo(incidentMap);
 
 
+
+
         bounds.push([incident.responderLat, incident.responderLng]);
     }
+
+
 
 
     if (bounds.length > 1) {
@@ -1018,8 +1322,12 @@ function renderIncidentMap(incident) {
     }
 
 
+
+
     setTimeout(() => { if (incidentMap) incidentMap.invalidateSize(); }, 200);
 }
+
+
 
 
 function buildProgressHtml(incident) {
@@ -1029,6 +1337,8 @@ function buildProgressHtml(incident) {
         incident.status === 'Arrived' ? 2 :
         ['Accepted', 'Assigned', 'In Transit'].includes(incident.status) ? 1 :
         -1;
+
+
 
 
     return `
@@ -1041,6 +1351,8 @@ function buildProgressHtml(incident) {
                         step === 'Accepted' ? incident.acceptedAt :
                         step === 'Arrived' ? incident.arrivedAt :
                         step === 'Completed' ? incident.completedAt : null;
+
+
 
 
                     return `
@@ -1062,6 +1374,8 @@ function buildProgressHtml(incident) {
 }
 
 
+
+
 function buildActionButtons(incident, mapsUrl) {
     if (['Pending', 'Waiting List', 'Unattended'].includes(incident.status)) {
         const responderBusy = myFleetRow && myFleetRow.status === 'On Duty';
@@ -1075,6 +1389,8 @@ function buildActionButtons(incident, mapsUrl) {
         }
 
 
+
+
         return `
             <div class="btn-group">
                 <button class="status-btn btn-primary" onclick="acceptAndDeploy()">
@@ -1086,6 +1402,8 @@ function buildActionButtons(incident, mapsUrl) {
             </div>
         `;
     }
+
+
 
 
     // ================= LOCK: may naka-assign na PERO HINDI ako =================
@@ -1102,6 +1420,8 @@ function buildActionButtons(incident, mapsUrl) {
     // ================= END LOCK =================
 
 
+
+
     if (['Accepted', 'Assigned', 'In Transit'].includes(incident.status)) {
         return `
             <div class="quick-sms-area">
@@ -1111,11 +1431,15 @@ function buildActionButtons(incident, mapsUrl) {
             </div>
 
 
+
+
             <div class="vitals-grid">
                 <div><small>BP</small><input type="text" id="v_bp" class="vitals-input" placeholder="120/80"></div>
                 <div><small>HR</small><input type="text" id="v_hr" class="vitals-input" placeholder="85 bpm"></div>
                 <div><small>TEMP</small><input type="text" id="v_temp" class="vitals-input" placeholder="36.5°C"></div>
             </div>
+
+
 
 
             <div class="btn-group">
@@ -1130,6 +1454,8 @@ function buildActionButtons(incident, mapsUrl) {
     }
 
 
+
+
     if (incident.status === 'Arrived') {
         return `
             <div class="quick-sms-area">
@@ -1137,11 +1463,15 @@ function buildActionButtons(incident, mapsUrl) {
             </div>
 
 
+
+
             <div class="vitals-grid">
                 <div><small>BP</small><input type="text" id="v_bp" class="vitals-input" placeholder="120/80"></div>
                 <div><small>HR</small><input type="text" id="v_hr" class="vitals-input" placeholder="85 bpm"></div>
                 <div><small>TEMP</small><input type="text" id="v_temp" class="vitals-input" placeholder="36.5°C"></div>
             </div>
+
+
 
 
             <div class="btn-group">
@@ -1153,6 +1483,8 @@ function buildActionButtons(incident, mapsUrl) {
     }
 
 
+
+
     return `
         <div style="padding:20px;text-align:center;background:#e8f5e9;border:1px solid #2e7d32;border-radius:15px;margin-top:15px;color:#2e7d32;font-weight:bold;">
             ✅ CASE COMPLETED & RECORDED
@@ -1161,11 +1493,17 @@ function buildActionButtons(incident, mapsUrl) {
 }
 
 
+
+
 // ---------------- ACTIONS (write to Supabase) ----------------
+
+
 
 
 let deployOptions = { vehicles: [], partners: [] };
 let deploying = false;
+
+
 
 
 async function acceptAndDeploy() {
@@ -1179,6 +1517,8 @@ async function acceptAndDeploy() {
     }
 
 
+
+
     const { data, error } = await supabase.from('fleet').select('*').eq('status', 'Available');
     if (error) {
         console.error(error);
@@ -1187,7 +1527,9 @@ async function acceptAndDeploy() {
     }
 
 
-    const isDriver = myFleetRow.type === 'Driver';
+
+
+     const isDriver = myFleetRow.type === 'Driver';
     const partnerType = isDriver ? 'Medical Personnel' : 'Driver';
 
 
@@ -1200,13 +1542,20 @@ async function acceptAndDeploy() {
         deployOptions.vehicles.map(f => `<option value="f.id">{escapeHtml(f.name)} (${escapeHtml(f.type)})</option>`).join('');
 
 
+    if (preferredVehicleId) document.getElementById('deployVehicle').value = preferredVehicleId;
+
+
     document.getElementById('deployPartner').innerHTML =
         '<option value="">— Walang kasama —</option>' +
         deployOptions.partners.map(f => `<option value="f.id">{escapeHtml(f.name)}</option>`).join('');
 
 
+
+
     document.getElementById('deployPartnerLabel').textContent =
         isDriver ? 'Responder (Medical Personnel) na kasama mo' : 'Driver na kasama mo';
+
+
 
 
     document.getElementById('deployEta').value = 5;
@@ -1216,11 +1565,15 @@ async function acceptAndDeploy() {
 window.acceptAndDeploy = acceptAndDeploy;
 
 
+
+
 function closeDeployModal() {
     document.getElementById('deployModal').classList.remove('open');
     document.getElementById('deployModal').setAttribute('aria-hidden', 'true');
 }
 window.closeDeployModal = closeDeployModal;
+
+
 
 
 async function confirmDeploy(event) {
@@ -1229,8 +1582,12 @@ async function confirmDeploy(event) {
     deploying = true;
 
 
+
+
     const submitBtn = document.getElementById('deploySubmitBtn');
     submitBtn.disabled = true;
+
+
 
 
     try {
@@ -1239,13 +1596,19 @@ async function confirmDeploy(event) {
         const etaMinutes = Math.max(1, Number.parseInt(document.getElementById('deployEta').value, 10) || 5);
 
 
+
+
         const vehicle = vehicleId ? deployOptions.vehicles.find(f => String(f.id) === String(vehicleId)) : null;
         const partner = partnerId ? deployOptions.partners.find(f => String(f.id) === String(partnerId)) : null;
+
+
 
 
         const isDriver = myFleetRow.type === 'Driver';
         const driverRow = isDriver ? myFleetRow : partner;
         const responderRow = isDriver ? partner : myFleetRow;
+
+
 
 
         const { data: reqData } = await supabase.from('emergency_requests')
@@ -1254,9 +1617,13 @@ async function confirmDeploy(event) {
         if (!incident) { showToast('Hindi na available ang request na ito.'); return; }
 
 
+
+
         const now = new Date().toISOString();
         const assignTag = `${incident.category}, ${incident.patientName}`;
         const teamLabel = [vehicle?.name, driverRow?.name, responderRow?.name].filter(Boolean).join(' + ');
+
+
 
 
         // Parehong format ng admin, para gumana ang regex sa header at personnel
@@ -1269,7 +1636,11 @@ async function confirmDeploy(event) {
         };
 
 
+
+
         notifiedAssignments.add(selectedId);
+
+
 
 
         // 1) I-update ang request
@@ -1287,6 +1658,8 @@ async function confirmDeploy(event) {
         }).eq('id', selectedId);
 
 
+
+
         if (reqError) {
             console.error(reqError);
             showToast('Hindi na-save ang request. Subukang ulit.');
@@ -1294,6 +1667,8 @@ async function confirmDeploy(event) {
         }
         await notifyResident(selectedId, 'Responder On The Way',
             `Tinanggap na ang request mo. Paparating na si/sina ${teamLabel || CURRENT_RESPONDER.name}. ETA: ${etaMinutes} minuto.`);
+
+
 
 
         // 2) Sarili kong fleet row
@@ -1307,6 +1682,8 @@ async function confirmDeploy(event) {
             myFleetRow = meData[0];
             localStorage.setItem('currentResponderStatus', 'On Duty');
         }
+
+
 
 
         // 3) Vehicle at kasama (huwag ipilit kung may nakauna na)
@@ -1324,6 +1701,8 @@ async function confirmDeploy(event) {
         }
 
 
+
+
         // 4) I-notify ang kasama
         if (partner?.profile_id) {
             const { error: notifError } = await supabase.from('notifications').insert({
@@ -1333,6 +1712,8 @@ async function confirmDeploy(event) {
             });
             if (notifError) console.warn('Hindi na-send ang notification:', notifError.message);
         }
+
+
 
 
         closeDeployModal();
@@ -1350,6 +1731,8 @@ async function confirmDeploy(event) {
 }
 
 
+
+
 async function updateStatus(newStatus) {
     await patchSelectedIncident({ status: newStatus });
     showToast(`Request moved to ${newStatus}.`);
@@ -1357,8 +1740,12 @@ async function updateStatus(newStatus) {
 window.updateStatus = updateStatus;
 
 
+
+
 async function markArrived() {
     const now = new Date().toISOString();
+
+
 
 
     await patchSelectedIncident({
@@ -1370,6 +1757,8 @@ async function markArrived() {
     });
 
 
+
+
     stopEtaBroadcast();
     await notifyResident(selectedId, 'Responder Arrived', `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.`);
     showToast('Arrival timestamp recorded and synced live to the resident.');
@@ -1377,13 +1766,19 @@ async function markArrived() {
 window.markArrived = markArrived;
 
 
+
+
 function promptEtaUpdate() {
     const minutes = prompt('New estimated arrival time in minutes:', '5');
     if (minutes === null) return;
 
 
+
+
     const value = Math.max(1, Number.parseInt(minutes, 10) || 5);
     const now = new Date().toISOString();
+
+
 
 
     patchSelectedIncident({
@@ -1398,14 +1793,20 @@ function promptEtaUpdate() {
 window.promptEtaUpdate = promptEtaUpdate;
 
 
+
+
 async function patchSelectedIncident(changes) {
     if (!selectedId) return;
+
+
 
 
     const { error } = await supabase
         .from('emergency_requests')
         .update(toDbChanges(changes))
         .eq('id', selectedId);
+
+
 
 
     if (error) {
@@ -1415,12 +1816,18 @@ async function patchSelectedIncident(changes) {
     }
 
 
+
+
     loadData();
 }
 
 
+
+
 function startLocationTracking(requestId) {
     stopLocationTracking();
+
+
 
 
     if (navigator.geolocation) {
@@ -1441,16 +1848,24 @@ function startLocationTracking(requestId) {
 }
 
 
+
+
 async function startSimulatedLocation(requestId) {
     if (simulatedLocationTimer) return;
+
+
 
 
     const { data } = await supabase.from('emergency_requests').select('*').eq('id', requestId).single();
     const request = data ? normalizeIncident(data) : null;
 
 
+
+
     let lat = request?.responderLat || (request?.lat ? request.lat - 0.018 : 14.5995);
     let lng = request?.responderLng || (request?.lng ? request.lng - 0.016 : 120.9842);
+
+
 
 
     simulatedLocationTimer = setInterval(() => {
@@ -1463,13 +1878,19 @@ async function startSimulatedLocation(requestId) {
         }
 
 
+
+
         sendLocationUpdate(requestId, lat, lng);
     }, 5000);
 }
 
 
+
+
 async function sendLocationUpdate(requestId, latitude, longitude) {
     const now = new Date().toISOString();
+
+
 
 
     const { error } = await supabase
@@ -1482,16 +1903,22 @@ async function sendLocationUpdate(requestId, latitude, longitude) {
         .eq('id', requestId);
 
 
+
+
     if (error) {
         console.error('Failed to push location update:', error);
         return;
     }
 
 
+
+
     if (String(selectedId) === String(requestId)) {
         loadData();
     }
 }
+
+
 
 
 function stopLocationTracking() {
@@ -1501,6 +1928,8 @@ function stopLocationTracking() {
     }
 
 
+
+
     if (simulatedLocationTimer) {
         clearInterval(simulatedLocationTimer);
         simulatedLocationTimer = null;
@@ -1508,10 +1937,14 @@ function stopLocationTracking() {
 }
 
 
+
+
 function startEtaBroadcast() {
     // Hindi na nagsusulat ng ETA kada 15s. Kinukwenta na ng resident
     // ang natitirang oras mula sa eta_minutes at eta_updated_at.
 }
+
+
 
 
 function stopEtaBroadcast() {
@@ -1522,10 +1955,14 @@ function stopEtaBroadcast() {
 }
 
 
+
+
 function getCurrentEta(incident) {
     if (incident.status === 'Arrived') {
         return { minutes: 0, label: 'Arrived', updatedLabel: 'Responder is at the location' };
     }
+
+
 
 
     if (!incident.etaMinutes || !incident.etaUpdatedAt) {
@@ -1537,8 +1974,12 @@ function getCurrentEta(incident) {
     }
 
 
+
+
     const elapsedMinutes = Math.floor((Date.now() - new Date(incident.etaUpdatedAt).getTime()) / 60000);
     const remaining = Math.max(1, incident.etaMinutes - elapsedMinutes);
+
+
 
 
     return {
@@ -1549,9 +1990,13 @@ function getCurrentEta(incident) {
 }
 
 
+
+
 async function notifyResident(requestId, title, message) {
     const { data, error: selError } = await supabase.from('emergency_requests')
         .select('sender_id').eq('id', requestId).single();
+
+
 
 
     if (selError || !data?.sender_id) {
@@ -1561,11 +2006,15 @@ async function notifyResident(requestId, title, message) {
     }
 
 
+
+
     const { error } = await supabase.from('notifications').insert({
         receiver_id: data.sender_id,
         title,
         message
     });
+
+
 
 
     if (error) {
@@ -1577,8 +2026,12 @@ async function notifyResident(requestId, title, message) {
 }
 
 
+
+
 async function sendSMS(message) {
     if (!selectedId) return;
+
+
 
 
     const text =
@@ -1589,10 +2042,14 @@ async function sendSMS(message) {
         message;
 
 
+
+
     const ok = await notifyResident(selectedId, 'Responder Update', text);
     if (ok) showToast(`Resident update sent: "${message}"`);
 }
 window.sendSMS = sendSMS;
+
+
 
 
 // BAGO — ipinapakita ang mga litratong kinunan ng resident gamit ang
@@ -1600,6 +2057,8 @@ window.sendSMS = sendSMS;
 async function openIncidentPhotosModal(){
     const grid = document.getElementById('incidentPhotosGrid');
     const photos = currentIncidentPhotos;
+
+
 
 
     if(photos.length === 0){
@@ -1610,6 +2069,8 @@ async function openIncidentPhotosModal(){
     }
 
 
+
+
     grid.innerHTML = photos.map((_, i) => `
         <div style="width:160px; height:160px; background:#1a1c20; border:1px solid #333; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
             <img id="respIncidentPhoto-${i}" src="" style="display:none; max-width:100%; max-height:100%; object-fit:contain;">
@@ -1618,8 +2079,12 @@ async function openIncidentPhotosModal(){
     `).join('');
 
 
+
+
     document.getElementById('incidentPhotosModal').classList.add('open');
     document.getElementById('incidentPhotosModal').setAttribute('aria-hidden', 'false');
+
+
 
 
     for(let i = 0; i < photos.length; i++){
@@ -1628,14 +2093,20 @@ async function openIncidentPhotosModal(){
             .createSignedUrl(photos[i], 300);
 
 
+
+
         const imgEl = document.getElementById(`respIncidentPhoto-${i}`);
         const emptyEl = document.getElementById(`respIncidentPhotoEmpty-${i}`);
+
+
 
 
         if(error || !data?.signedUrl){
             if(emptyEl) emptyEl.textContent = 'Hindi ma-load ang litrato.';
             continue;
         }
+
+
 
 
         if(imgEl){
@@ -1648,11 +2119,15 @@ async function openIncidentPhotosModal(){
 window.openIncidentPhotosModal = openIncidentPhotosModal;
 
 
+
+
 function closeIncidentPhotosModal(){
     document.getElementById('incidentPhotosModal').classList.remove('open');
     document.getElementById('incidentPhotosModal').setAttribute('aria-hidden', 'true');
 }
 window.closeIncidentPhotosModal = closeIncidentPhotosModal;
+
+
 
 
 function openCompletionModal() {
@@ -1663,11 +2138,15 @@ function openCompletionModal() {
 window.openCompletionModal = openCompletionModal;
 
 
+
+
 function closeCompletionModal() {
     document.getElementById('completionModal').classList.remove('open');
     document.getElementById('completionModal').setAttribute('aria-hidden', 'true');
 }
 window.closeCompletionModal = closeCompletionModal;
+
+
 
 
 async function releaseTeammates() {
@@ -1683,7 +2162,12 @@ async function releaseTeammates() {
 }
 
 
+
+
 // Naka-lock ang status dropdown habang may aktibong kaso na naka-assign sa akin
+let statusLocked = false;
+
+
 function applyStatusLock(incidents) {
     const select = document.getElementById('unitStatus');
     if (!select) return;
@@ -1694,11 +2178,14 @@ function applyStatusLock(incidents) {
     );
 
 
-    select.disabled = hasActiveCase;
+    statusLocked = hasActiveCase;
+    select.disabled = false;
     select.title = hasActiveCase
         ? 'Hindi mababago ang status habang may aktibong kaso. Kumpletuhin muna ang Service Record.'
         : '';
 }
+
+
 
 
 // Kapag ang KASAMA ang nag-complete ng kaso: ihinto ang tracking,
@@ -1709,16 +2196,24 @@ async function handleCaseClosedByTeammate(row) {
     if (locallyCompleted.has(row.id)) return;   // ako mismo ang nag-complete, may sarili nang flow
 
 
+
+
     const mine = String(row.assigned_responder_id) === String(CURRENT_RESPONDER.id)
         || String(row.assigned_driver_id) === String(CURRENT_RESPONDER.id);
     if (!mine) return;
+
+
 
 
     stopLocationTracking();
     stopEtaBroadcast();
 
 
+
+
     if (String(selectedId) === String(row.id)) closeCompletionModal();
+
+
 
 
     if (myFleetRow && myFleetRow.status === 'On Duty') {
@@ -1726,12 +2221,18 @@ async function handleCaseClosedByTeammate(row) {
     }
 
 
+
+
     showToast('Na-complete na ng kasama mo ang kaso. Available ka na ulit.');
 }
 
 
+
+
 async function saveServiceCompletion(event) {
     event.preventDefault();
+
+
 
 
     const { data } = await supabase.from('emergency_requests').select('*').eq('id', selectedId).single();
@@ -1745,8 +2246,12 @@ async function saveServiceCompletion(event) {
     }
 
 
+
+
     const completedAt = new Date().toISOString();
     const durationSeconds = calculateDurationSeconds(incident.acceptedAt || incident.createdAt, completedAt);
+
+
 
 
     const record = {
@@ -1767,6 +2272,8 @@ async function saveServiceCompletion(event) {
     };
 
 
+
+
     const { error: insertError } = await supabase.from('service_records').insert(record);
     if (insertError) {
         console.error('Failed to save service record:', insertError);
@@ -1775,7 +2282,11 @@ async function saveServiceCompletion(event) {
     }
 
 
+
+
     locallyCompleted.add(incident.id);
+
+
 
 
     await patchSelectedIncident({
@@ -1786,16 +2297,23 @@ async function saveServiceCompletion(event) {
     });
 
 
+
+
     stopLocationTracking();
     stopEtaBroadcast();
     await releaseTeammates();   // dapat una ito, bago mawala ang assigned_to ko
     await updateResponderOperationalStatus('Available');
+    preferredVehicleId = '';
+
+
 
 
     closeCompletionModal();
     event.target.reset();
     showToast(`Case completed. Total response duration: ${formatDuration(durationSeconds)}.`);
 }
+
+
 
 
 /* ---------------------------------------------------------
@@ -1806,14 +2324,20 @@ async function updateResponderOperationalStatus(status){
     if(select) select.value = status;
 
 
+
+
     if(!myFleetRow){
         showToast('Wala pang naka-link na unit sa account mo. Piliin muna sa itaas o i-register ka ng admin.');
         return;
     }
 
 
+
+
     const updateData = { status };
     if(status !== 'On Duty') updateData.assigned_to = null;
+
+
 
 
     const { data, error } = await supabase
@@ -1821,6 +2345,8 @@ async function updateResponderOperationalStatus(status){
         .update(updateData)
         .eq('id', myFleetRow.id)
         .select();
+
+
 
 
     if(error){
@@ -1834,13 +2360,19 @@ async function updateResponderOperationalStatus(status){
     }
 
 
+
+
     myFleetRow.status = status;
     localStorage.setItem('currentResponderStatus', status);
     updateVehicleMetrics();
 }
 
 
+
+
 // ---------------- REALTIME ----------------
+
+
 
 
 function startRealtimeMonitoring() {
@@ -1854,10 +2386,14 @@ function startRealtimeMonitoring() {
             }
 
 
+
+
             const newlyAssignedToMe =
                 CURRENT_RESPONDER?.id &&
                 payload.new?.assigned_responder_id === CURRENT_RESPONDER.id &&
                 !notifiedAssignments.has(payload.new.id);
+
+
 
 
             if (newlyAssignedToMe) {
@@ -1868,12 +2404,18 @@ function startRealtimeMonitoring() {
             }
 
 
+
+
             handleCaseClosedByTeammate(payload.new);
+
+
 
 
             loadData();
         })
         .subscribe();
+
+
 
 
     supabase
@@ -1883,6 +2425,8 @@ function startRealtimeMonitoring() {
             renderAssignedPersonnel();
         })
         .subscribe();
+
+
 
 
     if (CURRENT_RESPONDER?.id) {
@@ -1899,11 +2443,17 @@ function startRealtimeMonitoring() {
     }
 
 
+
+
     safetyPollTimer = setInterval(loadData, 30000);
 }
 
 
+
+
 // ---------------- MISC / UTILITIES ----------------
+
+
 
 
 function playAlertSound() {
@@ -1914,9 +2464,13 @@ function playAlertSound() {
         const gain = audioContext.createGain();
 
 
+
+
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
         gain.gain.setValueAtTime(0.22, audioContext.currentTime);
+
+
 
 
         oscillator.connect(gain);
@@ -1929,11 +2483,15 @@ function playAlertSound() {
 }
 
 
+
+
 function playAssignmentNotificationSound(){
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioContext = new AudioContext();
         const now = audioContext.currentTime;
+
+
 
 
         const playTone = (freq, startOffset, duration) => {
@@ -1950,12 +2508,16 @@ function playAssignmentNotificationSound(){
         };
 
 
+
+
         playTone(1046.5, 0, 0.25);   // C6
         playTone(783.99, 0.18, 0.35); // G5
     } catch {
         // Browsers may block audio until the first user interaction.
     }
 }
+
+
 
 
 function showToast(message) {
@@ -1967,8 +2529,12 @@ function showToast(message) {
 }
 
 
+
+
 function logout() {
     console.log("Logout clicked");
+
+
 
 
     if (confirm("Logout Confirmation: Are you sure you want to log out?")) {
@@ -1976,7 +2542,11 @@ function logout() {
         stopEtaBroadcast();
 
 
+
+
         if (safetyPollTimer) clearInterval(safetyPollTimer);
+
+
 
 
         supabase.auth.signOut().then(() => {
@@ -1986,7 +2556,11 @@ function logout() {
 }
 
 
+
+
 window.logout = logout;
+
+
 
 
 function calculateDurationSeconds(start, end) {
@@ -1995,10 +2569,14 @@ function calculateDurationSeconds(start, end) {
 }
 
 
+
+
 function calculateDurationMinutes(start, end) {
     if (!start || !end) return NaN;
     return calculateDurationSeconds(start, end) / 60;
 }
+
+
 
 
 function formatDuration(totalSeconds) {
@@ -2006,6 +2584,8 @@ function formatDuration(totalSeconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
+
+
 
 
     return [
@@ -2016,14 +2596,20 @@ function formatDuration(totalSeconds) {
 }
 
 
+
+
 function formatDateTime(value) {
     return new Date(value).toLocaleString();
 }
 
 
+
+
 function formatShortTime(value) {
     return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
+
+
 
 
 function toNullableNumber(value) {
@@ -2033,9 +2619,13 @@ function toNullableNumber(value) {
 }
 
 
+
+
 function cssStatus(status) {
     return String(status).toLowerCase().replace(/\s+/g, '');
 }
+
+
 
 
 function escapeHtml(value) {
@@ -2048,7 +2638,15 @@ function escapeHtml(value) {
 }
 
 
+
+
 document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+
+
+
+
+
 
 
 
