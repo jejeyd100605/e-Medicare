@@ -116,7 +116,7 @@ function showSOSBanner(incident){
     }
     const name = incident?.patient_name || incident?.sender?.name || 'A resident';
     banner.innerHTML = `
-        <div style="font-weight:700;">🚨 SOS PANIC BUTTON — escapeHtml(name)needshelpNOW({escapeHtml(incident.category || 'Emergency')})</div>
+        <div style="font-weight:700;">🚨 SOS PANIC BUTTON — ${escapeHtml(name)} needs help NOW (${escapeHtml(incident.category || 'Emergency')})</div>
         <button onclick="acknowledgeResponderSOS()" style="background:#ff4d4d;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;">Acknowledge</button>
     `;
     banner.style.display = 'flex';
@@ -362,8 +362,17 @@ async function loadUnassignedFleetOptions(){
 
 
 async function selfAssignFleet(fleetId, profileId){
-    const { error } = await supabase.from('fleet').update({ profile_id: profileId }).eq('id', fleetId);
+    const { data, error } = await supabase
+        .from('fleet')
+        .update({ profile_id: profileId })
+        .eq('id', fleetId)
+        .is('profile_id', null)
+        .select();
     if(error){ alert('Hindi na-link: ' + error.message); return false; }
+    if(!data || data.length === 0){
+        alert('May ibang user na ang nag-link sa unit na ito. Pumili ng iba.');
+        return false;
+    }
     return true;
 }
 
@@ -388,8 +397,7 @@ async function promptSelfAssignIfNeeded(profile){
 
 
     unitSelect.innerHTML = '<option value="" disabled selected>Select your unit / personnel entry</option>' +
-        options.map(f => `<option value="f.id">{escapeHtml(f.name)} (${escapeHtml(f.type)})</option>`).join('');
-
+        options.map(f => `<option value="${f.id}">${escapeHtml(f.name)} (${escapeHtml(f.type)})</option>`).join('');
 
 
 
@@ -417,49 +425,36 @@ async function renderUnitHeader(){
     const unitSelect = document.getElementById('assignedUnit');
     const statusSelect = document.getElementById('unitStatus');
 
-
     if(myFleetRow && unitSelect){
         const onDuty = myFleetRow.status === 'On Duty';
-        const vehicleMatch = myFleetRow.assigned_to ? myFleetRow.assigned_to.match(/Vehicle:\s*([^,)]+)/) : null;
-        const currentVehicleName = vehicleMatch
-            ? vehicleMatch[1].trim()
-            : (FLEET_VEHICLE_TYPES.includes(myFleetRow.type) ? myFleetRow.name : null);
 
+        // Kunin ang pangalan ng sasakyan mula sa assigned_to
+        // (galing man sa admin o sa pinili mo sa Accept & Deploy)
+        const vehicleMatch = myFleetRow.assigned_to
+            ? myFleetRow.assigned_to.match(/Vehicle:\s*([^,)]+)/)
+            : null;
 
-        const { data } = await supabase
-            .from('fleet')
-            .select('id, name, type, status')
-            .in('type', FLEET_VEHICLE_TYPES)
-            .order('name', { ascending: true });
+        let vehicleName = null;
+        if(onDuty){
+            vehicleName = vehicleMatch
+                ? vehicleMatch[1].trim()
+                : (FLEET_VEHICLE_TYPES.includes(myFleetRow.type) ? myFleetRow.name : null);
+        }
 
+        const label = vehicleName ? `🚑 ${vehicleName}` : 'None';
 
-        const vehicles = data || [];
+        // Isang option lang, at hindi na mapipindot
+        unitSelect.innerHTML = '';
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = label;
+        unitSelect.appendChild(opt);
 
-
-        unitSelect.innerHTML =
-            (onDuty ? '' : `<option value="" disabled ${preferredVehicleId ? '' : 'selected'}>Pumili ng sasakyan</option>`) +
-            vehicles.map(v => {
-                const isCurrent = onDuty && v.name === currentVehicleName;
-                const busy = v.status !== 'Available' && !isCurrent;
-                const selected = isCurrent || (!onDuty && String(v.id) === String(preferredVehicleId));
-                return `<option value="${v.id}" ${selected ? 'selected' : ''} ${busy ? 'disabled' : ''}>`
-                    + `🚑 escapeHtml(v.name)({escapeHtml(v.type)})`
-                    + `isCurrent?'—Ginagamit':''{busy ? ' — ' + escapeHtml(v.status) : ''}`
-                    + `</option>`;
-            }).join('');
-
-
-        unitSelect.disabled = false;
-        unitSelect.onchange = () => {
-            if(myFleetRow.status === 'On Duty'){
-                showToast('Hindi mapapalitan ang sasakyan habang may aktibong kaso.');
-                renderUnitHeader();
-                return;
-            }
-            preferredVehicleId = unitSelect.value;
-        };
+        unitSelect.disabled = true;
+        unitSelect.onchange = null;
+        unitSelect.style.appearance = 'none';   // tinatanggal ang arrow ng dropdown
+        unitSelect.style.webkitAppearance = 'none';
     }
-
 
     if(myFleetRow && statusSelect){
         statusSelect.value = myFleetRow.status;
@@ -879,8 +874,8 @@ function renderList(incidents) {
 
 
         return `
-            <div class="incident-list-item ${selectedId === incident.id ? 'active' : ''} ${urgent ? 'urgent' : ''} ${assignedToMe ? 'mine' : ''}"
-                 onclick="selectIncident(${JSON.stringify(incident.id)})">
+            <div class="incident-list-item ${String(selectedId) === String(incident.id) ? 'active' : ''} ${urgent ? 'urgent' : ''} ${assignedToMe ? 'mine' : ''}"
+                 onclick="selectIncident('${escapeHtml(incident.id)}')">
                 <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
                     <strong>${isTransport ? '🚐 Transport Request' : escapeHtml(incident.category)}</strong>
                     <span class="status-pill status-${statusClass}">
@@ -1070,15 +1065,13 @@ function renderDetails(incidents) {
 
 
 
-   const originPart = (incident.responderLat && incident.responderLng)
-    ? `&origin=incident.responderLat,{incident.responderLng}`
-    : '';
+      const originPart = (incident.responderLat && incident.responderLng)
+        ? `&origin=${incident.responderLat},${incident.responderLng}`
+        : '';
 
-
-const mapsUrl = incident.lat && incident.lng
-    ? `https://www.google.com/maps/dir/?api=1originPart&destination={incident.lat},${incident.lng}&travelmode=driving`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${incident.category} ${incident.description}`)}`;
-        
+    const mapsUrl = incident.lat && incident.lng
+        ? `https://www.google.com/maps/dir/?api=1${originPart}&destination=${incident.lat},${incident.lng}&travelmode=driving`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${incident.category} ${incident.description}`)}`;
 
 
 
@@ -1127,7 +1120,7 @@ const mapsUrl = incident.lat && incident.lng
 
             <div class="incident-information-grid">
                 <p><strong><i class="fas fa-user-circle"></i> Patient:</strong><br>
-    escapeHtml(incident.patientName)({escapeHtml(incident.patientAge)}, ${escapeHtml(incident.patientSex)})
+        ${escapeHtml(incident.patientName)} (${escapeHtml(incident.patientAge)}, ${escapeHtml(incident.patientSex)})
 </p>
                 <p><strong><i class="fas fa-phone"></i> Contact No.:</strong><br>
                     ${escapeHtml(incident.patientContact)}
@@ -1275,7 +1268,7 @@ function renderIncidentMap(incident) {
 
     incidentPatientMarker = L.marker([incident.lat, incident.lng], { icon: patientIcon })
         .addTo(incidentMap)
-        .bindPopup(`<b>escapeHtml(incident.patientName)</b><br>{escapeHtml(incident.category)}`)
+        .bindPopup(`<b>${escapeHtml(incident.patientName)}</b><br>${escapeHtml(incident.category)}`)
         .openPopup();
 
 
@@ -1539,7 +1532,7 @@ async function acceptAndDeploy() {
 
     document.getElementById('deployVehicle').innerHTML =
         '<option value="">— Walang vehicle —</option>' +
-        deployOptions.vehicles.map(f => `<option value="f.id">{escapeHtml(f.name)} (${escapeHtml(f.type)})</option>`).join('');
+        deployOptions.vehicles.map(f => `<option value="${f.id}">${escapeHtml(f.name)} (${escapeHtml(f.type)})</option>`).join('');
 
 
     if (preferredVehicleId) document.getElementById('deployVehicle').value = preferredVehicleId;
@@ -1547,7 +1540,7 @@ async function acceptAndDeploy() {
 
     document.getElementById('deployPartner').innerHTML =
         '<option value="">— Walang kasama —</option>' +
-        deployOptions.partners.map(f => `<option value="f.id">{escapeHtml(f.name)}</option>`).join('');
+        deployOptions.partners.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
 
 
 
@@ -1644,7 +1637,7 @@ async function confirmDeploy(event) {
 
 
         // 1) I-update ang request
-        const { error: reqError } = await supabase.from('emergency_requests').update({
+                const { data: reqRows, error: reqError } = await supabase.from('emergency_requests').update({
             status: 'In Transit',
             assigned_to: teamLabel || `Self-accepted: ${CURRENT_RESPONDER.name}`,
             assigned_responder_id: responderRow?.profile_id || CURRENT_RESPONDER.id,
@@ -1654,15 +1647,21 @@ async function confirmDeploy(event) {
             assigned_at: now,
             eta_minutes: etaMinutes,
             eta: `${etaMinutes} mins`,
-            eta_updated_at: now
-        }).eq('id', selectedId);
-
-
-
+                       eta_updated_at: now
+        }).eq('id', selectedId)
+          .in('status', ['Pending', 'Waiting List', 'Unattended'])
+          .select();
 
         if (reqError) {
             console.error(reqError);
             showToast('Hindi na-save ang request. Subukang ulit.');
+            return;
+        }
+
+        if (!reqRows || reqRows.length === 0) {
+            showToast('May ibang responder na ang tumanggap sa request na ito.');
+            closeDeployModal();
+            loadData();
             return;
         }
         await notifyResident(selectedId, 'Responder On The Way',
@@ -1708,7 +1707,7 @@ async function confirmDeploy(event) {
             const { error: notifError } = await supabase.from('notifications').insert({
                 receiver_id: partner.profile_id,
                 title: 'New Dispatch Assignment',
-                message: `Na-assign ka ni ${CURRENT_RESPONDER.name} sa incident.category({incident.patientName}).`
+                message: `Na-assign ka ni ${CURRENT_RESPONDER.name} sa ${incident.category} (${incident.patientName}).`
             });
             if (notifError) console.warn('Hindi na-send ang notification:', notifError.message);
         }
@@ -1743,24 +1742,21 @@ window.updateStatus = updateStatus;
 
 
 async function markArrived() {
+    const id = selectedId;
+    if (!id) return;
     const now = new Date().toISOString();
 
-
-
-
-    await patchSelectedIncident({
+    const ok = await patchSelectedIncident({
         status: 'Arrived',
         arrivedAt: now,
         etaMinutes: 0,
         eta: 'Arrived',
         etaUpdatedAt: now
-    });
-
-
-
+    }, id);
+    if (!ok) return;
 
     stopEtaBroadcast();
-    await notifyResident(selectedId, 'Responder Arrived', `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.`);
+    await notifyResident(id, 'Responder Arrived', `Dumating na si ${CURRENT_RESPONDER.name} sa lokasyon mo.`);
     showToast('Arrival timestamp recorded and synced live to the resident.');
 }
 window.markArrived = markArrived;
@@ -1769,24 +1765,22 @@ window.markArrived = markArrived;
 
 
 function promptEtaUpdate() {
+    const id = selectedId;
+    if (!id) return;
+
     const minutes = prompt('New estimated arrival time in minutes:', '5');
     if (minutes === null) return;
 
-
-
-
     const value = Math.max(1, Number.parseInt(minutes, 10) || 5);
     const now = new Date().toISOString();
-
-
-
 
     patchSelectedIncident({
         etaMinutes: value,
         eta: `${value} mins`,
         etaUpdatedAt: now
-    }).then(async () => {
-        await notifyResident(selectedId, 'ETA Updated', `Bagong ETA ng responder: ${value} minuto.`);
+    }, id).then(async (ok) => {
+        if (!ok) return;
+        await notifyResident(id, 'ETA Updated', `Bagong ETA ng responder: ${value} minuto.`);
         showToast('Updated ETA sent to the resident.');
     });
 }
@@ -1795,56 +1789,48 @@ window.promptEtaUpdate = promptEtaUpdate;
 
 
 
-async function patchSelectedIncident(changes) {
-    if (!selectedId) return;
-
-
-
+async function patchSelectedIncident(changes, targetId = selectedId) {
+    if (!targetId) return false;
 
     const { error } = await supabase
         .from('emergency_requests')
         .update(toDbChanges(changes))
-        .eq('id', selectedId);
-
-
-
+        .eq('id', targetId);
 
     if (error) {
         console.error('Failed to update request in Supabase:', error);
         showToast('Hindi na-save sa Supabase. Subukang ulit.');
-        return;
+        return false;
     }
 
-
-
-
     loadData();
+    return true;
 }
-
 
 
 
 function startLocationTracking(requestId) {
     stopLocationTracking();
 
-
-
-
-    if (navigator.geolocation) {
-        locationWatchId = navigator.geolocation.watchPosition(
-            position => {
-                sendLocationUpdate(
-                    requestId,
-                    position.coords.latitude,
-                    position.coords.longitude
-                );
-            },
-            () => startSimulatedLocation(requestId),
-            { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 }
-        );
-    } else {
-        startSimulatedLocation(requestId);
+    if (!navigator.geolocation) {
+        showToast('Hindi suportado ng device na ito ang GPS.');
+        return;
     }
+
+    locationWatchId = navigator.geolocation.watchPosition(
+        position => {
+            sendLocationUpdate(
+                requestId,
+                position.coords.latitude,
+                position.coords.longitude
+            );
+        },
+        error => {
+            console.warn('GPS error:', error.message);
+            showToast('Hindi makuha ang GPS mo. Buksan ang Location permission sa browser.');
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 }
+    );
 }
 
 
@@ -2232,6 +2218,10 @@ async function handleCaseClosedByTeammate(row) {
 async function saveServiceCompletion(event) {
     event.preventDefault();
 
+    // Basahin agad ang vitals bago ang anumang await
+    const vitalsBp   = document.getElementById('v_bp')?.value.trim()   || null;
+    const vitalsHr   = document.getElementById('v_hr')?.value.trim()   || null;
+    const vitalsTemp = document.getElementById('v_temp')?.value.trim() || null;
 
 
 
@@ -2263,7 +2253,10 @@ async function saveServiceCompletion(event) {
         patient_outcome: document.getElementById('patientOutcome').value,
         clinical_observations: document.getElementById('clinicalObservations').value.trim(),
         follow_up_quote: document.getElementById('followUpQuote').value.trim(),
-        receiving_facility: document.getElementById('receivingFacility').value.trim(),
+               receiving_facility: document.getElementById('receivingFacility').value.trim(),
+        vitals_bp: vitalsBp,
+        vitals_hr: vitalsHr,
+        vitals_temp: vitalsTemp,
         accepted_at: incident.acceptedAt,
         arrived_at: incident.arrivedAt,
         completed_at: completedAt,
@@ -2289,13 +2282,17 @@ async function saveServiceCompletion(event) {
 
 
 
-    await patchSelectedIncident({
+       const patched = await patchSelectedIncident({
         status: 'Completed',
         completedAt,
         responseDurationSeconds: durationSeconds,
         responseDurationLabel: formatDuration(durationSeconds)
-    });
+    }, incident.id);
 
+    if (!patched) {
+        locallyCompleted.delete(incident.id);
+        return;   // huwag ituloy ang release/Available kung pumalya
+    }
 
 
 
@@ -2398,7 +2395,6 @@ function startRealtimeMonitoring() {
 
             if (newlyAssignedToMe) {
                 notifiedAssignments.add(payload.new.id);
-                selectedId = payload.new.id;
                 playAssignmentNotificationSound();
                 showAssignmentNotification(payload.new);
             }
