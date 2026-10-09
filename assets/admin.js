@@ -160,6 +160,11 @@ let trackingRouteLine = null;
     function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
     function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
     function nowISO(){ return new Date().toISOString(); }
+    function esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, c => (
+        {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+    ));
+}
     // Iwas double-submit: i-disable muna ang button na pinindot
     function guardSubmit(e){
         const b = e && e.submitter;
