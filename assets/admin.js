@@ -544,8 +544,6 @@ function initRoleBadge(profile){
   if(String(profile.role || '').trim().toLowerCase() === 'admin'){
     const usersBtn = document.getElementById('btn-users');
     if(usersBtn) usersBtn.style.display = 'inline-block';
-    const mutualAidBtn = document.getElementById('btn-mutual-aid');
-    if(mutualAidBtn) mutualAidBtn.style.display = 'inline-block';
   }
 }
 
