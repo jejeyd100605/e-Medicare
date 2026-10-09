@@ -24,7 +24,10 @@ let medicalRequestsCache = [];
 let serviceRecordsCache = []; // BAGO — mula sa 'service_records' table (Responder's Service Completion Record)
 let activeIncidentId = null;
 let responderProfilesCache = [];
-
+const PANEL_LIMIT = 5;
+const trackerSearch = { incident: '', request: '', transpo: '' };
+let trackerModalQuery = '';
+let activeTrackerKey = null;
 
 
 /* ---------------------------------------------------------
@@ -1829,39 +1832,7 @@ function closeIncidentPhotosModal(){
 
 
 
-    function renderDocumentationHistory(){
-    const wrap = document.getElementById('incidentHistoryList');
-    if(!wrap) return;
-    const resolved = incidentsCache
-        .filter(i => TERMINAL_INCIDENT_STATUSES.includes(i.status))
-        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-
-
-
-    const badge = document.getElementById('historyCountBadge');
-    badge && (badge.textContent = resolved.length + ' Records');
-
-
-
-    if(resolved.length === 0){
-        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No resolved incidents yet.</div>';
-        return;
-    }
-    wrap.innerHTML = resolved.slice(0,5).map(i => {
-        const callerName = i.sender ? i.sender.name : 'Unknown Resident';
-        return `
-        <div class="fleet-quick-row" onclick="viewIncidentHistoryDetail('${i.id}')" style="cursor:pointer;">
-        <div>
-            <div class="fleet-quick-name">${i.category || i.type}</div>
-            <div class="fleet-quick-type">${callerName} · ${timeAgo(i.created_at)}</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-            <span class="status-pill ${statusClass(i.status)}">${i.status}</span>
-            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printIncidentRecordFromHistory('${i.id}')">🖨️</button>
-        </div>
-        </div>
-    `;}).join('');
-    }
+   function renderDocumentationHistory(){ renderTrackerPanel('incident'); }
 
 
 
@@ -2517,37 +2488,7 @@ function closeIncidentPhotosModal(){
 
 
 
-    function renderRequestHistory(){
-    const wrap = document.getElementById('requestHistoryList');
-    if(!wrap) return;
-    const completed = medicalRequestsCache
-        .filter(r => TERMINAL_REQUEST_STATUSES.includes(r.status))
-        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-
-
-
-    const badge = document.getElementById('requestHistoryCountBadge');
-    badge && (badge.textContent = completed.length + ' Records');
-
-
-
-    if(completed.length === 0){
-        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No completed assistance cases yet.</div>';
-        return;
-    }
-    wrap.innerHTML = completed.slice(0,5).map(r => `
-        <div class="fleet-quick-row" onclick="viewRequestHistoryDetail('${r.id}')" style="cursor:pointer;">
-        <div>
-            <div class="fleet-quick-name">${r.resident_name}</div>
-            <div class="fleet-quick-type">${r.category} · ${timeAgo(r.created_at)}</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-            <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
-            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printRequestRecord('${r.id}')">🖨️</button>
-        </div>
-        </div>
-    `).join('');
-    }
+   function renderRequestHistory(){ renderTrackerPanel('request'); }
 
 
 
@@ -2932,41 +2873,7 @@ async function handleTranspoEvaluation(e){
 
 
 
-    function renderTranspoHistory(){
-    const wrap = document.getElementById('transpoHistoryList');
-    if(!wrap) return;
-    const completed = transpoCache
-        .filter(r => TERMINAL_TRANSPO_STATUSES.includes(r.status))
-        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-
-
-
-    const badge = document.getElementById('transpoHistoryCountBadge');
-    badge && (badge.textContent = completed.length + ' Records');
-
-
-
-    if(completed.length === 0){
-        wrap.innerHTML = '<div class="empty-state" style="padding:12px;">No completed transport records yet.</div>';
-        return;
-    }
-
-    wrap.innerHTML = completed.slice(0,5).map(r => {
-        const driver = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
-        return `
-        <div class="fleet-quick-row" onclick="viewTranspoHistoryDetail('${r.id}')" style="cursor:pointer;">
-        <div>
-            <div class="fleet-quick-name">${r.patient_name}</div>
-            <div class="fleet-quick-type">${r.pickup_location} → ${r.destination} · ${timeAgo(r.created_at)}</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-            <span class="status-pill ${statusClass(r.status)}">${r.status}</span>
-            <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printTranspoRecord('${r.id}')">🖨️</button>
-        </div>
-        </div>
-    `;}).join('');
-    }
-
+    function renderTranspoHistory(){ renderTrackerPanel('transpo'); }
 
 
     function viewTranspoHistoryDetail(id){
@@ -3876,5 +3783,199 @@ function subscribeProfilesRealtime(){
     switchTab('dashboard');
 });
 
+/* ============================================================
+   DOCUMENTATION TRACKERS — search bar + "View all" modal
+   (Incident, Assistance, Transport)
+   ============================================================ */
+function matchesSearch(q, fields){
+    if(!q) return true;
+    const hay = fields.map(f => String(f ?? '')).join(' ').toLowerCase();
+    return q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
 
+const TRACKERS = {
+    incident: {
+        title: '📜 Documentation Tracker — All Records',
+        wrapId: 'incidentHistoryList',
+        badgeId: 'historyCountBadge',
+        empty: 'No resolved incidents yet.',
+        getAll: () => incidentsCache
+            .filter(i => TERMINAL_INCIDENT_STATUSES.includes(i.status))
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+        searchText: i => [i.category, i.type, i.sender?.name, i.patient_name, i.status, i.description, i.assigned_to, fmtTime(i.created_at)],
+        rowHTML: i => `
+            <div class="fleet-quick-row" onclick="viewIncidentHistoryDetail('${i.id}')" style="cursor:pointer;">
+                <div>
+                    <div class="fleet-quick-name">${esc(i.category || i.type)}</div>
+                    <div class="fleet-quick-type">${esc(i.sender ? i.sender.name : 'Unknown Resident')} · ${timeAgo(i.created_at)}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="status-pill ${statusClass(i.status)}">${esc(i.status)}</span>
+                    <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printIncidentRecordFromHistory('${i.id}')">🖨️</button>
+                </div>
+            </div>`
+    },
+    request: {
+        title: '💰 Assistance Records — All Records',
+        wrapId: 'requestHistoryList',
+        badgeId: 'requestHistoryCountBadge',
+        empty: 'No completed assistance cases yet.',
+        getAll: () => medicalRequestsCache
+            .filter(r => TERMINAL_REQUEST_STATUSES.includes(r.status))
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+        searchText: r => [r.resident_name, r.category, r.status, r.purpose, r.priority, r.admin_notes, fmtTime(r.created_at)],
+        rowHTML: r => `
+            <div class="fleet-quick-row" onclick="viewRequestHistoryDetail('${r.id}')" style="cursor:pointer;">
+                <div>
+                    <div class="fleet-quick-name">${esc(r.resident_name)}</div>
+                    <div class="fleet-quick-type">${esc(r.category)} · ${timeAgo(r.created_at)}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="status-pill ${statusClass(r.status)}">${esc(r.status)}</span>
+                    <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printRequestRecord('${r.id}')">🖨️</button>
+                </div>
+            </div>`
+    },
+    transpo: {
+        title: '🚐 Transport Records — All Records',
+        wrapId: 'transpoHistoryList',
+        badgeId: 'transpoHistoryCountBadge',
+        empty: 'No completed transport records yet.',
+        getAll: () => transpoCache
+            .filter(r => TERMINAL_TRANSPO_STATUSES.includes(r.status))
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+        searchText: r => [r.patient_name, r.pickup_location, r.destination, r.status, r.transport_type, r.admin_notes, fmtTime(r.created_at)],
+        rowHTML: r => `
+            <div class="fleet-quick-row" onclick="viewTranspoHistoryDetail('${r.id}')" style="cursor:pointer;">
+                <div>
+                    <div class="fleet-quick-name">${esc(r.patient_name)}</div>
+                    <div class="fleet-quick-type">${esc(r.pickup_location)} → ${esc(r.destination)} · ${timeAgo(r.created_at)}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="status-pill ${statusClass(r.status)}">${esc(r.status)}</span>
+                    <button class="primary-btn" style="background:#333;color:#eee;font-size:.68em;padding:4px 8px;" onclick="event.stopPropagation(); printTranspoRecord('${r.id}')">🖨️</button>
+                </div>
+            </div>`
+    }
+};
+
+/* ---------- Search bar + View all button sa loob ng panel ---------- */
+function ensureTrackerToolbar(key, wrap){
+    if(document.getElementById('trackerToolbar-' + key)) return;
+    const bar = document.createElement('div');
+    bar.id = 'trackerToolbar-' + key;
+    bar.style.cssText = 'display:flex; gap:6px; margin-bottom:8px;';
+    bar.innerHTML = `
+        <input type="text" class="form-control" placeholder="🔍 Search..."
+               style="flex:1; min-width:0; font-size:.8em; padding:6px 10px;"
+               oninput="onTrackerSearch('${key}', this.value)">
+        <button type="button" id="trackerViewAll-${key}" class="primary-btn"
+                style="background:#333;color:#eee;font-size:.72em;padding:6px 10px;white-space:nowrap;"
+                onclick="openTrackerModal('${key}')">📂 View all</button>`;
+    wrap.parentNode.insertBefore(bar, wrap);
+}
+
+function onTrackerSearch(key, value){
+    trackerSearch[key] = value;
+    renderTrackerPanel(key);
+}
+
+function renderTrackerPanel(key){
+    const t = TRACKERS[key];
+    const wrap = document.getElementById(t.wrapId);
+    if(!wrap) return;
+    ensureTrackerToolbar(key, wrap);
+
+    const all = t.getAll();
+    const badge = document.getElementById(t.badgeId);
+    badge && (badge.textContent = all.length + ' Records');
+
+    const q = trackerSearch[key];
+    const matched = all.filter(x => matchesSearch(q, t.searchText(x)));
+
+    if(all.length === 0){
+        wrap.innerHTML = `<div class="empty-state" style="padding:12px;">${t.empty}</div>`;
+    } else if(matched.length === 0){
+        wrap.innerHTML = `<div class="empty-state" style="padding:12px;">Walang tugma para sa "${esc(q)}".</div>`;
+    } else {
+        wrap.innerHTML = matched.slice(0, PANEL_LIMIT).map(t.rowHTML).join('');
+    }
+
+    const btn = document.getElementById('trackerViewAll-' + key);
+    if(btn) btn.textContent = `📂 View all (${all.length})`;
+
+    // kung bukas ang modal ng tracker na ito, i-refresh din (realtime updates)
+    if(activeTrackerKey === key) renderTrackerModal();
+}
+
+/* ---------- View all modal ---------- */
+function ensureTrackerModal(){
+    let m = document.getElementById('trackerViewAllModal');
+    if(m) return m;
+
+    m = document.createElement('div');
+    m.id = 'trackerViewAllModal';
+    m.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:2000; align-items:center; justify-content:center; padding:16px;';
+    m.innerHTML = `
+        <div style="background:#1e2126; border:1px solid #33373f; border-radius:12px; width:100%; max-width:640px; max-height:85vh; display:flex; flex-direction:column; padding:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 id="trackerModalTitle" style="margin:0; color:#ffd700; font-size:1rem;"></h3>
+                <button type="button" onclick="closeTrackerModal()"
+                        style="background:#2a2e35; color:#eee; border:1px solid #33373f; width:30px; height:30px; border-radius:50%; cursor:pointer;">✕</button>
+            </div>
+            <input id="trackerModalSearch" type="text" class="form-control" placeholder="🔍 Search by name, type, status, date..."
+                   oninput="onTrackerModalSearch(this.value)" style="margin-bottom:8px;">
+            <div id="trackerModalCount" style="font-size:.75em; color:#999; margin-bottom:8px;"></div>
+            <div id="trackerModalList" style="overflow-y:auto; flex:1; min-height:0; padding-right:4px;"></div>
+        </div>`;
+
+    // i-click ang labas ng kahon para isara
+    m.addEventListener('click', e => { if(e.target === m) closeTrackerModal(); });
+
+    // kapag may binuksang detalye (hindi print button), isara muna ang listahan
+    m.querySelector('#trackerModalList').addEventListener('click', e => {
+        if(e.target.closest('.fleet-quick-row') && !e.target.closest('button')) closeTrackerModal();
+    });
+
+    document.body.appendChild(m);
+    return m;
+}
+
+function openTrackerModal(key){
+    activeTrackerKey = key;
+    trackerModalQuery = '';
+    const m = ensureTrackerModal();
+    document.getElementById('trackerModalTitle').textContent = TRACKERS[key].title;
+    const s = document.getElementById('trackerModalSearch');
+    s.value = '';
+    m.style.display = 'flex';
+    renderTrackerModal();
+    s.focus();
+}
+
+function closeTrackerModal(){
+    const m = document.getElementById('trackerViewAllModal');
+    if(m) m.style.display = 'none';
+    activeTrackerKey = null;
+}
+
+function onTrackerModalSearch(value){
+    trackerModalQuery = value;
+    renderTrackerModal();
+}
+
+function renderTrackerModal(){
+    if(!activeTrackerKey) return;
+    const t = TRACKERS[activeTrackerKey];
+    const all = t.getAll();
+    const matched = all.filter(x => matchesSearch(trackerModalQuery, t.searchText(x)));
+
+    document.getElementById('trackerModalCount').textContent = trackerModalQuery
+        ? `${matched.length} sa ${all.length} records`
+        : `${all.length} records`;
+
+    document.getElementById('trackerModalList').innerHTML = matched.length
+        ? matched.map(t.rowHTML).join('')
+        : `<div class="empty-state" style="padding:20px;">Walang tugma.</div>`;
+}
 
