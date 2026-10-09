@@ -6570,3 +6570,5 @@ body {
 .status-completed, .status-resolved { background: #e8f5e9; color: #2e7d32; }
 .status-rejected, .status-unattended, .status-cancelled { background: #ffebee; color: #c62828; }
 
+.notif-overlay  { z-index: 1000; }
+.notif-dropdown { z-index: 1001; }

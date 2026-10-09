@@ -7,6 +7,11 @@ const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
 
 
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+        window.location.href = '/pages/login.html';
+    }
+});
 
 
 
@@ -298,7 +303,12 @@ async function loadUserProfile() {
         return;
     }
 
-
+    if (profile.active === false) {
+        await supabase.auth.signOut({ scope: 'local' });
+        alert('Na-deactivate ang account mo. Makipag-ugnayan sa Barangay.');
+        window.location.href = '/pages/login.html';
+        return;
+    }
 
     currentUserName = profile.name;
     currentUserBarangay = profile.barangay || 'Bambang';
@@ -336,8 +346,9 @@ loadRequestHistory();
     subscribeRequestsRealtimeResident();
     loadNotifications();
     subscribeNotificationsRealtime();
-    loadAdvisories();
+       loadAdvisories();
     subscribeAdvisoriesRealtime();
+    subscribeProfileRealtime();
 }
 
 
@@ -345,6 +356,22 @@ loadRequestHistory();
 // ==========================================================================
 // VERIFICATION STATUS — makikita sa Account Session dropdown
 // ==========================================================================
+function subscribeProfileRealtime() {
+    if (!currentUserId) return;
+    supabase
+        .channel('resident-profile-' + currentUserId)
+        .on('postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUserId}` },
+            (payload) => {
+                const p = payload.new;
+                currentUserVerified = p.id_verified === true;
+                currentUserRejected = p.id_rejected === true;
+                currentUserRejectReason = p.id_reject_reason || '';
+                renderVerificationStatus();
+            })
+                .subscribe();
+}
+
 function renderVerificationStatus() {
     const el = document.getElementById('verificationStatus');
     if (!el) return;
@@ -365,6 +392,7 @@ function renderVerificationStatus() {
         el.onclick = openVerificationHelp;
     }
 }
+
 
 
 
@@ -609,11 +637,7 @@ function selectVehicle(element, type) {
 // ==========================================================================
 // TRANSPO AVAILABILITY SYSTEM
 // ==========================================================================
-const bookedSchedules = [
-    { vehicle: 'Ambulance', date: '2026-07-15', time: '09:00' },
-    { vehicle: 'PTV', date: '2026-07-12', time: '14:00' }
-];
-
+const bookedSchedules = [];   // TODO: i-connect sa totoong data
 
 
 function initTranspoForm() {
@@ -992,7 +1016,7 @@ function residentGetCurrentEta(req) {
         return { label: req.status === 'Arrived' ? 'Nasa lokasyon na' : 'Tapos na', sub: '' };
     }
        if (!req.eta_minutes || !req.eta_updated_at) {
-        return { label: req.eta || 'Hindi pa naka-set', sub: 'Naghihintay ng pag-accept' };
+        return { label: esc(req.eta || 'Hindi pa naka-set'), sub: 'Naghihintay ng pag-accept' };
     }
         const elapsedMinutes = Math.floor((Date.now() - new Date(req.eta_updated_at).getTime()) / 60000);
     const remaining = Math.max(1, req.eta_minutes - elapsedMinutes);
@@ -1018,7 +1042,7 @@ function openTrackingModal(id) {
 
     if (req.status === 'Rejected') {
         body.innerHTML = `
-            <div class="req-info-line"><strong>${req.type}${req.category ? ' - ' + req.category : ''}</strong></div>
+            <div class="req-info-line"><strong>${esc(req.type)}${req.category ? ' - ' + esc(req.category) : ''}</strong></div>
             <div style="background:#ffebee; border:1px solid #ffcdd2; border-radius:12px; padding:14px; text-align:center; color:#c62828; font-weight:bold; margin:14px 0;">
                 <i class="fas fa-circle-xmark"></i> Hindi na-approve ang request na ito.
             </div>
@@ -1038,7 +1062,7 @@ function openTrackingModal(id) {
 
 
     body.innerHTML = `
-        <div class="req-info-line"><strong>${req.type}${req.category ? ' - ' + req.category : ''}</strong></div>
+        <div class="req-info-line"><strong>${esc(req.type)}${req.category ? ' - ' + esc(req.category) : ''}</strong></div>
         <div class="req-info-line">${esc(req.description)}</div>
 
 
@@ -1213,7 +1237,15 @@ document.getElementById('othersNote').style.display = 'none';
 // ==========================================================================
 // SUBMIT: TRANSPO REQUEST (may 1-hour cooldown)
 // ==========================================================================
+let isSubmittingTranspo = false;
 async function submitTranspo() {
+    if (isSubmittingTranspo) return;
+    isSubmittingTranspo = true;
+    try { await submitTranspoInner(); }
+    finally { isSubmittingTranspo = false; }
+}
+
+async function submitTranspoInner() {
     if (!requireVerifiedOrWarn()) return;
 
 
@@ -1308,10 +1340,24 @@ async function submitMedicalRequestInner() {
 
 
 
-    if (docs.length === 0) {
+        if (docs.length === 0) {
         alert('Mag-upload ng kailangang dokumento.');
         return;
     }
+
+    const MAX_MB = 10;
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    for (const f of docs) {
+        if (!allowedTypes.includes(f.type)) {
+            alert(f.name + ': PDF, JPG, o PNG lang ang puwede.');
+            return;
+        }
+        if (f.size > MAX_MB * 1024 * 1024) {
+            alert(f.name + ': masyadong malaki (max ' + MAX_MB + 'MB).');
+            return;
+        }
+    }
+
     if (!details) {
         alert('Ilagay ang detalye/purpose ng request.');
         return;
@@ -1610,7 +1656,7 @@ function showFirstAidGuide(guide) {
 // ==========================================================================
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        supabase.auth.signOut().then(() => {
+        supabase.auth.signOut({ scope: 'local' }).then(() => {
            window.location.href = '/pages/login.html';
         });
     }
@@ -1669,9 +1715,11 @@ const { error } = await supabase.auth.updateUser({ password: newPass });
 
 
     alert('Password updated successfully!');
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
     toggleModal('changePasswordModal', false);
 }
-
 
 
 // ==========================================================================
@@ -1758,11 +1806,13 @@ let sosCooldownActive = false;
 async function handleSOSCall() {
     if (sosCooldownActive) return;
     if (!requireVerifiedOrWarn()) return;
+    sosCooldownActive = true;   // i-lock agad bago ang anumang await
     // BAGO — kunin ang pinaka-bagong user ID direkta kay Supabase,
     // huwag umasa sa currentUserId variable na baka luma na
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+        if (userError || !user) {
         alert('Hindi ma-verify ang iyong session. Mag-login ulit at subukan muli.');
+        sosCooldownActive = false;
         return;
     }
     const freshUserId = user.id;
@@ -1775,7 +1825,6 @@ async function handleSOSCall() {
         sosBtn.style.opacity = '0.6';
         sosBtn.style.pointerEvents = 'none';
     }
-    sosCooldownActive = true;
 
 
 
@@ -1840,8 +1889,9 @@ async function handleSOSCall() {
             sosBtn.style.opacity = '1';
             sosBtn.style.pointerEvents = 'auto';
         }
-    }, 5000);
-}
+        }, error ? 3000 : 30000);
+    }
+
 
 
 
@@ -1961,6 +2011,7 @@ function retakeCurrentPhoto() {
 
 // Malinaw ang litrato -> idagdag sa list ng accepted photos
 function acceptCurrentPhoto() {
+    if (capturedEmergencyPhotos.length >= 5) { alert('Hanggang 5 litrato lang.'); return; }
     if (!pendingCapturedPhoto) return;
 
 
@@ -2376,6 +2427,5 @@ document.addEventListener('DOMContentLoaded', initAllCustomScrollbars);
 setInterval(() => {
     if (activeTrackingRequestId) openTrackingModal(activeTrackingRequestId);
 }, 30000);
-
 
 
