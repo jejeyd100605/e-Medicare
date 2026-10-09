@@ -25,45 +25,54 @@
 
 
 /* ---------------------------------------------------------
-   STORAGE KEYS
+   SUPABASE CACHES
 --------------------------------------------------------- */
-DB.agencies      = DB.agencies      || 'bmb_agencies';
-DB.coordinations = DB.coordinations || 'bmb_coordinations';
-DB.coordSeq      = DB.coordSeq      || 'bmb_coord_seq';   // BAGO — counter ng request ID
+let agenciesCache = [];
+let coordCache = [];
 
-
-
-
-/* ---------------------------------------------------------
-   SEED DATA (first run only)
---------------------------------------------------------- */
-function seedCommsIfEmpty(){
-  if(!localStorage.getItem(DB.agencies)){
-    save(DB.agencies, [
-      { id: uid('agy'), name:'MDRRMO Bulakan',                  category:'DRRMO',    contactPerson:'MDRRMO Office',           contact:'(044) 760-1111', services:'Ambulance, Rescue Truck, Manpower' },
-      { id: uid('agy'), name:'Barangay Malinis DRRMO',           category:'Barangay', contactPerson:'Barangay Malinis Office', contact:'0917 111 2233',  services:'Patrol Vehicle, Manpower' },
-      { id: uid('agy'), name:'City Fire Station 2 (BFP)',        category:'Fire',     contactPerson:'BFP Station 2 Desk',      contact:'(044) 123-4567', services:'Fire Truck, Rescue Personnel' },
-      { id: uid('agy'), name:'Bambang Police Sub-Station (PNP)', category:'Police',   contactPerson:'PNP Desk Officer',        contact:'0918 444 5566',  services:'Patrol Car, Traffic Assistance' },
-      { id: uid('agy'), name:'City General Hospital',            category:'Hospital', contactPerson:'ER Coordinator',          contact:'(044) 890-1122', services:'Ambulance, Patient Referral' },
-      { id: uid('agy'), name:'Philippine Red Cross Chapter',     category:'NGO',      contactPerson:'PRC Chapter Office',      contact:'0920 333 4455',  services:'Ambulance, Medical Team' },
-    ]);
-  }
-  if(!localStorage.getItem(DB.coordinations)) save(DB.coordinations, []);
-  if(!localStorage.getItem(DB.coordSeq))      localStorage.setItem(DB.coordSeq, '0');
-
-
-  /* Migration — lumang agency rows na walang contactPerson/services */
-  const list = load(DB.agencies, []);
-  let changed = false;
-  list.forEach(a => {
-    if(!a.contactPerson){ a.contactPerson = a.name + ' Office'; changed = true; }
-    if(a.services === undefined){ a.services = ''; changed = true; }
-  });
-  if(changed) save(DB.agencies, list);
+function mapAgency(r){
+  return { id:r.id, name:r.name, category:r.category||'', contactPerson:r.contact_person||'',
+           contact:r.contact||'', services:r.services||'' };
 }
-seedCommsIfEmpty();
+function mapCoord(r){
+  return {
+    id:r.id, refId:r.ref_id, agencyId:r.agency_id, agencyName:r.agency_name,
+    agencyCategory:r.agency_category||'', contactPerson:r.contact_person, hotline:r.hotline,
+    services:r.services, incidentId:r.incident_id, incidentType:r.incident_type,
+    incidentRef:r.incident_ref, residentName:r.resident_name, residentContact:r.resident_contact,
+    residentAddress:r.resident_address, details:r.details, urgency:r.urgency, response:r.response,
+    eta:r.eta, remarks:r.remarks, status:r.status, sentAt:r.sent_at, completedAt:r.completed_at,
+    responseMs: r.response_ms === null || r.response_ms === undefined ? null : Number(r.response_ms),
+    history:r.history||[], documentName:r.document_name,
+    statusBeforeDelete:r.status_before_delete, deletedAt:r.deleted_at
+  };
+}
 
+async function loadAgencies(){
+  const { data, error } = await supabase.from('agencies').select('*').order('name');
+  if(error){ console.error('Hindi makuha ang agencies:', error.message); return; }
+  agenciesCache = (data || []).map(mapAgency);
+  renderAgencyDirectory();
+  populateCoordAgencySelect();
+}
 
+async function loadCoordinations(){
+  const { data, error } = await supabase.from('coordinations').select('*').order('sent_at', { ascending:false });
+  if(error){ console.error('Hindi makuha ang coordinations:', error.message); return; }
+  coordCache = (data || []).map(mapCoord);
+  const ref = document.getElementById('coordRefDisplay');
+  if(ref && !document.getElementById('coordId').value) ref.value = peekCoordRef();
+  renderCoordLog();
+}
+
+function subscribeCommsRealtime(){
+  supabase.channel('comms-agencies')
+    .on('postgres_changes', { event:'*', schema:'public', table:'agencies' }, loadAgencies)
+    .subscribe();
+  supabase.channel('comms-coordinations')
+    .on('postgres_changes', { event:'*', schema:'public', table:'coordinations' }, loadCoordinations)
+    .subscribe();
+}
 
 
 if(typeof ACTIVITY_ICONS !== 'undefined'){
@@ -73,21 +82,15 @@ if(typeof ACTIVITY_ICONS !== 'undefined'){
 
 
 
-/* ---------------------------------------------------------
-   REQUEST ID — auto at pataas kada request (EXT-2026-0001)
---------------------------------------------------------- */
+/* Preview lang. Ang totoong numero ay ibinibigay ng database kapag nag-save */
 function formatCoordRef(n){
   return 'EXT-' + new Date().getFullYear() + '-' + String(n).padStart(4, '0');
 }
-/* Preview lang — hindi pa kinakain ang numero */
 function peekCoordRef(){
-  return formatCoordRef(Number(localStorage.getItem(DB.coordSeq) || 0) + 1);
-}
-/* Aktwal na pagkuha — dito lang tumataas ang counter */
-function takeCoordRef(){
-  const n = Number(localStorage.getItem(DB.coordSeq) || 0) + 1;
-  localStorage.setItem(DB.coordSeq, String(n));
-  return formatCoordRef(n);
+  const nums = coordCache
+    .map(r => Number(String(r.refId || '').split('-').pop()))
+    .filter(n => !Number.isNaN(n));
+  return formatCoordRef((nums.length ? Math.max(...nums) : 0) + 1);
 }
 
 
@@ -105,10 +108,13 @@ function renderComms(){
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
-  if(document.getElementById('comms-tab')) renderComms();
+document.addEventListener('DOMContentLoaded', async () => {
+  if(!document.getElementById('comms-tab')) return;
+  await loadAgencies();
+  await loadCoordinations();
+  subscribeCommsRealtime();
+  renderComms();
 });
-
 
 
 
@@ -134,7 +140,7 @@ function agencySortRank(a){
 function renderAgencyDirectory(){
   const wrap = document.getElementById('agencyDirectory');
   if(!wrap) return;
-  const list = [...load(DB.agencies, [])].sort((a, b) => agencySortRank(a) - agencySortRank(b));
+    const list = [...agenciesCache].sort((a, b) => agencySortRank(a) - agencySortRank(b));
   if(list.length === 0){
     wrap.innerHTML = '<div class="empty-state">Wala pang naka-rehistrong external agency.</div>';
     return;
@@ -156,35 +162,32 @@ function renderAgencyDirectory(){
 }
 
 
-function handleAgencySubmit(e){
+async function handleAgencySubmit(e){
   e.preventDefault();
   const id = document.getElementById('agencyId').value;
-  const list = load(DB.agencies, []);
   const data = {
-    name:          document.getElementById('agencyName').value.trim(),
-        category:      document.getElementById('agencyCategory').value,
-    contactPerson: document.getElementById('agencyContactPerson').value.trim(),
-    contact:       document.getElementById('agencyContact').value.trim(),
-    services:      document.getElementById('agencyServices').value.trim(),
+    name:           document.getElementById('agencyName').value.trim(),
+    category:       document.getElementById('agencyCategory').value,
+    contact_person: document.getElementById('agencyContactPerson').value.trim(),
+    contact:        document.getElementById('agencyContact').value.trim(),
+    services:       document.getElementById('agencyServices').value.trim(),
   };
   if(id){
-    const a = list.find(x => x.id === id);
-    Object.assign(a, data);
-    logActivity('comms', `Agency contact updated: <b>${a.name}</b>`);
+    const { error } = await supabase.from('agencies').update(data).eq('id', id);
+    if(error){ alert('Hindi na-update: ' + error.message); return; }
+    logActivity('comms', `Agency contact updated: <b>${esc(data.name)}</b>`);
   }else{
-    const a = { id: uid('agy'), ...data };
-    list.push(a);
-    logActivity('comms', `New external agency added: <b>${a.name}</b>`);
+    const { error } = await supabase.from('agencies').insert(data);
+    if(error){ alert('Hindi naidagdag: ' + error.message); return; }
+    logActivity('comms', `New external agency added: <b>${esc(data.name)}</b>`);
   }
-  save(DB.agencies, list);
   clearAgencyForm();
-  renderAgencyDirectory();
-  populateCoordAgencySelect();
+  await loadAgencies();
 }
 
 
 function editAgency(id){
-  const a = load(DB.agencies, []).find(x => x.id === id);
+  const a = agenciesCache.find(x => x.id === id);
   if(!a) return;
   document.getElementById('agencyId').value            = a.id;
   document.getElementById('agencyName').value          = a.name;
@@ -196,14 +199,13 @@ function editAgency(id){
 }
 
 
-function removeAgency(id){
+async function removeAgency(id){
   if(!confirm('Tanggalin ang agency na ito sa directory?')) return;
-  save(DB.agencies, load(DB.agencies, []).filter(x => x.id !== id));
+  const { error } = await supabase.from('agencies').delete().eq('id', id);
+  if(error){ alert('Hindi matanggal: ' + error.message); return; }
   logActivity('comms', 'An external agency contact was removed from the directory.');
-  renderAgencyDirectory();
-  populateCoordAgencySelect();
+  await loadAgencies();
 }
-
 
 function clearAgencyForm(){
   const form = document.getElementById('agencyForm');
@@ -216,7 +218,7 @@ function clearAgencyForm(){
 function populateCoordAgencySelect(){
   const sel = document.getElementById('coordAgency');
   if(!sel) return;
-  const list = load(DB.agencies, []);
+  const list = agenciesCache;
   const current = sel.value;
   sel.innerHTML = '<option value="" disabled selected>Pumili ng agency / unit</option>' +
     list.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
@@ -226,7 +228,7 @@ function populateCoordAgencySelect(){
 
 /* Matic na fill-up kapag napindot ang agency */
 function onCoordAgencyChange(){
-  const a = load(DB.agencies, []).find(x => x.id === document.getElementById('coordAgency').value);
+  const a = agenciesCache.find(x => x.id === document.getElementById('coordAgency').value);
   const person   = document.getElementById('coordContactPerson');
   const hotline  = document.getElementById('coordHotline');
   const services = document.getElementById('coordServices');
@@ -259,7 +261,9 @@ function populateCoordIncidentSelect(){
   const sorted = [...list]
     .filter(i => ALLOWED_COORD_STATUSES.includes(i.status))
     .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-  sel.innerHTML = '<option value="">— Manual / Wala sa listahan (hal. tawag lang sa telepono) —</option>' +
+   sel.innerHTML = '<option value="">— Manual / Wala sa listahan —</option>' +
+    '<option value="__phone">📞 Phone Call</option>' +
+    '<option value="__message">💬 Message</option>' +
     sorted.map(i => {
       const who = i.sender ? i.sender.name : 'Unknown Resident';
       const tag = i.type === 'SOS' ? '🚨 SOS' : '🚨 Emergency';
@@ -278,7 +282,7 @@ function onCoordIncidentChange(){
   if(!sel) return;
 
 
-  if(!sel.value){
+    if(!sel.value || sel.value.startsWith('__')){
     if(manualWrap) manualWrap.style.display = 'block';
     if(infoBox) infoBox.style.display = 'none';
     return;
@@ -332,24 +336,20 @@ function resetCoordForm(){
 }
 
 
-function handleSendCoordination(e){
+async function handleSendCoordination(e){
   e.preventDefault();
 
-
-  const list     = load(DB.coordinations, []);
   const editId   = document.getElementById('coordId').value;
   const agencyId = document.getElementById('coordAgency').value;
-  const agency   = load(DB.agencies, []).find(a => a.id === agencyId);
+  const agency   = agenciesCache.find(a => String(a.id) === String(agencyId));
   if(!agency){ alert('Pumili muna ng agency na papadalhan ng request.'); return; }
 
-
-  /* Kaugnay na incident — kung may napiling aktwal na SOS/Emergency
-     report, kunin ang buong resident info dito. Kung wala (manual
-     entry, hal. tawag lang), gamitin na lang ang malayang text. */
-  const incidentSel = document.getElementById('coordIncidentSelect');
-  const linkedIncidentId = incidentSel ? incidentSel.value : '';
+    const incidentSel = document.getElementById('coordIncidentSelect');
+  const rawIncidentValue = incidentSel ? incidentSel.value : '';
+  const reportSource = rawIncidentValue === '__phone' ? 'Phone Call'
+                     : rawIncidentValue === '__message' ? 'Message' : '';
+  const linkedIncidentId = rawIncidentValue.startsWith('__') ? '' : rawIncidentValue;
   let residentName = '', residentContact = '', residentAddress = '', incidentType = '', incidentLabel = '';
-
 
   if(linkedIncidentId){
     const incList = (typeof incidentsCache !== 'undefined' && incidentsCache) ? incidentsCache : [];
@@ -361,78 +361,62 @@ function handleSendCoordination(e){
       incidentType    = inc.type === 'SOS' ? 'SOS Panic Button' : 'Emergency Request';
       incidentLabel   = `${inc.category || inc.type} — ${residentName}`;
     }
-  }else{
-    incidentLabel = document.getElementById('coordIncidentRef').value.trim();
+    }else{
+    const typed = document.getElementById('coordIncidentRef').value.trim();
+    incidentLabel = reportSource ? (typed ? `[${reportSource}] ${typed}` : `[${reportSource}]`) : typed;
   }
-
 
   const data = {
-        agencyId:      agency.id,
-    agencyName:    agency.name,
-    agencyCategory: agency.category || '',
-    contactPerson: document.getElementById('coordContactPerson').value.trim() || agency.contactPerson,
-    hotline:       document.getElementById('coordHotline').value.trim() || agency.contact,
-    services:      document.getElementById('coordServices').value.trim(),
-    incidentId:      linkedIncidentId || null,
-    incidentType:    incidentType,
-    incidentRef:     incidentLabel,
-    residentName:    residentName,
-    residentContact: residentContact,
-    residentAddress: residentAddress,
-    details:       document.getElementById('coordDetails').value.trim(),
-    urgency:       document.getElementById('coordUrgency').value,
-    response:      document.getElementById('coordResponse').value,
-    eta:           document.getElementById('coordETA').value.trim(),
-    remarks:       document.getElementById('coordRemarks').value.trim() || DEFAULT_COORD_REMARKS,
+    agency_id:        agency.id,
+    agency_name:      agency.name,
+    agency_category:  agency.category || '',
+    contact_person:   document.getElementById('coordContactPerson').value.trim() || agency.contactPerson,
+    hotline:          document.getElementById('coordHotline').value.trim() || agency.contact,
+    services:         document.getElementById('coordServices').value.trim(),
+    incident_id:      linkedIncidentId || null,
+    incident_type:    incidentType,
+    incident_ref:     incidentLabel,
+    resident_name:    residentName,
+    resident_contact: residentContact,
+    resident_address: residentAddress,
+    details:          document.getElementById('coordDetails').value.trim(),
+    urgency:          document.getElementById('coordUrgency').value,
+    response:         document.getElementById('coordResponse').value,
+    eta:              document.getElementById('coordETA').value.trim(),
+    remarks:          document.getElementById('coordRemarks').value.trim() || DEFAULT_COORD_REMARKS,
   };
 
-
-
-
   if(editId){
-    /* ---- UPDATE ng existing na Pending request ---- */
-       const r = list.find(x => x.id === editId);
+    const r = coordCache.find(x => x.id === editId);
     if(!r) return;
-    /* Kung may naka-link na incident dati pero wala na sa dropdown, huwag burahin ang resident info */
     if(r.incidentId && !linkedIncidentId){
-      data.incidentId      = r.incidentId;
-      data.incidentType    = r.incidentType;
-      data.incidentRef     = r.incidentRef;
-      data.residentName    = r.residentName;
-      data.residentContact = r.residentContact;
-      data.residentAddress = r.residentAddress;
+      data.incident_id      = r.incidentId;
+      data.incident_type    = r.incidentType;
+      data.incident_ref     = r.incidentRef;
+      data.resident_name    = r.residentName;
+      data.resident_contact = r.residentContact;
+      data.resident_address = r.residentAddress;
     }
-    Object.assign(r, data);
-    r.history = r.history || [];
-    r.history.push({ status:'Updated', at: nowISO(), note:`Response: ${data.response} · ETA: ${data.eta || '—'}` });
-    save(DB.coordinations, list);
+    const history = [...(r.history || []), { status:'Updated', at: nowISO(), note:`Response: ${data.response} · ETA: ${data.eta || '—'}` }];
+    const { error } = await supabase.from('coordinations').update({ ...data, history }).eq('id', editId);
+    if(error){ alert('Hindi na-update: ' + error.message); return; }
     logActivity('comms', `Coordination request <b>${r.refId}</b> updated — ${data.response}${data.eta ? ' · ETA ' + data.eta : ''}.`);
   }else{
-    /* ---- BAGONG request ---- */
-    const req = {
-      id: uid('coord'),
-      refId: takeCoordRef(),          // auto-increment dito lang
-      ...data,
-      status: 'Pending',              // hindi pa tapos — hindi pa kasama sa response time
-      sentAt: nowISO(),
-      completedAt: null,
-      responseMs: null,
-      history: [{ status:'Pending', at: nowISO(), note:'Request na-log' }]
-    };
-    list.unshift(req);
-    save(DB.coordinations, list);
-    logActivity('comms', `Coordination request <b>${req.refId}</b> sent to <b>${agency.name}</b>${req.services ? ' — ' + req.services : ''}.`);
+    const { data: created, error } = await supabase.from('coordinations')
+      .insert({ ...data, status:'Pending', history:[{ status:'Pending', at: nowISO(), note:'Request na-log' }] })
+      .select().single();
+    if(error){ alert('Hindi na-save: ' + error.message); return; }
+    logActivity('comms', `Coordination request <b>${created.ref_id}</b> sent to <b>${esc(agency.name)}</b>${data.services ? ' — ' + esc(data.services) : ''}.`);
   }
 
-
   resetCoordForm();
-  renderCoordLog();
+  await loadCoordinations();
 }
 
 
 /* I-load pabalik sa form ang isang Pending request para i-update */
 function editCoordRequest(id){
-  const r = load(DB.coordinations, []).find(x => x.id === id);
+  const r = coordCache.find(x => x.id === id);
   if(!r) return;
   document.getElementById('coordId').value            = r.id;
   document.getElementById('coordRefDisplay').value    = r.refId;
@@ -446,9 +430,12 @@ function editCoordRequest(id){
   if(r.incidentId && incSel){
     incSel.value = r.incidentId;
     onCoordIncidentChange();
-  }else{
+    }else{
     if(incSel) incSel.value = '';
-    document.getElementById('coordIncidentRef').value = r.incidentRef || '';
+    const refText = r.incidentRef || '';
+    const srcMatch = refText.match(/^\[(Phone Call|Message)\]\s*/);
+    if(srcMatch && incSel) incSel.value = srcMatch[1] === 'Phone Call' ? '__phone' : '__message';
+    document.getElementById('coordIncidentRef').value = srcMatch ? refText.replace(srcMatch[0], '') : refText;
     const manualWrap = document.getElementById('coordManualIncidentWrap');
     if(manualWrap) manualWrap.style.display = 'block';
     const infoBox = document.getElementById('coordResidentInfoBox');
@@ -469,42 +456,40 @@ function editCoordRequest(id){
 
 
 /* TAPOS NA — dito lang nag-fi-final save at dito kinukwenta ang response time */
-function completeCoord(id){
-  const list = load(DB.coordinations, []);
-  const r = list.find(x => x.id === id);
+async function completeCoord(id){
+  const r = coordCache.find(x => x.id === id);
   if(!r) return;
   if(!confirm(`I-mark na TAPOS ang ${r.refId} (${r.agencyName})? Dito na malo-lock ang record at makukuha ang response time.`)) return;
 
+  const completedAt = nowISO();
+  const responseMs = new Date(completedAt) - new Date(r.sentAt);
+  const history = [...(r.history || []), { status:'Completed', at: completedAt, note:'Natapos ang coordination' }];
 
-  r.status      = 'Completed';
-  r.completedAt = nowISO();
-  r.responseMs  = new Date(r.completedAt) - new Date(r.sentAt);
-  r.history     = r.history || [];
-  r.history.push({ status:'Completed', at: r.completedAt, note:'Natapos ang coordination' });
-  save(DB.coordinations, list);
+  const { error } = await supabase.from('coordinations')
+    .update({ status:'Completed', completed_at: completedAt, response_ms: responseMs, history })
+    .eq('id', id);
+  if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+  logActivity('comms', `Coordination <b>${r.refId}</b> completed — ${esc(r.agencyName)} · response time ${durationLabel(responseMs)}.`);
+  await loadCoordinations();
+};
 
 
-  logActivity('comms', `Coordination <b>${r.refId}</b> completed — ${r.agencyName} · response time ${durationLabel(r.responseMs)}.`);
-  renderCoordLog();
-}
-
-
-function declineCoord(id){
-  const list = load(DB.coordinations, []);
-  const r = list.find(x => x.id === id);
+async function declineCoord(id){
+  const r = coordCache.find(x => x.id === id);
   if(!r) return;
   if(!confirm(`I-mark ang ${r.refId} bilang declined / hindi natuloy?`)) return;
-  r.status      = 'Declined';
-  r.response    = 'DECLINED';
-  r.completedAt = nowISO();
-  r.responseMs  = null;   // hindi kasama sa response time stats
-  r.history     = r.history || [];
-  r.history.push({ status:'Declined', at: r.completedAt, note:'' });
-  save(DB.coordinations, list);
-  logActivity('comms', `<b>${esc(r.agencyName)}</b> hindi nakasuporta sa request <b>${r.refId}</b>.`);
-  renderCoordLog();
-}
 
+  const at = nowISO();
+  const history = [...(r.history || []), { status:'Declined', at, note:'' }];
+  const { error } = await supabase.from('coordinations')
+    .update({ status:'Declined', response:'DECLINED', completed_at: at, response_ms: null, history })
+    .eq('id', id);
+  if(error){ alert('Hindi na-update: ' + error.message); return; }
+
+  logActivity('comms', `<b>${esc(r.agencyName)}</b> hindi nakasuporta sa request <b>${r.refId}</b>.`);
+  await loadCoordinations();
+}
 
 
 
@@ -523,7 +508,7 @@ function durationLabel(ms){
 
 /* Ginagamit din ng Reports tab */
 function coordinationStats(){
-  const list = load(DB.coordinations, []);
+  const list = coordCache;
   const done = list.filter(r => r.status === 'Completed' && typeof r.responseMs === 'number');
   const times = done.map(r => r.responseMs);
   return {
@@ -635,7 +620,7 @@ function renderCoordLog(){
   if(!wrap) return;
 
 
-  const list    = load(DB.coordinations, []);
+  const list    = coordCache;
   const pending = list.filter(r => r.status === 'Pending');
   const done    = list.filter(r => r.status === 'Completed' || r.status === 'Declined');
 
@@ -660,50 +645,49 @@ function renderCoordLog(){
 
 /* Ilagay sa Trash ang isang completed/declined na record — hindi pa
    ito tuluyang tinatanggal, para may paraan pang mabawi kung nagkamali. */
-function deleteCoordRecord(id){
-  const list = load(DB.coordinations, []);
-  const r = list.find(x => x.id === id);
+async function deleteCoordRecord(id){
+  const r = coordCache.find(x => x.id === id);
   if(!r) return;
-  if(!confirm(`Ilipat sa Trash ang record na ${r.refId} (${r.agencyName})? Makikita mo pa rin ito sa Trash kung sakaling kailangan pang ibalik.`)) return;
+  if(!confirm(`Ilipat sa Trash ang record na ${r.refId} (${r.agencyName})?`)) return;
 
+  const { error } = await supabase.from('coordinations')
+    .update({ status:'Deleted', status_before_delete: r.status, deleted_at: nowISO() })
+    .eq('id', id);
+  if(error){ alert('Hindi na-update: ' + error.message); return; }
 
-  r.statusBeforeDelete = r.status;   // para malaman kung saan ibabalik
-  r.status = 'Deleted';
-  r.deletedAt = nowISO();
-  save(DB.coordinations, list);
-  logActivity('comms', `Coordination record <b>${r.refId}</b> (${r.agencyName}) inilipat sa Trash.`);
-  renderCoordLog();
+  logActivity('comms', `Coordination record <b>${r.refId}</b> (${esc(r.agencyName)}) inilipat sa Trash.`);
+  await loadCoordinations();
+  renderCoordTrash();
 }
 
-
 /* Ibalik pabalik sa Completed Records ang isang na-trash na record */
-function restoreCoordRecord(id){
-  const list = load(DB.coordinations, []);
-  const r = list.find(x => x.id === id);
+async function restoreCoordRecord(id){
+  const r = coordCache.find(x => x.id === id);
   if(!r) return;
 
+  const { error } = await supabase.from('coordinations')
+    .update({ status: r.statusBeforeDelete || 'Completed', status_before_delete: null, deleted_at: null })
+    .eq('id', id);
+  if(error){ alert('Hindi na-update: ' + error.message); return; }
 
-  r.status = r.statusBeforeDelete || 'Completed';
-  delete r.statusBeforeDelete;
-  delete r.deletedAt;
-  save(DB.coordinations, list);
-  logActivity('comms', `Coordination record <b>${r.refId}</b> (${r.agencyName}) naibalik mula sa Trash.`);
-  renderCoordLog();
+  logActivity('comms', `Coordination record <b>${r.refId}</b> (${esc(r.agencyName)}) naibalik mula sa Trash.`);
+  await loadCoordinations();
   renderCoordTrash();
 }
 
 
 /* Tuluyan nang tanggalin — dito na hindi na mababawi pa */
-function permanentlyDeleteCoordRecord(id){
-  const r = load(DB.coordinations, []).find(x => x.id === id);
+async function permanentlyDeleteCoordRecord(id){
+  const r = coordCache.find(x => x.id === id);
   if(!r) return;
   if(!confirm(`Tuluyan bang tanggalin ang ${r.refId} (${r.agencyName})? Hindi na ito maibabalik pa.`)) return;
 
+  const { error } = await supabase.from('coordinations').delete().eq('id', id);
+  if(error){ alert('Hindi matanggal: ' + error.message); return; }
 
-  save(DB.coordinations, load(DB.coordinations, []).filter(x => x.id !== id));
-  logActivity('comms', `Coordination record <b>${r.refId}</b> (${r.agencyName}) tuluyang tinanggal mula sa Trash.`);
+  logActivity('comms', `Coordination record <b>${r.refId}</b> (${esc(r.agencyName)}) tuluyang tinanggal mula sa Trash.`);
+  await loadCoordinations();
   renderCoordTrash();
-  renderCoordLog();
 }
 
 
@@ -721,7 +705,7 @@ function closeCoordTrashModal(){
 function renderCoordTrash(){
   const wrap = document.getElementById('coordTrashList');
   if(!wrap) return;
-  const trashed = load(DB.coordinations, [])
+  const trashed = coordCache
     .filter(r => r.status === 'Deleted')
     .sort((a,b) => new Date(b.deletedAt) - new Date(a.deletedAt));
 
@@ -757,7 +741,7 @@ function renderCoordTrash(){
    PRINT — isang natapos na coordination record
 --------------------------------------------------------- */
 function printCoordRecord(id){
-  const r = load(DB.coordinations, []).find(x => x.id === id);
+  const r = coordCache.find(x => x.id === id);
   if(!r){ alert('Record not found.'); return; }
 
 

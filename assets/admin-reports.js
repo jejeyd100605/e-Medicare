@@ -21,15 +21,6 @@ async function renderReports(){
    proxy for "time to dispatch" (no separate dispatchedAt field
    exists on the incident record itself).
 --------------------------------------------------------- */
-function findDispatchTime(incident){
-  const acts = load(DB.activity, []);
-  const match = acts.find(a =>
-    a.type === 'dispatch' &&
-    a.message.includes(incident.location) &&
-    new Date(a.at) >= new Date(incident.reportedAt)
-  );
-  return match ? new Date(match.at) : null;
-}
 
 function renderResponseSummary(){
     const rows = incidentsCache
