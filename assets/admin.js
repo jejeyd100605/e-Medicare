@@ -160,9 +160,12 @@ let trackingRouteLine = null;
     function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
     function uid(prefix){ return prefix + '-' + Math.random().toString(36).slice(2,8); }
     function nowISO(){ return new Date().toISOString(); }
-        function esc(s){
-        return String(s ?? '').replace(/[&<>"']/g, c =>
-            ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    // Iwas double-submit: i-disable muna ang button na pinindot
+    function guardSubmit(e){
+        const b = e && e.submitter;
+        if(!b) return;
+        b.disabled = true;
+        setTimeout(() => { b.disabled = false; }, 4000);
     }
     function fmtTime(iso){
     const d = new Date(iso);
@@ -456,7 +459,7 @@ let trackingRouteLine = null;
         <div class="activity-item">
         <div class="activity-icon">${ACTIVITY_ICONS[a.type] || '•'}</div>
         <div>
-            <div class="activity-text">${a.message}</div>
+            <div class="activity-text">${esc(a.message).replace(/&lt;b&gt;/g,'<b>').replace(/&lt;\/b&gt;/g,'</b>')}</div>
             <div class="activity-meta">${fmtTime(a.at)} · ${timeAgo(a.at)}</div>
         </div>
         </div>
@@ -562,7 +565,7 @@ function initRoleBadge(profile){
 
 
 
-    const open = incidents.filter(i => i.status === 'Pending').length;
+    const open = incidents.filter(i => ['Pending', 'Waiting List'].includes(i.status)).length;
       const assigned = incidents.filter(i => ACTIVE_RESPONSE_STATUSES.includes(i.status)).length;
     const resolved = incidents.filter(i => ['Completed', 'Resolved'].includes(i.status)).length;
 
@@ -644,7 +647,7 @@ function initRoleBadge(profile){
         <div class="report-card" onclick="openAssignModal('${i.id}')">
         <div class="report-card-top">
                       <span class="report-card-name">🚨 ${esc(i.category || i.type)}</span>
-            <span class="status-pill ${statusClass(i.status)}"><span class="status-dot"></span>${i.status}</span>
+            <span class="status-pill ${statusClass(i.status)}"><span class="status-dot"></span>${esc(i.status)}</span>
         </div>
         <div class="report-card-detail">${callerName} · ${mapLink}</div>
         <div class="report-card-detail" style="color:#aaa;">${esc(i.description || '')}</div>
@@ -671,12 +674,18 @@ function initRoleBadge(profile){
 
 
 
-    incidentsCache = data;
+    incidentsCache = data;    incidentsCache = data;
+    // Itigil ang alarm kapag wala nang Pending na SOS
+    if(!incidentsCache.some(i => i.type === 'SOS' && i.status === 'Pending')) stopSOSAlertLoop();
     renderDashboardCounts();
     refreshTrackingModalIfOpen();
 }
 
-
+let incReloadTimer = null;
+function loadIncidentsDebounced(){
+    clearTimeout(incReloadTimer);
+    incReloadTimer = setTimeout(loadIncidentsFromSupabase, 800);
+}
 
 function subscribeIncidentsRealtime() {
     supabase
@@ -722,7 +731,7 @@ function subscribeIncidentsRealtime() {
                     logActivity('notify', `${label} received from <b>${inc?.sender?.name || 'resident'}</b>.`);
                 });
             } else {
-                loadIncidentsFromSupabase();
+                loadIncidentsDebounced();
             }
         })
         .subscribe();
@@ -926,8 +935,8 @@ function statusClass(status){ return 'status-' + String(status || '').replace(/\
         return `
         <div class="fleet-quick-row">
         <div>
-            <div class="fleet-quick-name">${f.name}</div>
-            <div class="fleet-quick-type">${f.type}${shortAssign ? ' · ' + shortAssign : ''}</div>
+            <div class="fleet-quick-name">${esc(f.name)}</div>
+            <div class="fleet-quick-type">${esc(f.type)}${shortAssign ? ' · ' + esc(shortAssign) : ''}</div>
         </div>
         <span class="status-pill ${statusClass(f.status)}"><span class="status-dot"></span>${f.status}</span>
         </div>
@@ -962,13 +971,13 @@ function teamChipHTML(assignedTo){
     return `
         <tr>
         <td>
-            <div style="font-weight:600;">${f.name}</div>
+            <div style="font-weight:600;">${esc(f.name)}</div>
             <div class="timestamp">${f.plate || 'N/A'} · updated ${timeAgo(f.lastUpdated)}${linked ? ' · 🔗 ' + linked.name : ''}</div>
         </td>
         <td>${f.type}</td>
         <td>
             ${f.assignedTo
-                ? `<span class="status-pill status-OnDuty" style="white-space:normal; display:inline-block; line-height:1.4;">👥 ${f.assignedTo}</span>`
+                ? `<span class="status-pill status-OnDuty" style="white-space:normal; display:inline-block; line-height:1.4;">👥 ${esc(f.assignedTo)}</span>`
                 : '<span style="color:#666;font-size:.8em;">— Unassigned —</span>'}
         </td>
         <td>
@@ -1167,7 +1176,7 @@ function buildCrewTag(member, vehicle, driver, responder, assignmentTag){
 
 async function handleQuickDispatch(e){
     e.preventDefault();
-
+ guardSubmit(e);
     const vehicleId = document.getElementById('dispatchVehicle').value;
     const driverId = document.getElementById('dispatchDriver').value;
     const responderId = document.getElementById('dispatchResponder').value;
@@ -1298,7 +1307,7 @@ async function handleQuickDispatch(e){
                     <div>${callerName}${contact ? ' · ' + contact : ''}</div>
                     ${address ? `<div style="color:#aaa;">🏠 ${address}</div>` : ''}
                     <div style="color:#888; margin-top:4px;">${esc(inc.description || 'No description provided.')}</div>
-                    <div style="color:#666; margin-top:4px; font-size:0.85em;">Status: ${inc.status} · ${timeAgo(inc.created_at)}</div>
+                    <div style="color:#666; margin-top:4px; font-size:0.85em;">Status: ${esc(inc.status)} · ${timeAgo(inc.created_at)}</div>
                 </div>
             `;
         }
@@ -1391,8 +1400,15 @@ async function handleQuickDispatch(e){
 
 
 
-        if(ACTIVE_RESPONSE_STATUSES.includes(inc.status)){
-            renderTrackingView(inc);
+                if(ACTIVE_RESPONSE_STATUSES.includes(inc.status)){
+            if(trackingMap && trackingResponderMarker && inc.responder_lat && inc.responder_lng){
+                const pos = [inc.responder_lat, inc.responder_lng];
+                trackingResponderMarker.setLatLng(pos);
+                if(trackingRouteLine) trackingRouteLine.setLatLngs([pos, [inc.lat, inc.lng]]);
+                updateTrackingInfo(inc);
+            } else {
+                renderTrackingView(inc);
+            }
         } else {
             // Na-resolve o binago ang status habang bukas ang modal — isara na lang.
             modal.style.display = 'none';
@@ -1433,6 +1449,24 @@ async function handleQuickDispatch(e){
     }
 
 
+    function updateTrackingInfo(inc){
+        const infoEl = document.getElementById('trackingInfo');
+        if(!infoEl) return;
+        let distanceLine;
+        if(inc.lat && inc.lng && inc.responder_lat && inc.responder_lng){
+            const d = haversineDistanceMeters(inc.lat, inc.lng, inc.responder_lat, inc.responder_lng);
+            distanceLine = `<div>📏 Distance to resident: <b style="color:#ffd700;">${formatDistance(d)}</b></div>`;
+        } else {
+            distanceLine = `<div style="color:#888;">📏 Naghihintay pa ng GPS signal ng responder...</div>`;
+        }
+        infoEl.innerHTML = `
+            <div>🏠 Address: <b>${esc(inc.sender?.address || 'Not provided')}</b></div>
+            <div>👥 Assigned team: <b>${esc(inc.assigned_to || 'Not yet on record')}</b></div>
+            <div>⏱ ETA / Notes: <b>${esc(inc.eta || 'N/A')}</b></div>
+            ${distanceLine}
+            <div style="color:#666; font-size:0.85em; margin-top:4px;">${inc.location_updated_at ? 'Responder location updated ' + timeAgo(inc.location_updated_at) : 'No responder location update yet.'}</div>
+        `;
+    }
 
     function renderTrackingView(inc){
         cleanupTrackingMap();
@@ -1511,23 +1545,9 @@ async function handleQuickDispatch(e){
 
 
 
-                if(infoEl){
-            let distanceLine;
-            if(inc.lat && inc.lng && inc.responder_lat && inc.responder_lng){
-                const d = haversineDistanceMeters(inc.lat, inc.lng, inc.responder_lat, inc.responder_lng);
-                distanceLine = `<div>📏 Distance to resident: <b style="color:#ffd700;">${formatDistance(d)}</b></div>`;
-            } else {
-                distanceLine = `<div style="color:#888;">📏 Naghihintay pa ng GPS signal ng responder...</div>`;
-            }
-            infoEl.innerHTML = `
-                <div>🏠 Address: <b>${esc(inc.sender?.address || 'Not provided')}</b></div>
-                <div>👥 Assigned team: <b>${esc(inc.assigned_to || 'Not yet on record')}</b></div>
-                <div>⏱ ETA / Notes: <b>${esc(inc.eta || 'N/A')}</b></div>
-                ${distanceLine}
-                <div style="color:#666; font-size:0.85em; margin-top:4px;">${inc.location_updated_at ? 'Responder location updated ' + timeAgo(inc.location_updated_at) : 'No responder location update yet.'}</div>
-            `;
+                       updateTrackingInfo(inc);
+            
         }
-    }
 
 
 
@@ -1546,7 +1566,7 @@ function printIncidentReport(){
     printWindow.document.write(`
         <html>
         <head>
-            <title>Incident Report - ${inc.category || inc.type}</title>
+            <meta http-equiv="Content-Security-Policy" content="script-src 'none'"><title>Incident Report - ${inc.category || inc.type}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
                 h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -1581,6 +1601,7 @@ function printIncidentReport(){
 
    async function handleAssignResponder(e){
     e.preventDefault();
+     guardSubmit(e);
     const driverId = document.getElementById('driverSelect').value;
     const responderId = document.getElementById('responderSelect').value;
     const vehicleId = document.getElementById('assignVehicleSelect').value;   // BAGO
@@ -1604,7 +1625,7 @@ function printIncidentReport(){
 
 
 
-  const { error: incError } = await supabase
+  const { data: incRows, error: incError } = await supabase
         .from('emergency_requests')
         .update({
             status: 'Assigned',
@@ -1615,8 +1636,16 @@ function printIncidentReport(){
             assigned_driver_id: driver.profileId || null,
             assigned_at: new Date().toISOString()   // BAGO — para sa Response Time analytics
         })
-        .eq('id', inc.id);
+                .eq('id', inc.id)
+        .in('status', ['Pending', 'Waiting List'])
+        .select('id');
     if (incError) { alert('Hindi na-update ang request: ' + incError.message); return; }
+    if (!incRows || incRows.length === 0) {
+        alert('Hindi na ma-dispatch: may ibang nag-handle na o na-resolve na ang incident na ito.');
+        document.getElementById('assignModal').style.display = 'none';
+        loadIncidentsFromSupabase();
+        return;
+    }
 
 
 
@@ -1737,16 +1766,23 @@ async function rejectIncident(){
 
     if(!confirm(`Sigurado ka bang i-reject ang report na ito ni ${inc.sender ? inc.sender.name : 'resident'}?`)) return;
 
-    const { error } = await supabase
+        const { data: rejRows, error } = await supabase
         .from('emergency_requests')
         .update({
             status: 'Rejected',
             eta: reason || 'Walang sapat na detalye o patunay.'
         })
-        .eq('id', inc.id);
+        .eq('id', inc.id)
+        .in('status', ['Pending', 'Waiting List'])
+        .select('id');
 
     if(error){ alert('Hindi na-update ang report: ' + error.message); return; }
-
+    if(!rejRows || rejRows.length === 0){
+        alert('Hindi na ma-reject: may nag-handle na o na-resolve na ang report na ito.');
+        document.getElementById('assignModal').style.display = 'none';
+        loadIncidentsFromSupabase();
+        return;
+    }
     logActivity('request', `Emergency report ni <b>${inc.sender ? inc.sender.name : 'resident'}</b> (${inc.category || inc.type}) ay na-reject. Dahilan: ${reason || 'wala'}`);
 
     if(inc.sender_id){
@@ -1850,8 +1886,8 @@ function closeIncidentPhotosModal(){
         titleEl.textContent = title;
         bodyEl.innerHTML = rows.map(([label, value]) => `
             <div style="display:flex; justify-content:space-between; gap:14px; padding:7px 0; border-bottom:1px solid #333;">
-                <span style="color:#999; flex:0 0 130px;">${label}</span>
-                <span style="text-align:right; color:#eee; flex:1;">${value}</span>
+                <span style="color:#999; flex:0 0 130px;">${esc(label)}</span>
+                <span style="text-align:right; color:#eee; flex:1;">${esc(value)}</span>
             </div>
         `).join('');
         printBtn.onclick = onPrint;
@@ -1937,7 +1973,7 @@ function closeIncidentPhotosModal(){
     printWindow.document.write(`
         <html>
         <head>
-            <title>Incident Report - ${inc.category || inc.type}</title>
+            <meta http-equiv="Content-Security-Policy" content="script-src 'none'"><title>Incident Report - ${inc.category || inc.type}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
                 h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -1982,7 +2018,7 @@ function closeIncidentPhotosModal(){
     printWindow.document.write(`
         <html>
         <head>
-            <title>e-Medicare — Full System Report</title>
+            <meta http-equiv="Content-Security-Policy" content="script-src 'none'"><title>e-Medicare — Full System Report</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
                 h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -2217,11 +2253,11 @@ function closeIncidentPhotosModal(){
         <div class="request-card ${String(r.id) === String(selectedRequestId) ? 'selected':''}" onclick="selectRequest('${r.id}')">
         <div class="request-card-top">
             <span class="request-card-name">${esc(r.resident_name)}</span>
-            <span class="status-pill ${statusClass(r.status)}"><span class="status-dot"></span>${r.status}</span>
+            <span class="status-pill ${statusClass(r.status)}"><span class="status-dot"></span>${esc(r.status)}</span>
                 </div>
         <div class="request-card-detail">${esc(r.category)} · ₱${Number(r.estimated_cost || 0).toLocaleString()}</div>
         <div class="request-card-meta">
-            <span class="badge">${r.priority}</span>
+            <span class="badge">${esc(r.priority)}</span>
             <span class="timestamp">${timeAgo(r.created_at)}</span>
         </div>
         </div>
@@ -2276,7 +2312,7 @@ function closeIncidentPhotosModal(){
 
 
 
-    wrap.innerHTML = docs.map((d, i) => `📎 <a href="#" id="doc-link-${i}" style="color:#00b0ff; text-decoration:underline;">${d}</a>`).join('<br>');
+    wrap.innerHTML = docs.map((d, i) => `📎 <a href="#" id="doc-link-${i}" style="color:#00b0ff; text-decoration:underline;">${esc(d)}</a>`).join('<br>');
 
 
 
@@ -2356,6 +2392,7 @@ function closeIncidentPhotosModal(){
 
     async function handleAssistanceEvaluation(e){
     e.preventDefault();
+     guardSubmit(e);
     const action = e.submitter ? e.submitter.value : 'Approve';
     console.log('handleAssistanceEvaluation called, action:', action);
     const id = document.getElementById('selectedRequestId').value;
@@ -2466,7 +2503,7 @@ function closeIncidentPhotosModal(){
         <div class="queue-card">
         <div class="qc-top">
             <div><span class="queue-rank">${idx+1}</span><b>${esc(r.resident_name)}</b></div>
-            <span class="badge">${r.priority}</span>
+            <span class="badge">${esc(r.priority)}</span>
         </div>
         <div class="request-card-detail" style="margin-top:6px;">${esc(r.purpose || '')}</div>
         <div class="queue-score">Priority score: <b>${r.priorityScore}</b> · Cost: ₱${Number(r.estimated_cost||0).toLocaleString()} · Waiting ${timeAgo(r.created_at)}</div>
@@ -2522,7 +2559,7 @@ function closeIncidentPhotosModal(){
     printWindow.document.write(`
         <html>
         <head>
-            <title>Assistance Record - ${r.resident_name}</title>
+            <meta http-equiv="Content-Security-Policy" content="script-src 'none'"><title>Assistance Record - ${r.resident_name}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
                 h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -2561,24 +2598,31 @@ function closeIncidentPhotosModal(){
     if(!r) return;
     if(r.estimated_cost > remainingBudget()){ alert('Fund pool balance is insufficient for this request.'); return; }
 
+    const history = pushHistory(r, 'Disbursed', 'Released from priority queue once funds became available.');
 
-
-        const history = pushHistory(r, 'Disbursed', 'Released from priority queue once funds became available.');
-    const { error } = await supabase.from('medical_assistance_requests')
+    const { data: rows, error } = await supabase.from('medical_assistance_requests')
         .update({ status: 'Disbursed', history })
-        .eq('id', r.id);
+        .eq('id', r.id)
+        .eq('status', 'Queued')
+        .select('id');
+
     if(error){ alert('Hindi na-update: ' + error.message); return; }
+    if(!rows?.length){
+        alert('Na-disburse na o nabago na ang request.');
+        loadMedicalRequestsFromSupabase();
+        return;
+    }
 
     const b = getBudget();
     b.allocated += Number(r.estimated_cost || 0);
     save(DB.budget, b);
 
-
-
     logActivity('budget', `Queued request for <b>${r.resident_name}</b> disbursed (₱${Number(r.estimated_cost).toLocaleString()}). Remaining: ₱${remainingBudget().toLocaleString()}.`);
     await notifyResident(r, `Hi ${r.resident_name}, good news — funds are now available. Your ₱${Number(r.estimated_cost).toLocaleString()} assistance is ready for release at the barangay office.`);
     loadMedicalRequestsFromSupabase();
-    }
+}
+
+    
 
 
 
@@ -2697,7 +2741,7 @@ function renderTranspoList(){
         <div class="request-card-detail">${esc(r.pickup_location)} → ${esc(r.destination)}</div>
         ${driver ? `<div class="request-card-detail" style="color:#00b0ff;">🧑‍✈️ Driver: ${driver.name}</div>` : ''}
         <div class="request-card-meta">
-            <span class="badge">${r.transport_type || ''}</span>
+            <span class="badge">${esc(r.transport_type || '')}</span>
             <span class="timestamp">${timeAgo(r.created_at)}</span>
         </div>
         </div>
@@ -2800,6 +2844,7 @@ function selectTranspoRequest(id){
 
 async function handleTranspoEvaluation(e){
     e.preventDefault();
+     guardSubmit(e);
     const action = e.submitter ? e.submitter.value : 'Approve';
     const id = document.getElementById('selectedTranspoId').value;
     const r = transpoCache.find(x => String(x.id) === String(id));
@@ -2971,9 +3016,9 @@ function showReservationToast(r, stage, diffMin, time, vehicle, driver){
         <div style="font-weight:700; color:${isNow ? '#ff8a8a' : '#ffd700'}; margin-bottom:4px;">
             ${isNow ? '🔔 Oras na ng Reservation' : '⏰ Malapit na ang Reservation'}
         </div>
-        <div style="font-size:.85em; margin-bottom:4px;"><b>${time}</b> — ${r.patient_name}</div>
+        <div style="font-size:.85em; margin-bottom:4px;"><b>${time}</b> — ${esc(r.patient_name)}</div>
         <div style="font-size:.78em; color:#ccc; margin-bottom:8px;">
-            ${r.pickup_location} → ${r.destination}<br>
+            ${esc(r.pickup_location)} → ${esc(r.destination)}<br>
             ${vehicle ? '🚑 ' + vehicle.name : ''}${driver ? ' · 🧑‍✈️ ' + driver.name : ''}
             ${isNow ? '' : '<br>Sa loob ng ' + diffMin + ' minuto'}
         </div>
@@ -3007,7 +3052,7 @@ function renderReservationBanner(active){
                 <div style="font-weight:700; color:${isNow ? 'var(--red)' : 'var(--gold)'};">
                     ${isNow ? '🔔' : '⏰'} ${label} — ${a.time}
                 </div>
-                <div>${a.r.patient_name} · ${a.r.pickup_location} → ${a.r.destination}</div>
+                <div>${esc(a.r.patient_name)} · ${esc(a.r.pickup_location)} → ${esc(a.r.destination)}</div>
                                <div style="color:var(--text-muted);">${a.vehicle ? '🚑 ' + a.vehicle.name : ''}${a.driver ? ' · 🧑‍✈️ ' + a.driver.name : ''}</div>
                 <button class="primary-btn" style="margin-top:6px; font-size:.78em; padding:6px 12px; background:${isNow ? 'var(--red)' : 'var(--gold)'}; color:#111;" onclick="openTranspoDispatch('${a.r.id}')">🚀 Dispatch Now</button>
             </div>`;
@@ -3031,9 +3076,9 @@ function openTranspoDispatch(id){
     const sv = r.assigned_vehicle ? fleetCache.find(f => String(f.id) === String(r.assigned_vehicle)) : null;
     const sd = r.assigned_driver ? fleetCache.find(f => String(f.id) === String(r.assigned_driver)) : null;
 
-    document.getElementById('tdInfo').innerHTML = `
-        <div><b>${r.patient_name}</b> · ${new Date(r.schedule_time).toLocaleString('en-PH')}</div>
-        <div style="color:var(--text-muted);">${r.pickup_location} → ${r.destination}</div>`;
+        document.getElementById('tdInfo').innerHTML = `
+        <div><b>${esc(r.patient_name)}</b> · ${new Date(r.schedule_time).toLocaleString('en-PH')}</div>
+        <div style="color:var(--text-muted);">${esc(r.pickup_location)} → ${esc(r.destination)}</div>`;
 
     const problems = [];
     if(r.assigned_vehicle && (!sv || sv.status !== 'Available'))
@@ -3067,6 +3112,7 @@ function openTranspoDispatch(id){
 
 async function confirmTranspoDispatch(e){
     e.preventDefault();
+     guardSubmit(e);
     const id = document.getElementById('tdId').value;
     const r = transpoCache.find(x => String(x.id) === String(id));
     const vehicle = fleetCache.find(f => String(f.id) === String(document.getElementById('tdVehicle').value));
@@ -3186,7 +3232,7 @@ function renderReservationCalendar(){
 
             return `
                 <div class="reservation-chip ${isConflict ? 'conflict' : ''}">
-                    <div><b>${time}</b> — ${r.patient_name}</div>
+                    <div><b>${time}</b> — ${esc(r.patient_name)}</div>
                     <div style="font-size:.85em; color:#aaa; margin-top:2px;">
                         ${vehicle ? '🚑 ' + vehicle.name : '— Walang vehicle —'}${driver ? ' · 🧑\u200d✈️ ' + driver.name : ''}
                     </div>
@@ -3223,7 +3269,7 @@ function renderReservationCalendar(){
     printWindow.document.write(`
         <html>
         <head>
-            <title>Transport Record - ${r.patient_name}</title>
+            <meta http-equiv="Content-Security-Policy" content="script-src 'none'"><title>Transport Record - ${r.patient_name}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
                 h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -3686,7 +3732,9 @@ async function toggleUserActive(id){
   const u = usersCache.find(x => x.id === id);
   if(!u) return;
   markSeen('users', id);   // BAGO
-  const wasActive = u.active !== false;
+    const wasActive = u.active !== false;
+  const { data: { user: me } } = await supabase.auth.getUser();
+  if(me && me.id === id && wasActive){ alert('Hindi mo puwedeng i-deactivate ang sarili mong account.'); return; }
   const confirmMsg = wasActive
     ? `Deactivate ${u.name}'s account? Mawawalan sila ng access sa system.`
     : `Reactivate ${u.name}'s account?`;

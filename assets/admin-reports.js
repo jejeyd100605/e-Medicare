@@ -59,7 +59,7 @@ function renderResponseSummary(){
     const pct = maxAvg ? Math.round((avg / maxAvg) * 100) : 0;
     return `
       <div class="report-bar-row">
-        <div class="report-bar-label">${t} <span style="color:#888;">(${vals.length})</span></div>
+        <div class="report-bar-label">${esc(t)} <span style="color:#888;">(${vals.length})</span></div>
         <div class="report-bar-track"><div class="report-bar-fill" style="width:${pct}%;"></div></div>
         <div class="report-bar-value">${avg} min</div>
       </div>
@@ -100,14 +100,14 @@ async function renderRequestVolume(){
     const pct = Math.round((byCategory[cat] / requests.length) * 100);
     return `
       <div class="report-bar-row">
-        <div class="report-bar-label">${cat}</div>
+        <div class="report-bar-label">${esc(cat)}</div>
         <div class="report-bar-track"><div class="report-bar-fill" style="width:${pct}%; background:#ff9100;"></div></div>
         <div class="report-bar-value">${byCategory[cat]}</div>
       </div>`;
   }).join('');
 
   const statusChips = Object.keys(byStatus).map(st => `
-    <span class="status-pill ${statusClass(st)}" style="margin:3px 6px 3px 0;">${st}: ${byStatus[st]}</span>
+    <span class="status-pill ${statusClass(st)}" style="margin:3px 6px 3px 0;">${esc(st)}: ${byStatus[st]}</span>
   `).join('');
 
   wrap.innerHTML = `
@@ -154,7 +154,8 @@ function renderFleetUtilization(){
             || String(i.assigned_driver_id) === String(f.profileId);
       }
       // Vehicle (o personnel na walang account): base sa pangalan sa team label
-      return i.assigned_to && i.assigned_to.includes(f.name);
+            if(!i.assigned_to) return false;
+      return String(i.assigned_to).split(' + ').map(s => s.trim()).includes(f.name);
     });
 
     const secs = cases

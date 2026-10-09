@@ -267,7 +267,7 @@ function populateCoordIncidentSelect(){
     sorted.map(i => {
       const who = i.sender ? i.sender.name : 'Unknown Resident';
       const tag = i.type === 'SOS' ? '🚨 SOS' : '🚨 Emergency';
-      return `<option value="${i.id}">${tag} — ${who} · ${i.category || i.type} · ${timeAgo(i.created_at)}</option>`;
+      return `<option value="${i.id}">${tag} — ${esc(who)} · ${esc(i.category || i.type)} · ${timeAgo(i.created_at)}</option>`;
     }).join('');
 
 
@@ -338,6 +338,7 @@ function resetCoordForm(){
 
 async function handleSendCoordination(e){
   e.preventDefault();
+   guardSubmit(e); 
 
   const editId   = document.getElementById('coordId').value;
   const agencyId = document.getElementById('coordAgency').value;
@@ -599,7 +600,7 @@ function coordCardHTML(r, isDone){
     ['ETA', r.eta || '—'],
     ['Remarks', r.remarks || '—'],
   ];
-  if(r.incidentRef) rows.splice(3, 0, ['Related Incident', r.incidentRef]);
+  if(r.incidentRef) rows.splice(3, 0, ['Related Incident', esc(r.incidentRef)]);
   if(r.documentName) rows.push(['Dokumento', '📎 ' + r.documentName]);
   if(isDone) rows.push(['Response Time', `<b style="color:${r.responseMs !== null ? 'var(--green)' : '#888'};">${durationLabel(r.responseMs)}</b>`]);
 
@@ -781,7 +782,7 @@ function printCoordRecord(id){
 
   const w = window.open('', '_blank', 'width=800,height=900');
   w.document.write(`
-    <html><head><title>Coordination Record - ${r.refId}</title>
+    <html><head><meta http-equiv="Content-Security-Policy" content="script-src 'none'"><meta http-equiv="Content-Security-Policy" content="script-src 'none'"><title>Coordination Record - ${r.refId}</title>
     <style>
       body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
       h1 { font-size: 18px; border-bottom: 2px solid #333; padding-bottom: 8px; }
