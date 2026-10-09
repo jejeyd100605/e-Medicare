@@ -471,8 +471,42 @@ async function completeCoord(id){
   if(error){ alert('Hindi na-update: ' + error.message); return; }
 
   logActivity('comms', `Coordination <b>${r.refId}</b> completed — ${esc(r.agencyName)} · response time ${durationLabel(responseMs)}.`);
+
+  // Awtomatikong isara ang naka-link na SOS/Emergency kung wala pang sariling team na naka-dispatch
+  if(r.incidentId){
+    const { data: closed, error: incError } = await supabase
+      .from('emergency_requests')
+      .update({
+        status: 'Resolved',
+        completed_at: completedAt,
+        eta: `Hinawakan ng external agency: ${r.agencyName} (${r.refId})`
+      })
+      .eq('id', r.incidentId)
+      .in('status', ['Pending', 'Waiting List'])
+      .select('id, sender_id, category, type');
+
+    if(incError){
+      console.error('Hindi na-close ang naka-link na incident:', incError.message);
+      alert('Natapos ang coordination, pero hindi na-close ang naka-link na incident: ' + incError.message);
+    }else if(closed && closed.length){
+      const inc = closed[0];
+      logActivity('dispatch', `${esc(inc.category || inc.type)} incident awtomatikong na-resolve — hinawakan ng <b>${esc(r.agencyName)}</b> (${r.refId}).`);
+
+      if(inc.sender_id){
+        await supabase.from('notifications').insert({
+          receiver_id: inc.sender_id,
+          title: 'Emergency Report Update',
+          message: `Natugunan ang iyong emergency report sa tulong ng ${r.agencyName}.`
+        });
+      }
+
+      if(typeof stopSOSAlertLoop === 'function') stopSOSAlertLoop();
+      if(typeof loadIncidentsFromSupabase === 'function') await loadIncidentsFromSupabase();
+    }
+  }
+
   await loadCoordinations();
-};
+}
 
 
 async function declineCoord(id){
