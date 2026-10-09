@@ -2400,9 +2400,13 @@ function startRealtimeMonitoring() {
 
 
 
-    supabase
+        supabase
         .channel('fleet_changes_responder_view')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'fleet' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'fleet' }, async () => {
+            if (CURRENT_RESPONDER?.id) {
+                myFleetRow = await loadMyFleetRow(CURRENT_RESPONDER.id);
+            }
+            renderUnitHeader();
             updateVehicleMetrics();
             renderAssignedPersonnel();
         })

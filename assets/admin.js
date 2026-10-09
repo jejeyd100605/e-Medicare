@@ -3152,10 +3152,16 @@ async function confirmTranspoDispatch(e){
         { f: vehicle, tag: tag(`Driver: ${driver.name}`) },
         { f: driver, tag: tag(`Vehicle: ${vehicle.name}`) }
     ];
-    for(const u of updates){
-        const { error } = await supabase.from('fleet')
-            .update({ status: 'On Duty', assigned_to: u.tag }).eq('id', u.f.id).select();
+        for(const u of updates){
+        const { data: upd, error } = await supabase.from('fleet')
+            .update({ status: 'On Duty', assigned_to: u.tag })
+            .eq('id', u.f.id)
+            .select();
         if(error){ alert(`Hindi na-update ang ${u.f.name}: ` + error.message); return; }
+        if(!upd?.length){
+            alert(`Hindi na-apply ang On Duty para kay ${u.f.name}. Posibleng RLS/permissions issue sa "fleet" table.`);
+            return;
+        }
     }
 
     // 3) Itala ang dispatch at ang aktwal na vehicle/driver
