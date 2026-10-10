@@ -1015,7 +1015,18 @@ function scrollDetailPanelIntoView(){
 }
 
 
-
+function parseTranspoDescription(desc) {
+    const get = (label) => {
+        const m = String(desc || '').match(new RegExp(label + ':\\s*([^|]+)'));
+        return m ? m[1].trim() : null;
+    };
+    return {
+        pickup: get('Pickup'),
+        destination: get('Destination'),
+        schedule: get('Schedule'),
+        condition: get('Kondisyon')
+    };
+}
 
 function renderDetails(incidents) {
     const detailDiv = document.getElementById('incidentDetails');
@@ -1083,7 +1094,8 @@ function renderDetails(incidents) {
 
 
 
-    const isTransportRequest = incident.type === 'Transpo';
+        const isTransportRequest = incident.type === 'Transpo';
+    const transpo = isTransportRequest ? parseTranspoDescription(incident.description) : null;
 
 
 
@@ -1104,14 +1116,24 @@ function renderDetails(incidents) {
 
 
 
-            <div class="incident-information-grid">
+                        <div class="incident-information-grid">
+                ${isTransportRequest ? `
+                <p><strong><i class="fas fa-location-dot"></i> Pickup / Landmark:</strong><br>
+                    ${escapeHtml(transpo.pickup || 'Not provided')}</p>
+                <p><strong><i class="fas fa-hospital"></i> Destination:</strong><br>
+                    ${escapeHtml(transpo.destination || 'Not provided')}</p>
+                <p><strong><i class="fas fa-clock"></i> Schedule:</strong><br>
+                    ${escapeHtml(transpo.schedule || 'Not provided')}</p>
+                <p><strong><i class="fas fa-heart-pulse"></i> Patient Condition:</strong><br>
+                    ${escapeHtml(transpo.condition || 'Not provided')}</p>
+                ` : ''}
                 <p><strong><i class="fas fa-user-circle"></i> Patient:</strong><br>
         ${escapeHtml(incident.patientName)} (${escapeHtml(incident.patientAge)}, ${escapeHtml(incident.patientSex)})
 </p>
                 <p><strong><i class="fas fa-phone"></i> Contact No.:</strong><br>
                     ${escapeHtml(incident.patientContact)}
                 </p>
-                <p><strong><i class="fas fa-home"></i> Address:</strong><br>
+                                <p><strong><i class="fas fa-home"></i> ${isTransportRequest ? 'Home Address (profile):' : 'Address:'}</strong><br>
                     ${escapeHtml(incident.patientAddress)}
                 </p>
                 <p><strong><i class="fas fa-calendar-alt"></i> Date/Time:</strong><br>

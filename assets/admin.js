@@ -3130,7 +3130,7 @@ async function confirmTranspoDispatch(e){
         type: 'Transpo',
         category: 'Transport Request',
         service_type: 'Transpo',
-        description: `Pickup: ${r.pickup_location} | Destination: ${r.destination}${r.patient_condition ? ' | Kondisyon: ' + r.patient_condition : ''}${r.reason ? ' | ' + r.reason : ''}`,
+                description: `Pickup: ${r.pickup_location} | Destination: ${r.destination}${r.schedule_time ? ' | Schedule: ' + new Date(r.schedule_time).toLocaleString('en-PH') : ''}${r.patient_condition ? ' | Kondisyon: ' + r.patient_condition : ''}${r.reason ? ' | ' + r.reason : ''}`,
         status: 'Assigned',
         patient_name: r.patient_name,
         sender_id: r.sender_id || null,
