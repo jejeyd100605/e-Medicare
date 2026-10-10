@@ -714,10 +714,27 @@ async function handleLogin(e) {
         return;
     }
 
-    if (profile.active === false) {
+        if (profile.active === false) {
         alert("Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.");
         await supabase.auth.signOut();
         return;
+    }
+
+    // BAGO — pilitin ang pagpalit ng password kapag nag-reset ang admin
+    if (profile.force_password_reset) {
+        const newPass = prompt('Kailangan mong magtakda ng bagong password (min. 6 characters):');
+        if (!newPass || newPass.length < 6) {
+            await supabase.auth.signOut();
+            alert('Kailangan ng bagong password para makapasok.');
+            return;
+        }
+        const { error: pwErr } = await supabase.auth.updateUser({ password: newPass });
+        if (pwErr) {
+            await supabase.auth.signOut();
+            alert('Hindi napalitan: ' + pwErr.message);
+            return;
+        }
+        await supabase.from('profiles').update({ force_password_reset: false }).eq('id', data.user.id);
     }
 
     window._currentProfile = profile;

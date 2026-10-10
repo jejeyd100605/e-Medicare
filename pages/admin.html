@@ -944,23 +944,23 @@
     </div>
 
 
-    <!-- MODAL: SECURITY OVERRIDE -->
+        <!-- MODAL: SECURITY OVERRIDE -->
     <div class="modal" id="securityModal" style="display: none;">
         <div class="modal-content" style="max-width: 400px;">
             <h4 style="font-size: 1em; color: var(--purple); margin-bottom: 10px;">🔑 Account Security Override</h4>
-            <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 15px;">Manually resetting credential configurations for: <strong id="resetTargetName" style="color: var(--text-main);">-</strong></p>
-
+            <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 15px;">Resetting the password for: <strong id="resetTargetName" style="color: var(--text-main);">-</strong></p>
 
             <form onsubmit="handleResetPassword(event)">
                 <input type="hidden" id="resetTargetId">
 
+                <label style="font-size: 0.8em;">Pansamantalang Password:</label>
+                <input type="text" id="resetNewPassword" class="form-control" placeholder="Min. 6 characters" required minlength="6">
 
-                               <p style="font-size: 0.8em; color: var(--gold); margin-top: 5px;">ℹ️ Ima-mark ang account na kailangang mag-set ng bagong password sa susunod na login.</p>
-
+                <p style="font-size: 0.8em; color: var(--gold); margin-top: 5px;">ℹ️ Ibigay mo sa user ang pansamantalang password na ito. Hihilingin sa kanya na magpalit ng bago pagka-login.</p>
 
                 <div class="modal-action-grid" style="margin-top: 20px;">
                     <div class="action-row">
-                        <button type="submit" class="primary-btn" style="background: var(--purple); color: white; flex: 1.5;">Update Password</button>
+                        <button type="submit" class="primary-btn" style="background: var(--purple); color: white; flex: 1.5;">Reset Password</button>
                         <button type="button" class="primary-btn btn-secondary" style="flex: 1;" onclick="closeSecurityModal()">Close</button>
                     </div>
                 </div>

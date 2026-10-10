@@ -302,36 +302,6 @@ function toDbChanges(changes) {
 /* ---------------------------------------------------------
    SESSION + FLEET LINKING (responder identity)
 --------------------------------------------------------- */
-async function handleCredsSubmit(e){
-  e.preventDefault();
-  const email = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-
-
-
-
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if(error){ showAuthError('Incorrect email or password.'); return false; }
-
-
-
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', data.user.id)
-    .single();
-
-
-
-
-  if(profile.role === 'admin') window.location.href = '/pages/admin.html';
-  else if(profile.role === 'responder') window.location.href = '/pages/responder.html';
-  else window.location.href = '/pages/resident.html';
-}
-
-
-
 
 async function loadMyFleetRow(profileId){
     const { data, error } = await supabase

@@ -414,7 +414,6 @@ let trackingRouteLine = null;
     if(!localStorage.getItem(DB.budget)){
         save(DB.budget, { total: 30000, allocated: 0, quarter:'Q3 2026' });
     }
-
     if(!localStorage.getItem(DB.users)){
         save(DB.users, [
     { id: uid('usr'), name:'Barangay Captain Reyes', role:'Admin / Barangay Captain', contact:'0917 000 1111', tempPassword:false, active:true }
@@ -3795,13 +3794,31 @@ async function toggleUserActive(id){
 
 async function handleResetPassword(e){
   e.preventDefault();
-  const { error } = await supabase.from('profiles').update({ force_password_reset: true }).eq('id', resetTargetId);
-  if(error){ alert('Hindi na-flag: ' + error.message); return; }
+  guardSubmit(e);
 
+  const newPassword = document.getElementById('resetNewPassword').value;
+  if(!newPassword || newPassword.length < 6){
+    alert('Maglagay ng pansamantalang password (min. 6 characters).');
+    return;
+  }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  const response = await fetch('https://szxptfuwkmqwcipxpoym.supabase.co/functions/v1/reset-user-password', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ userId: resetTargetId, newPassword })
+  });
+  const result = await response.json();
+  if(!response.ok){ alert('Hindi na-reset: ' + (result.error || 'Unknown error')); return; }
 
   const u = usersCache.find(x => x.id === resetTargetId);
-  logActivity('user', `Password reset flagged for <b>${u?.name || 'user'}</b> — sila mismo magse-set ng bagong password sa susunod na login.`);
+  logActivity('user', `Password ni <b>${u?.name || 'user'}</b> ay ni-reset ng admin. Kailangan nilang magpalit pagka-login.`);
+  document.getElementById('resetNewPassword').value = '';
+  alert('Na-reset na. Ibigay kay ' + (u?.name || 'user') + ' ang pansamantalang password. Papalitan nila ito pagka-login.');
   closeSecurityModal();
   loadUsersFromSupabase();
 }
