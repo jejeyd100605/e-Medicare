@@ -2157,7 +2157,17 @@ function closeIncidentPhotosModal(){
     /* ---------------------------------------------------------
     BUDGET (funds available for financial medical assistance)
     --------------------------------------------------------- */
-    function getBudget(){ return load(DB.budget, { total: 0, allocated: 0, quarter:'' }); }
+        let budgetCache = { total: 0, allocated: 0, quarter: '' };
+    function getBudget(){ return budgetCache; }
+
+    async function loadBudgetFromSupabase(){
+        const { data, error } = await supabase.from('budget_settings').select('*').eq('id', 1).single();
+        if(error){ console.error('Hindi makuha ang budget:', error.message); return; }
+        const allocated = medicalRequestsCache
+            .filter(r => r.status === 'Disbursed')
+            .reduce((sum, r) => sum + Number(r.estimated_cost || 0), 0);
+        budgetCache = { total: Number(data.total), allocated, quarter: data.quarter };
+    }
     function remainingBudget(){ const b = getBudget(); return b.total - b.allocated; }
 
 
@@ -2183,15 +2193,17 @@ function closeIncidentPhotosModal(){
 
 
 
-    function topUpBudget(){
+    async function topUpBudget(){
     const input = document.getElementById('topUpAmount');
     const amount = Number(input.value);
     if(!amount || amount <= 0){ alert('Enter a valid fund amount.'); return; }
     const b = getBudget();
-    b.total += amount;
-    save(DB.budget, b);
+    const { error } = await supabase.from('budget_settings')
+        .update({ total: b.total + amount }).eq('id', 1);
+    if(error){ alert('Hindi na-update ang budget: ' + error.message); return; }
     logActivity('budget', `₱${amount.toLocaleString()} added to the ${b.quarter} medical assistance fund pool.`);
     input.value = '';
+    await loadBudgetFromSupabase();
     renderBudgetBox('queueBudgetBox');
     renderQueue();
     }
@@ -2213,7 +2225,8 @@ function closeIncidentPhotosModal(){
 
 
         if(error){ console.error('Hindi makuha ang medical assistance requests:', error.message); return; }
-        medicalRequestsCache = data || [];
+                medicalRequestsCache = data || [];
+        await loadBudgetFromSupabase();
         renderRequests();
         renderQueue();
         renderRequestHistory();
@@ -2226,6 +2239,9 @@ function closeIncidentPhotosModal(){
             .channel('medical-assistance-requests-changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'medical_assistance_requests' }, (payload) => {
                 if(payload.eventType === 'INSERT') markTabUpdated('queue', payload.new.id);   // BAGO
+                loadMedicalRequestsFromSupabase();
+            })
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'budget_settings' }, () => {
                 loadMedicalRequestsFromSupabase();
             })
             .subscribe();
@@ -2447,13 +2463,10 @@ function closeIncidentPhotosModal(){
             .update({ status: 'Disbursed', category, priority, estimated_cost: cost, admin_notes: notes, history })
             .eq('id', r.id);
         if(error){ alert('Hindi na-update: ' + error.message); return; }
-        const b = getBudget();
-        b.allocated += cost;
-        save(DB.budget, b);
+        
 
 
-
-        logActivity('budget', `₱${cost.toLocaleString()} disbursed to <b>${r.resident_name}</b>. Remaining fund pool: ₱${remainingBudget().toLocaleString()}.`);
+        logActivity('budget', `₱${cost.toLocaleString()} disbursed to <b>${r.resident_name}</b>. Remaining fund pool: ₱${(remainingBudget() - cost).toLocaleString()}.`);
         await notifyResident(r, `Hi ${r.resident_name}, your financial assistance request has been approved and funds (₱${cost.toLocaleString()}) are ready for release at the barangay office.${notes ? ' Note: ' + notes : ''}`);
         }
     }else{
@@ -2616,11 +2629,8 @@ function closeIncidentPhotosModal(){
         return;
     }
 
-    const b = getBudget();
-    b.allocated += Number(r.estimated_cost || 0);
-    save(DB.budget, b);
 
-    logActivity('budget', `Queued request for <b>${r.resident_name}</b> disbursed (₱${Number(r.estimated_cost).toLocaleString()}). Remaining: ₱${remainingBudget().toLocaleString()}.`);
+    logActivity('budget', `Queued request for <b>${r.resident_name}</b> disbursed (₱${Number(r.estimated_cost).toLocaleString()}). Remaining: ₱${(remainingBudget() - Number(r.estimated_cost)).toLocaleString()}.`);
     await notifyResident(r, `Hi ${r.resident_name}, good news — funds are now available. Your ₱${Number(r.estimated_cost).toLocaleString()} assistance is ready for release at the barangay office.`);
     loadMedicalRequestsFromSupabase();
 }
