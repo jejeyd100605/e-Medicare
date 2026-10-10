@@ -414,8 +414,7 @@ let trackingRouteLine = null;
     if(!localStorage.getItem(DB.budget)){
         save(DB.budget, { total: 30000, allocated: 0, quarter:'Q3 2026' });
     }
-    if(!localStorage.getItem(DB.activity)) save(DB.activity, []);
-    if(!localStorage.getItem(DB.notifications)) save(DB.notifications, []);
+
     if(!localStorage.getItem(DB.users)){
         save(DB.users, [
     { id: uid('usr'), name:'Barangay Captain Reyes', role:'Admin / Barangay Captain', contact:'0917 000 1111', tempPassword:false, active:true }
@@ -429,13 +428,35 @@ let trackingRouteLine = null;
     /* ---------------------------------------------------------
     ACTIVITY LOG + NOTIFICATIONS (core cross-cutting features)
     --------------------------------------------------------- */
-    function logActivity(type, message){
-    const list = load(DB.activity, []);
-    list.unshift({ id: uid('act'), type, message, at: nowISO() });
-    save(DB.activity, list.slice(0, 300));
-   renderActivity();
-    renderDashboardCounts();
-    markTabUpdated('activity');   // BAGO
+        let activityCache = [];
+
+    async function logActivity(type, message){
+        const { error } = await supabase.from('activity_log').insert({ type, message });
+        if(error){ console.error('Hindi na-save ang activity:', error.message); }
+        // Hindi na tayo magre-render dito. Ang realtime listener ang mag-a-update.
+    }
+
+    async function loadActivityFromSupabase(){
+        const { data, error } = await supabase
+            .from('activity_log')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(300);
+        if(error){ console.error('Hindi makuha ang activity log:', error.message); return; }
+        activityCache = data || [];
+        renderActivity();
+    }
+
+    function subscribeActivityRealtime(){
+        supabase
+            .channel('activity-log-changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, (payload) => {
+                activityCache.unshift(payload.new);
+                activityCache = activityCache.slice(0, 300);
+                renderActivity();
+                markTabUpdated('activity');
+            })
+            .subscribe();
     }
 
 
@@ -451,7 +472,7 @@ let trackingRouteLine = null;
     const wrap = document.getElementById('activityList');
     if(!wrap) return;
     const filter = wrap.dataset.filter || 'all';
-    const list = load(DB.activity, []).filter(a => filter === 'all' || a.type === filter);
+        const list = activityCache.filter(a => filter === 'all' || a.type === filter);
     document.getElementById('activityCountBadge') && (document.getElementById('activityCountBadge').textContent = list.length + ' Events');
 
 
@@ -465,7 +486,7 @@ let trackingRouteLine = null;
         <div class="activity-icon">${ACTIVITY_ICONS[a.type] || '•'}</div>
         <div>
             <div class="activity-text">${esc(a.message).replace(/&lt;b&gt;/g,'<b>').replace(/&lt;\/b&gt;/g,'</b>')}</div>
-            <div class="activity-meta">${fmtTime(a.at)} · ${timeAgo(a.at)}</div>
+                        <div class="activity-meta">${fmtTime(a.created_at)} · ${timeAgo(a.created_at)}</div>
         </div>
         </div>
     `).join('');
@@ -2101,8 +2122,8 @@ function closeIncidentPhotosModal(){
             <h2>📈 Recent Activity</h2>
             <table>
                 <tr><th>Event</th><th>Date/Time</th></tr>
-                ${load(DB.activity, []).slice(0, 30).map(a => `
-                    <tr><td>${a.message.replace(/<[^>]+>/g, '')}</td><td>${fmtTime(a.at)}</td></tr>
+                                ${activityCache.slice(0, 30).map(a => `
+                    <tr><td>${a.message.replace(/<[^>]+>/g, '')}</td><td>${fmtTime(a.created_at)}</td></tr>
                 `).join('')}
             </table>
                     
@@ -3835,6 +3856,8 @@ function subscribeProfilesRealtime(){
 
 
     requestNotifPermission();
+    await loadActivityFromSupabase();
+    subscribeActivityRealtime();
     await loadFleetFromSupabase();
     subscribeFleetRealtime();
     await loadUsersFromSupabase();
