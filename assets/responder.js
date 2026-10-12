@@ -211,7 +211,7 @@ async function checkResponderSession() {
 
 
     if (!session) {
-        window.location.href ='/pages/login.html';
+               window.location.replace('/pages/login.html');
         return null;
     }
 
@@ -231,7 +231,7 @@ async function checkResponderSession() {
         console.error('Hindi makuha ang responder profile:', error?.message);
         alert('Hindi makuha ang account profile mo. Makipag-ugnayan sa admin.');
         await supabase.auth.signOut();
-        window.location.href = '/pages/login.html';
+        window.location.replace('/pages/login.html');
         return null;
     }
 
@@ -241,16 +241,20 @@ async function checkResponderSession() {
     if (profile.active === false) {
         alert('Ang account na ito ay na-deactivate. Makipag-ugnayan sa barangay admin.');
         await supabase.auth.signOut();
-        window.location.href = '/pages/login.html';
+        window.location.replace('/pages/login.html');
+        return null;
+    }
+
+    if (profile.force_password_reset) {
+        await supabase.auth.signOut();
+        window.location.replace('/pages/login.html');
         return null;
     }
 
 
-
-
     if (profile.role !== 'responder') {
         alert('Ang account na ito ay hindi responder account.');
-        window.location.href = '/pages/login.html';
+        window.location.replace('/pages/login.html');
         return null;
     }
 
@@ -2527,8 +2531,8 @@ function logout() {
 
 
 
-        supabase.auth.signOut().then(() => {
-            window.location.href = "/pages/login.html";
+                supabase.auth.signOut().then(() => {
+            window.location.replace("/pages/login.html");
         });
     }
 }
@@ -2620,11 +2624,13 @@ function escapeHtml(value) {
 
 document.getElementById("logoutBtn")?.addEventListener("click", logout);
 
-
-
-
-
-
-
-
-
+// Kapag bumalik ang page mula sa back/forward cache, i-verify ulit ang session
+window.addEventListener('pageshow', async (event) => {
+    const navType = performance.getEntriesByType('navigation')[0]?.type;
+    if (event.persisted || navType === 'back_forward') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.replace('/pages/login.html');
+        }
+    }
+});

@@ -9,7 +9,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_9mabckJnVdJ_Z-9km2T7mQ_c9t_XKiR";
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 supabase.auth.onAuthStateChange((event) => {
     if (event === 'SIGNED_OUT') {
-        window.location.href = '/pages/login.html';
+        window.location.replace('/pages/login.html');
     }
 });
 
@@ -280,7 +280,7 @@ async function loadUserProfile() {
 
 
    if (!session) {
-    window.location.href = '/pages/login.html';
+    window.location.replace('/pages/login.html');
     return;
 }
 
@@ -306,10 +306,17 @@ async function loadUserProfile() {
     if (profile.active === false) {
         await supabase.auth.signOut({ scope: 'local' });
         alert('Na-deactivate ang account mo. Makipag-ugnayan sa Barangay.');
-        window.location.href = '/pages/login.html';
+        window.location.replace('/pages/login.html');
         return;
     }
 
+    if (profile.force_password_reset) {
+        await supabase.auth.signOut({ scope: 'local' });
+        window.location.replace('/pages/login.html');
+        return;
+    }
+
+    
     currentUserName = profile.name;
     currentUserBarangay = profile.barangay || 'Bambang';
     currentUserContact = profile.contact || ''; // BAGO
@@ -1657,7 +1664,7 @@ function showFirstAidGuide(guide) {
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
         supabase.auth.signOut({ scope: 'local' }).then(() => {
-           window.location.href = '/pages/login.html';
+           window.location.replace('/pages/login.html');
         });
     }
 }
@@ -2429,3 +2436,13 @@ setInterval(() => {
 }, 30000);
 
 
+// Kapag bumalik ang page mula sa back/forward cache, i-verify ulit ang session
+window.addEventListener('pageshow', async (event) => {
+    const navType = performance.getEntriesByType('navigation')[0]?.type;
+    if (event.persisted || navType === 'back_forward') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.replace('/pages/login.html');
+        }
+    }
+});
