@@ -571,8 +571,8 @@ function initRoleBadge(profile){
 
    function logout(){
     if(confirm('Log out of the Barangay Bambang control center?')){
-        supabase.auth.signOut().then(() => {
-            window.location.href = '/pages/adminlogin.html';
+                supabase.auth.signOut().then(() => {
+            window.location.replace('/pages/adminlogin.html');
         });
     }
 }
@@ -697,7 +697,7 @@ function initRoleBadge(profile){
 
 
 
-    incidentsCache = data;    incidentsCache = data;
+        incidentsCache = data;
     // Itigil ang alarm kapag wala nang Pending na SOS
     if(!incidentsCache.some(i => i.type === 'SOS' && i.status === 'Pending')) stopSOSAlertLoop();
     renderDashboardCounts();
@@ -4086,3 +4086,12 @@ function renderTrackerModal(){
         : `<div class="empty-state" style="padding:20px;">Walang tugma.</div>`;
 }
 
+// Kapag bumalik ang page mula sa back/forward cache, i-verify ulit ang session
+window.addEventListener('pageshow', async (event) => {
+    if (event.persisted) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.replace('/pages/adminlogin.html');
+        }
+    }
+});

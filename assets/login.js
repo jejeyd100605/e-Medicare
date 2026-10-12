@@ -82,6 +82,13 @@ async function initApp() {
 
 
 
+                        if (profile.force_password_reset) {
+                await supabase.auth.signOut();
+                document.getElementById("formView").classList.remove("hidden");
+                showForm("login");
+                return;
+            }
+
             window._currentProfile = profile;
 
 
@@ -90,7 +97,6 @@ async function initApp() {
                 document.getElementById("setMpinOverlay").classList.remove("hidden");
                 return;
             }
-
 
 
             if (document.getElementById("welcomeName")) {
@@ -720,21 +726,14 @@ async function handleLogin(e) {
         return;
     }
 
-    // BAGO — pilitin ang pagpalit ng password kapag nag-reset ang admin
+       // BAGO — pilitin ang pagpalit ng password kapag nag-reset ang admin
     if (profile.force_password_reset) {
-        const newPass = prompt('Kailangan mong magtakda ng bagong password (min. 6 characters):');
-        if (!newPass || newPass.length < 6) {
-            await supabase.auth.signOut();
-            alert('Kailangan ng bagong password para makapasok.');
-            return;
-        }
-        const { error: pwErr } = await supabase.auth.updateUser({ password: newPass });
-        if (pwErr) {
-            await supabase.auth.signOut();
-            alert('Hindi napalitan: ' + pwErr.message);
-            return;
-        }
-        await supabase.from('profiles').update({ force_password_reset: false }).eq('id', data.user.id);
+        window._pendingForceProfile = profile;
+        document.getElementById("formView").classList.add("hidden");
+        const ov = document.getElementById("forceChangeOverlay");
+        ov.classList.remove("hidden");
+        ov.style.display = "flex";
+        return;
     }
 
     window._currentProfile = profile;
@@ -1012,6 +1011,40 @@ async function submitNewPassword() {
     showForm("login");
 }
 
+async function submitForcedPasswordChange() {
+    const p1 = document.getElementById("forceNewPass").value;
+    const p2 = document.getElementById("forceConfirmPass").value;
+
+    if (!p1 || p1.length < 6) { alert("Dapat hindi bababa sa 6 na characters."); return; }
+    if (p1 !== p2) { alert("Hindi magkatugma ang mga password."); return; }
+
+    const { error } = await supabase.auth.updateUser({ password: p1 });
+    if (error) { alert("Hindi napalitan: " + error.message); return; }
+
+        const profile = window._pendingForceProfile;
+    const { error: flagError } = await supabase
+        .from("profiles")
+        .update({ force_password_reset: false })
+        .eq("id", profile.id);
+    if (flagError) {
+        alert("Napalitan ang password pero hindi na-clear ang flag: " + flagError.message);
+        return;
+    }
+
+    document.getElementById("forceNewPass").value = "";
+    document.getElementById("forceConfirmPass").value = "";
+    const ov = document.getElementById("forceChangeOverlay");
+    ov.classList.add("hidden");
+    ov.style.display = "";
+
+    window._currentProfile = { ...profile, force_password_reset: false };
+
+    if (!profile.mpin) {
+        document.getElementById("setMpinOverlay").classList.remove("hidden");
+        return;
+    }
+    executeSecureRouting(profile.role);
+}
 
 
 // ==========================================================================
