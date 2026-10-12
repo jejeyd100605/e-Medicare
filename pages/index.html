@@ -210,11 +210,21 @@
     </div>
 </div>
 
+<div id="forceChangeOverlay" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,.7); align-items:center; justify-content:center; z-index:9999;">
+  <div style="background:#fff; padding:24px; border-radius:12px; width:90%; max-width:360px;">
+    <h3 style="margin-bottom:8px;">Magtakda ng Bagong Password</h3>
+    <p style="font-size:0.85em; margin-bottom:12px;">Ni-reset ng admin ang password mo. Pumili ng bago.</p>
+    <input type="password" id="forceNewPass" placeholder="Bagong password (min. 6)" style="width:100%; padding:10px; margin-bottom:8px;">
+    <input type="password" id="forceConfirmPass" placeholder="Ulitin ang password" style="width:100%; padding:10px; margin-bottom:12px;">
+    <button type="button" onclick="submitForcedPasswordChange()" style="width:100%; padding:10px;">I-save</button>
+  </div>
+</div>
 
     <div id="setMpinOverlay" class="auth-card hidden" style="position: absolute; z-index: 2000;">
     <h2 style="color:#621a19;">Setup MPIN</h2>
     <p style="color:#666; font-size:14px; margin-bottom:15px;">Create your security PIN</p>
 
+    
 
     <div class="pin-container">
         <input type="password" maxlength="1" class="pin-input reg-mpin" onkeyup="moveFocus(this)">
